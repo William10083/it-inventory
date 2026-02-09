@@ -41,11 +41,20 @@ def get_employee_by_email(db: Session, email: str):
     return db.query(models.Employee).filter(models.Employee.email == email).first()
 
 def get_employees(db: Session, skip: int = 0, limit: int = 100, search: str = None, active_only: bool = False):
-    query = db.query(models.Employee)
+    # Optimize query with eager loading to avoid N+1 problem
+    # We need to load assignments and the device within each assignment
+    query = db.query(models.Employee).options(
+        joinedload(models.Employee.assignments).joinedload(models.Assignment.device)
+    )
+    
     if active_only:
         query = query.filter(models.Employee.is_active == True)
     if search:
         query = query.filter(models.Employee.full_name.ilike(f"%{search}%") | models.Employee.email.ilike(f"%{search}%"))
+    
+    # Order by name for consistent pagination
+    query = query.order_by(models.Employee.full_name)
+    
     return query.offset(skip).limit(limit).all()
 
 def create_employee(db: Session, employee: schemas.EmployeeCreate):

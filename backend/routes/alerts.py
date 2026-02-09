@@ -12,15 +12,23 @@ router = APIRouter(prefix="/alerts")
 def get_alerts(db: Session = Depends(get_db)):
     alerts = []
     
-    # --- 1. STOCK ALERTS (Low Inventory) ---
+    # --- 1. STOCK ALERTS (Optimized) ---
     LOW_STOCK_THRESHOLD = 3
-    critical_devices = ['laptop', 'monitor', 'kit teclado/mouse', 'auriculares']
+    critical_devices = ['laptop', 'monitor', 'kit teclado/mouse', 'auriculares', 'mochila']
+    
+    # Optimized: Single query to get counts for all active device types
+    stock_counts = db.query(
+        Device.device_type, func.count(Device.id)
+    ).filter(
+        Device.device_type.in_(critical_devices),
+        Device.status == DeviceStatus.AVAILABLE
+    ).group_by(Device.device_type).all()
+    
+    # Convert to dict for O(1) lookup
+    counts_map = {item[0]: item[1] for item in stock_counts}
     
     for dev_type in critical_devices:
-        count = db.query(Device).filter(
-            Device.device_type == dev_type,
-            Device.status == DeviceStatus.AVAILABLE
-        ).count()
+        count = counts_map.get(dev_type, 0)
         
         if count < LOW_STOCK_THRESHOLD:
             priority = "critical" if count == 0 else "warning"
@@ -33,20 +41,30 @@ def get_alerts(db: Session = Depends(get_db)):
                 "action_link": "/inventory"
             })
 
-    # --- 2. INTEGRITY ALERTS (Data Inconsistencies) ---
+    # --- 2. INTEGRITY ALERTS (Optimized) ---
     
-    # Example: Employees with multiple active laptops assigned
-    # Subquery to count laptops per employee
+    # Optimized: Get employees with > 1 laptop in a single query + join
+    # We find duplicate assignments first
+    from sqlalchemy.orm import aliased
+    
+    # Subquery for laptop counts
     laptop_counts = db.query(
         Assignment.employee_id, func.count(Assignment.id).label('count')
     ).join(Device).filter(
         Device.device_type == 'laptop',
         Assignment.returned_date == None
-    ).group_by(Assignment.employee_id).all()
+    ).group_by(Assignment.employee_id).having(func.count(Assignment.id) > 1).all()
     
-    for emp_id, count in laptop_counts:
-        if count > 1:
-            emp = db.query(Employee).get(emp_id)
+    if laptop_counts:
+        # Get all affected employee IDs
+        emp_ids = [r.employee_id for r in laptop_counts]
+        # Bulk fetch employees
+        employees_map = {
+            e.id: e for e in db.query(Employee).filter(Employee.id.in_(emp_ids)).all()
+        }
+        
+        for emp_id, count in laptop_counts:
+            emp = employees_map.get(emp_id)
             if emp:
                 alerts.append({
                     "id": f"integrity-multilaptop-{emp_id}",
@@ -54,35 +72,34 @@ def get_alerts(db: Session = Depends(get_db)):
                     "priority": "warning",
                     "title": "Múltiples Laptops Asignadas",
                     "message": f"{emp.full_name} tiene {count} laptops asignadas activamente.",
-                    "action_link": f"/employees" # Ideally deep link to employee details
+                    "action_link": f"/employees/{emp.id}"
                 })
 
-    # --- 3. COMPLIANCE ALERTS (Missing Equipment) ---
+    # --- 3. COMPLIANCE ALERTS (Optimized) ---
     
-    # Employees active > 7 days without LAPTOP
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    # Optimized: Eager load assignments and devices to avoid N+1 loop
+    from sqlalchemy.orm import joinedload
     
-    # Get all active employees created before 7 days ago
-    employees = db.query(Employee).filter(
-        Employee.is_active == True,
-        # Assuming we can use created_at/hiring date logic, but model might not have hiring_date populated properly yet
-        # checking assignments instead.
+    # Filter only active employees to reduce set
+    active_employees = db.query(Employee).options(
+        joinedload(Employee.assignments).joinedload(Assignment.device)
+    ).filter(
+        Employee.is_active == True
     ).all()
     
-    for emp in employees:
-        # Check active assignments
+    for emp in active_employees:
+        # In-memory checks (fast because data is preloaded)
         has_laptop = False
         has_headphones = False
         
-        # We need to query assignments because lazy loading might be slow in loop, 
-        # but for now iterating is fine for small DBs. 
-        # Better: Eager load assignments
         active_assignments = [a for a in emp.assignments if a.returned_date is None]
         
         for a in active_assignments:
-            if a.device and a.device.device_type == 'laptop':
+            if not a.device:
+                continue
+            if a.device.device_type == 'laptop':
                 has_laptop = True
-            if a.device and (a.device.device_type == 'auriculares' or a.device.device_type == 'headset'):
+            elif a.device.device_type in ['auriculares', 'headset']:
                 has_headphones = True
         
         if not has_laptop:

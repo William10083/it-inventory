@@ -1,0 +1,9 @@
+@echo off
+echo Starting IT Inventory System...
+
+echo Starting Backend (if available)...
+start cmd /k "cd backend && py -m uvicorn main:app --reload"
+
+echo Starting Frontend...
+cd frontend
+npm run dev

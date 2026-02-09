@@ -1,0 +1,287 @@
+
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Depends
+from fastapi.responses import Response
+from typing import List
+from sqlalchemy.orm import Session
+from software_catalog import SOFTWARE_CATALOG
+import models, schemas, auth
+from database import get_db
+import os
+import uuid
+import shutil
+
+router = APIRouter()
+
+# Ensure installers directory exists
+INSTALLERS_DIR = "uploads/installers"
+os.makedirs(INSTALLERS_DIR, exist_ok=True)
+
+@router.get("/image-builder/catalog")
+def get_catalog(db: Session = Depends(get_db)):
+    """Returns the available software catalog organized by category, including custom software."""
+    # Get custom software from database
+    custom_software = db.query(models.CustomSoftware).all()
+    
+    # Build catalog with custom software
+    catalog = dict(SOFTWARE_CATALOG)  # Copy the base catalog
+    
+    if custom_software:
+        catalog["Custom Software"] = [
+            {
+                "id": f"custom_{sw.id}",
+                "name": sw.name,
+                "description": sw.description or "Custom installer",
+                "is_custom": True,
+                "custom_id": sw.id
+            }
+            for sw in custom_software
+        ]
+    
+    return catalog
+
+@router.post("/image-builder/custom-software/upload")
+async def upload_custom_software(
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    description: str = Form(None),
+    category: str = Form("Custom"),
+    install_args: str = Form("/S"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Upload a custom installer (.exe or .msi)"""
+    # Validate file extension
+    if not file.filename.lower().endswith(('.exe', '.msi')):
+        raise HTTPException(status_code=400, detail="Only .exe and .msi files are allowed")
+    
+    # Generate unique filename
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(INSTALLERS_DIR, unique_filename)
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+    
+    # Create database record
+    db_software = models.CustomSoftware(
+        name=name,
+        description=description,
+        category=category,
+        filename=file.filename,
+        file_path=file_path,
+        install_args=install_args,
+        uploaded_by_user_id=current_user.id
+    )
+    db.add(db_software)
+    db.commit()
+    db.refresh(db_software)
+    
+    return db_software
+
+@router.get("/image-builder/custom-software", response_model=List[schemas.CustomSoftware])
+def get_custom_software(db: Session = Depends(get_db)):
+    """Get all custom software"""
+    return db.query(models.CustomSoftware).all()
+
+@router.delete("/image-builder/custom-software/{software_id}")
+def delete_custom_software(
+    software_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Delete a custom software installer"""
+    software = db.query(models.CustomSoftware).filter(models.CustomSoftware.id == software_id).first()
+    if not software:
+        raise HTTPException(status_code=404, detail="Software not found")
+    
+    # Delete file
+    try:
+        if os.path.exists(software.file_path):
+            os.remove(software.file_path)
+    except Exception as e:
+        print(f"Failed to delete file: {e}")
+    
+    # Delete database record
+    db.delete(software)
+    db.commit()
+    
+    return {"message": "Software deleted successfully"}
+
+@router.put("/image-builder/custom-software/{software_id}")
+async def update_custom_software(
+    software_id: int,
+    name: str = Form(...),
+    description: str = Form(None),
+    install_args: str = Form("/S"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Update an existing custom software installer"""
+    software = db.query(models.CustomSoftware).filter(models.CustomSoftware.id == software_id).first()
+    if not software:
+        raise HTTPException(status_code=404, detail="Software not found")
+    
+    # Update fields
+    software.name = name
+    software.description = description
+    software.install_args = install_args
+    
+    db.commit()
+    db.refresh(software)
+    return software
+
+
+@router.post("/image-builder/generate-script")
+def generate_script(software_ids: List[str] = Body(...), db: Session = Depends(get_db)):
+    """
+    Generates a PowerShell script to install the selected software using Winget and custom installers.
+    """
+    if not software_ids:
+        raise HTTPException(status_code=400, detail="No software selected")
+
+    # Start building the script
+    script_content = [
+        "# PowerShell Provisioning Script Generated by IT Inventory System",
+        "# Run this script as Administrator",
+        "",
+        "Write-Host 'Starting Software Installation...' -ForegroundColor Cyan",
+        "",
+        "# Ensure Winget is installed/updated (basic check)",
+        "Write-Host 'Checking for Winget...' -ForegroundColor Yellow",
+        "if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {",
+        "    Write-Host 'Winget not found. Please update App Installer from Microsoft Store.' -ForegroundColor Red",
+        "    exit 1",
+        "}",
+        "",
+        "# Install Loop",
+    ]
+
+    # Separate custom and winget software
+    custom_ids = [sid for sid in software_ids if sid.startswith("custom_")]
+    winget_ids = [sid for sid in software_ids if not sid.startswith("custom_")]
+
+    # Process Winget apps
+    for app_id in winget_ids:
+        # Find app name for comment
+        app_name = app_id
+        for category in SOFTWARE_CATALOG.values():
+            for app in category:
+                if app["id"] == app_id:
+                    app_name = app["name"]
+                    break
+        
+        script_content.append(f"Write-Host 'Installing {app_name}...' -ForegroundColor Magenta")
+        script_content.append(f"winget install --id {app_id} -e --silent --accept-package-agreements --accept-source-agreements")
+        script_content.append(f"if ($LASTEXITCODE -ne 0) {{ Write-Host 'Failed to install {app_name}' -ForegroundColor Red }}")
+        script_content.append("")
+
+    # Process custom software
+    for custom_id_str in custom_ids:
+        custom_id = int(custom_id_str.replace("custom_", ""))
+        software = db.query(models.CustomSoftware).filter(models.CustomSoftware.id == custom_id).first()
+        
+        if software:
+            # Get server IP/hostname (you can make this configurable)
+            server_path = f"\\\\localhost\\installers\\{os.path.basename(software.file_path)}"
+            
+            script_content.append(f"Write-Host 'Installing {software.name} (Custom)...' -ForegroundColor Magenta")
+            script_content.append(f"$customInstaller = '{server_path}'")
+            script_content.append("if (Test-Path $customInstaller) {")
+            script_content.append(f"    Start-Process -FilePath $customInstaller -ArgumentList '{software.install_args}' -Wait -NoNewWindow")
+            script_content.append(f"    Write-Host '{software.name} installed successfully' -ForegroundColor Green")
+            script_content.append("} else {")
+            script_content.append(f"    Write-Host 'Custom installer not found: {software.name}' -ForegroundColor Red")
+            script_content.append("}")
+            script_content.append("")
+
+    script_content.append("Write-Host 'Installation Process Complete!' -ForegroundColor Green")
+    script_content.append("Read-Host -Prompt 'Press Enter to exit'")
+
+    # Join lines
+    final_script = "\n".join(script_content)
+
+    # Return as file download
+    return Response(
+        content=final_script,
+        media_type="application/x-powershell",
+        headers={"Content-Disposition": "attachment; filename=setup_laptop.ps1"}
+    )
+
+# ============= SOFTWARE PROFILES (Department Presets) =============
+
+@router.get("/image-builder/profiles", response_model=List[schemas.SoftwareProfile])
+def get_profiles(db: Session = Depends(get_db)):
+    """Get all software profiles"""
+    return db.query(models.SoftwareProfile).all()
+
+@router.get("/image-builder/profiles/{profile_id}", response_model=schemas.SoftwareProfile)
+def get_profile(profile_id: int, db: Session = Depends(get_db)):
+    """Get a specific software profile"""
+    profile = db.query(models.SoftwareProfile).filter(models.SoftwareProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@router.post("/image-builder/profiles", response_model=schemas.SoftwareProfile)
+def create_profile(
+    profile: schemas.SoftwareProfileCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Create a new software profile"""
+    db_profile = models.SoftwareProfile(
+        name=profile.name,
+        department=profile.department,
+        description=profile.description,
+        software_ids=profile.software_ids,
+        created_by_user_id=current_user.id
+    )
+    db.add(db_profile)
+    db.commit()
+    db.refresh(db_profile)
+    return db_profile
+
+@router.put("/image-builder/profiles/{profile_id}", response_model=schemas.SoftwareProfile)
+def update_profile(
+    profile_id: int,
+    profile_update: schemas.SoftwareProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Update an existing software profile"""
+    db_profile = db.query(models.SoftwareProfile).filter(models.SoftwareProfile.id == profile_id).first()
+    if not db_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Update fields
+    if profile_update.name is not None:
+        db_profile.name = profile_update.name
+    if profile_update.department is not None:
+        db_profile.department = profile_update.department
+    if profile_update.description is not None:
+        db_profile.description = profile_update.description
+    if profile_update.software_ids is not None:
+        db_profile.software_ids = profile_update.software_ids
+    
+    db.commit()
+    db.refresh(db_profile)
+    return db_profile
+
+@router.delete("/image-builder/profiles/{profile_id}")
+def delete_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Delete a software profile"""
+    profile = db.query(models.SoftwareProfile).filter(models.SoftwareProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    db.delete(profile)
+    db.commit()
+    return {"message": "Profile deleted successfully"}

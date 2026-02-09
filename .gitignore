@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+venv_new/
+.env
+credentials.txt
+
+# Virtual Env (Specific)
+Lib/
+Scripts/
+Include/
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor
+.vscode/
+.idea/
+
+# Database
+it_inventory.db
+*.sqlite3
+backup_migration.sql
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Uploads & Generated Content
+backend/uploads/
+backend/generated_pdfs/
+backend/extracted_media/
+backend/devices_backup_data.sql
+backend/current_serials.txt

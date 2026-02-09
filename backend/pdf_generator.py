@@ -648,7 +648,7 @@ def categorize_devices(devices_info):
     
     for device in devices_info:
         device_type = device.get('type', '').lower()
-        if device_type in ['mobile', 'chip']:
+        if device_type in ['mobile', 'chip', 'celular', 'charger', 'cargador']:
             mobile_devices.append(device)
         else:
             computer_devices.append(device)

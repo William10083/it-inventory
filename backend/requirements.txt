@@ -18,3 +18,4 @@ pandas
 docx2pdf
 ultralytics
 opencv-python-headless
+python-dotenv

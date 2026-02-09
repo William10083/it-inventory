@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime, timedelta
 import database, models
@@ -20,11 +20,31 @@ def get_actas_status(
     - Terminations (computer and mobile)
     """
     
-    # Get all active employees
-    active_employees = db.query(models.Employee).filter(
+    # 1. OPTIMIZED: Get all active employees with eager loaded assignments and devices
+    # This avoids N+1 queries for assignments and looking up devices
+    active_employees = db.query(models.Employee).options(
+        joinedload(models.Employee.assignments).joinedload(models.Assignment.device)
+    ).filter(
         models.Employee.is_active == True
     ).all()
     
+    # 2. OPTIMIZED: Pre-fetch all relevant sales
+    # Get list of employee names to query sales in bulk
+    emp_names = [e.full_name for e in active_employees if e.full_name]
+    
+    all_sales = []
+    if emp_names:
+        all_sales = db.query(models.Sale).filter(
+            models.Sale.buyer_name.in_(emp_names)
+        ).all()
+    
+    # Map sales to employee name for O(1) lookup
+    sales_map = {}
+    for sale in all_sales:
+        if sale.buyer_name not in sales_map:
+            sales_map[sale.buyer_name] = []
+        sales_map[sale.buyer_name].append(sale)
+
     assignment_computer_data = []
     assignment_mobile_data = []
     sales_data = []
@@ -35,19 +55,42 @@ def get_actas_status(
             continue
         
         # Get active assignments (not returned)
+        # Data is already loaded, so this is fast
         active_assignments = [a for a in emp.assignments if not a.returned_date]
         
         if not active_assignments:
-            continue
+            # Even if no active assignments, we might check for past actas? 
+            # Original logic continues if not active_assignments, but let's check adherence.
+            # strict reading of original code: 
+            # "if not active_assignments: continue"
+            # So we keep that behavior.
+            if not sales_map.get(emp.full_name): # Optimization: check if they have sales even if no assignments? 
+                # Original code logic: checking sales was separate loop?
+                # Actually original code continued ONLY if empty assignments loop. 
+                # Wait, original code structure:
+                # for emp in active_employees:
+                #    if search... continue
+                #    active_assignments = ...
+                #    if not active_assignments: continue
+                #    ... logic for assignments ...
+                #    ... logic for sales ...
+                # Wait, if `if not active_assignments: continue` executes, it SKIPS sales check!
+                # That looks like a bug in the original code or intentional. 
+                # "Get status of all actas... Sales..." 
+                # If an employee has a sale but no active assignment, they wouldn't show up?
+                # I will preserve original behavior to avoid regressions even if it looks odd.
+                pass
+            
+        if not active_assignments:
+             continue
         
         # Categorize assignments by device type
         computer_assignments = []
         mobile_assignments = []
         
         for assignment in active_assignments:
-            device = db.query(models.Device).filter(
-                models.Device.id == assignment.device_id
-            ).first()
+            # Device is eager loaded! No query needed.
+            device = assignment.device
             
             if not device:
                 continue
@@ -69,9 +112,8 @@ def get_actas_status(
             for assignment in emp.assignments:  # Check ALL assignments, not just active
                 if assignment.pdf_acta_path:
                     # Verify it's a computer device
-                    device = db.query(models.Device).filter(
-                        models.Device.id == assignment.device_id
-                    ).first()
+                    # Device IS eager loaded for ALL assignments in the relationship
+                    device = assignment.device
                     if device and device.device_type in ['laptop', 'monitor', 'kit teclado/mouse', 
                                                          'mochila', 'auriculares', 'stand', 'keyboard', 'mouse']:
                         computer_acta = assignment
@@ -83,11 +125,13 @@ def get_actas_status(
             days_pending_computer = (datetime.utcnow() - most_recent_computer.assigned_date).days if not has_computer_acta else None
             
             # Apply status filter
+            add_record = True
             if status_filter == 'signed' and not has_computer_acta:
-                pass
+                add_record = False
             elif status_filter == 'pending' and has_computer_acta:
-                pass
-            else:
+                add_record = False
+            
+            if add_record:
                 assignment_computer_data.append({
                     'employee_id': emp.id,
                     'employee_name': emp.full_name,
@@ -107,10 +151,8 @@ def get_actas_status(
             mobile_acta = None
             for assignment in emp.assignments:  # Check ALL assignments, not just active
                 if assignment.pdf_acta_path:
-                    # Verify it's a mobile device
-                    device = db.query(models.Device).filter(
-                        models.Device.id == assignment.device_id
-                    ).first()
+                    # Device already loaded
+                    device = assignment.device
                     if device and device.device_type in ['celular', 'chip', 'charger']:
                         mobile_acta = assignment
                         break
@@ -121,11 +163,13 @@ def get_actas_status(
             days_pending_mobile = (datetime.utcnow() - most_recent_mobile.assigned_date).days if not has_mobile_acta else None
             
             # Apply status filter
+            add_record = True
             if status_filter == 'signed' and not has_mobile_acta:
-                pass
+                add_record = False
             elif status_filter == 'pending' and has_mobile_acta:
-                pass
-            else:
+                add_record = False
+            
+            if add_record:
                 # Special Logic Refined:
                 # - Practicantes: NO need mobile acta (skip mobile)
                 # - Chofers/Conductors: DO need mobile acta (they have phones)
@@ -151,11 +195,10 @@ def get_actas_status(
                     })
         
         # Check for SALES acta
-        sales = db.query(models.Sale).filter(
-            models.Sale.buyer_name == emp.full_name
-        ).all()
+        # Use our pre-fetched map
+        emp_sales = sales_map.get(emp.full_name, [])
         
-        for sale in sales:
+        for sale in emp_sales:
             has_sale_acta = bool(sale.acta_path)
             days_pending_sale = (datetime.utcnow() - sale.sale_date).days if not has_sale_acta else None
             
@@ -178,8 +221,11 @@ def get_actas_status(
                 'type': 'sale'
             })
     
-    # Get all terminations (keep existing logic)
-    terminations = db.query(models.Termination).all()
+    # 3. OPTIMIZED: Get all terminations with eager loading
+    terminations = db.query(models.Termination).options(
+        joinedload(models.Termination.returned_assignments).joinedload(models.Assignment.device),
+        joinedload(models.Termination.employee)
+    ).all()
     
     terminations_data = []
     for term in terminations:
@@ -195,6 +241,7 @@ def get_actas_status(
         
         # Check if termination has computer or mobile devices
         assignments = term.returned_assignments
+        # Data is pre-loaded
         has_computer_devices = any(
             a.device and a.device.device_type in ['laptop', 'monitor', 'keyboard', 'mouse', 'kit teclado/mouse', 'mochila', 'stand']
             for a in assignments
@@ -210,11 +257,13 @@ def get_actas_status(
         # Add computer acta entry if applicable
         if has_computer_devices:
             # Apply status filter
+            add_term = True
             if status_filter == 'signed' and not has_computer_acta:
-                pass
+                add_term = False
             elif status_filter == 'pending' and has_computer_acta:
-                pass
-            else:
+                add_term = False
+            
+            if add_term:
                 terminations_data.append({
                     'employee_id': employee.id,
                     'employee_name': employee.full_name,
@@ -231,11 +280,13 @@ def get_actas_status(
         # Add mobile acta entry if applicable
         if has_mobile_devices:
             # Apply status filter
+            add_term = True
             if status_filter == 'signed' and not has_mobile_acta:
-                pass
+                add_term = False
             elif status_filter == 'pending' and has_mobile_acta:
-                pass
-            else:
+                add_term = False
+            
+            if add_term:
                 terminations_data.append({
                     'employee_id': employee.id,
                     'employee_name': employee.full_name,

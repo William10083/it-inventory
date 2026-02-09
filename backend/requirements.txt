@@ -15,7 +15,7 @@ passlib
 bcrypt
 argon2-cffi
 pandas
+opencv-python-headless
 docx2pdf
 ultralytics
-opencv-python-headless
 python-dotenv

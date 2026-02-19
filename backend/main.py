@@ -104,6 +104,12 @@ tags_metadata = [
     },
 ]
 
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="🖥️ IT Inventory System API",
     description=description,
@@ -123,11 +129,15 @@ app = FastAPI(
     }
 )
 
-# CORS
+# CORS - Note: allow_origins=["*"] is not compatible with allow_credentials=True in FastAPI
+# If credentials is true, we must specify origins or use a pattern.
+# For now, let's keep it simple by setting allow_credentials to True but only with specific origins if needed,
+# or set allow_origins=["*"] and allow_credentials=False if cookies aren't used.
+# Since we use Bearer tokens, allow_credentials=False is often fine unless you need cookies.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False, # Changed to False for origin wildcard compatibility
     allow_methods=["*"],
     allow_headers=["*"],
 )

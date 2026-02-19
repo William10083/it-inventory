@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, CheckCircle, Package, Users, Clock, AlertCircle, MapPin, Laptop, RefreshCw, Smartphone } from 'lucide-react';
@@ -11,6 +11,94 @@ const AnalyticsDashboard = ({ employees }) => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [locationFilter, setLocationFilter] = useState('all');
+
+    // Optimized Pending Deliveries Calculation
+    const pendingDeliveriesRows = useMemo(() => {
+        if (!employees) return null;
+
+        // Calculate pending per employee
+        const pendingList = employees
+            .filter(e => e.is_active) // Only active employees
+            .filter(e => locationFilter === 'all' || e.location === locationFilter)
+            .map(e => {
+                const activeAssets = e.assignments?.filter(a => !a.returned_date).map(a => a.device) || [];
+                const types = activeAssets.map(d => d.device_type);
+
+                const missing = [];
+
+                // Laptop count check
+                const laptopCount = activeAssets.filter(d => d.device_type === 'laptop').length;
+                const expectedLaptops = e.expected_laptop_count || 1;
+                if (laptopCount < expectedLaptops) {
+                    const diff = expectedLaptops - laptopCount;
+                    const label = diff > 1 ? `${diff} Laptops` : 'Laptop';
+                    missing.push({ label: label, color: 'bg-red-500/20 text-red-400 border-red-500/30' });
+                }
+
+                // Check position to determine equipment needs
+                const position = (e.position || '').toLowerCase();
+                const isPracticante = position.includes('practicante');
+                const isChofer = position.includes('chofer') || position.includes('conductor');
+
+                // 1. MONITOR & ACCESSORIES CHECK
+                // Choferes DO NOT need monitor or accessories (only laptop + mobile)
+                if (!isChofer) {
+                    if (!types.includes('monitor')) missing.push({ label: 'Monitor', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' });
+
+                    // Kit check (kit OR separate keyboard+mouse)
+                    const hasKit = types.includes('kit teclado/mouse');
+                    const hasKeyAndMouse = types.includes('keyboard') && types.includes('mouse');
+                    if (!hasKit && !hasKeyAndMouse) missing.push({ label: 'Kit T/M', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' });
+
+                    if (!types.includes('mochila')) missing.push({ label: 'Mochila', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' });
+                    if (!types.includes('auriculares')) missing.push({ label: 'Auriculares', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' });
+                }
+
+                // 2. MOBILE CHECK
+                // Practicantes DO NOT need mobile
+                // Everyone else (including Choferes) needs mobile if not assigned
+                if (!types.includes('celular') && !isPracticante) {
+                    missing.push({ label: 'Celular', color: 'bg-green-500/20 text-green-400 border-green-500/30' });
+                }
+
+                return { ...e, missing };
+            })
+            .filter(e => e.missing.length > 0)
+            .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+        if (pendingList.length === 0) {
+            return (
+                <tr>
+                    <td colSpan="3" className="px-6 py-8 text-center text-slate-500">
+                        <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        Todo el personal tiene sus equipos completos.
+                    </td>
+                </tr>
+            );
+        }
+
+        return pendingList.map((emp) => (
+            <tr key={emp.id} className="hover:bg-slate-800/30 transition-colors">
+                <td className="px-6 py-4 font-medium text-white">
+                    {emp.full_name}
+                    <div className="text-xs text-slate-500 font-normal">{emp.email}</div>
+                </td>
+                <td className="px-6 py-4 text-slate-400">
+                    <div>{emp.position || 'Sin Cargo'}</div>
+                    <div className="text-xs text-slate-500">{emp.location}</div>
+                </td>
+                <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-2">
+                        {emp.missing.map((item, idx) => (
+                            <span key={idx} className={`text-xs px-2.5 py-1 rounded-md border font-medium ${item.color}`}>
+                                {item.label}
+                            </span>
+                        ))}
+                    </div>
+                </td>
+            </tr>
+        ));
+    }, [employees, locationFilter]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -54,6 +142,8 @@ const AnalyticsDashboard = ({ employees }) => {
 
     // KPI Values
     const laptopsAvailable = stats.equipment_summary?.laptop?.available || 0;
+
+
 
     return (
         <div className="space-y-8 animate-fade-in pb-16">
@@ -347,90 +437,7 @@ const AnalyticsDashboard = ({ employees }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700/50">
-                                {(() => {
-                                    // Calculate pending per employee
-                                    const pendingList = employees
-                                        .filter(e => e.is_active) // Only active employees
-                                        .filter(e => locationFilter === 'all' || e.location === locationFilter)
-                                        .map(e => {
-                                            const activeAssets = e.assignments?.filter(a => !a.returned_date).map(a => a.device) || [];
-                                            const types = activeAssets.map(d => d.device_type);
-
-                                            const missing = [];
-
-                                            // Laptop count check
-                                            const laptopCount = activeAssets.filter(d => d.device_type === 'laptop').length;
-                                            const expectedLaptops = e.expected_laptop_count || 1;
-                                            if (laptopCount < expectedLaptops) {
-                                                const diff = expectedLaptops - laptopCount;
-                                                const label = diff > 1 ? `${diff} Laptops` : 'Laptop';
-                                                missing.push({ label: label, color: 'bg-red-500/20 text-red-400 border-red-500/30' });
-                                            }
-
-                                            // Check position to determine equipment needs
-                                            const position = (e.position || '').toLowerCase();
-                                            const isPracticante = position.includes('practicante');
-                                            const isChofer = position.includes('chofer') || position.includes('conductor');
-
-                                            // 1. MONITOR & ACCESSORIES CHECK
-                                            // Choferes DO NOT need monitor or accessories (only laptop + mobile)
-                                            if (!isChofer) {
-                                                if (!types.includes('monitor')) missing.push({ label: 'Monitor', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' });
-
-                                                // Kit check (kit OR separate keyboard+mouse)
-                                                const hasKit = types.includes('kit teclado/mouse');
-                                                const hasKeyAndMouse = types.includes('keyboard') && types.includes('mouse');
-                                                if (!hasKit && !hasKeyAndMouse) missing.push({ label: 'Kit T/M', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' });
-
-                                                if (!types.includes('mochila')) missing.push({ label: 'Mochila', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' });
-                                                if (!types.includes('auriculares')) missing.push({ label: 'Auriculares', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' });
-                                            }
-
-                                            // 2. MOBILE CHECK
-                                            // Practicantes DO NOT need mobile
-                                            // Everyone else (including Choferes) needs mobile if not assigned
-                                            if (!types.includes('celular') && !isPracticante) {
-                                                missing.push({ label: 'Celular', color: 'bg-green-500/20 text-green-400 border-green-500/30' });
-                                            }
-
-                                            return { ...e, missing };
-                                        })
-                                        .filter(e => e.missing.length > 0)
-                                        .sort((a, b) => a.full_name.localeCompare(b.full_name));
-
-                                    if (pendingList.length === 0) {
-                                        return (
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-8 text-center text-slate-500">
-                                                    <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                    Todo el personal tiene sus equipos completos.
-                                                </td>
-                                            </tr>
-                                        );
-                                    }
-
-                                    return pendingList.map((emp) => (
-                                        <tr key={emp.id} className="hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-white">
-                                                {emp.full_name}
-                                                <div className="text-xs text-slate-500 font-normal">{emp.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-400">
-                                                <div>{emp.position || 'Sin Cargo'}</div>
-                                                <div className="text-xs text-slate-500">{emp.location}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {emp.missing.map((item, idx) => (
-                                                        <span key={idx} className={`text-xs px-2.5 py-1 rounded-md border font-medium ${item.color}`}>
-                                                            {item.label}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ));
-                                })()}
+                                {pendingDeliveriesRows}
                             </tbody>
                         </table>
                     </div>

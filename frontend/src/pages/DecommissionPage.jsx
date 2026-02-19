@@ -296,69 +296,87 @@ const DecommissionPage = () => {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                    <Archive className="w-8 h-8 text-red-500" />
+            <div className="mb-8 relative">
+                <div className="absolute top-0 left-0 w-full h-full bg-blue-500/10 blur-3xl -z-10 rounded-full opacity-20 transform -translate-x-1/2"></div>
+                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 mb-2 flex items-center gap-4">
+                    <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 backdrop-blur-sm shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                        <Archive className="w-8 h-8 text-blue-400" />
+                    </div>
                     Bajas de Equipos
                 </h1>
-                <p className="text-slate-400">
-                    Gestión de retiro y disposición final de activos
+                <p className="text-slate-400 text-lg max-w-2xl border-l-2 border-blue-500/30 pl-4 ml-2">
+                    Gestión de retiro y disposición final de activos tecnológicos.
                 </p>
             </div>
 
             {/* Search Section */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
-                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                    <Search className="w-5 h-5 text-blue-400" />
+            <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 mb-8 shadow-2xl relative overflow-visible group z-10">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
+                    <div className="p-2 bg-blue-500/20 rounded-lg shadow-inner">
+                        <Search className="w-5 h-5 text-blue-400" />
+                    </div>
                     Buscar Equipo para Dar de Baja
                 </h2>
 
-                <div className="relative" ref={searchInputRef}>
-                    <input
-                        type="text"
-                        placeholder="Escribe serie, modelo, hostname o marca..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg pl-12 pr-12 py-4 text-white text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-
-                    {searching && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <Loader className="w-5 h-5 text-blue-500 animate-spin" />
+                <div className="relative z-10 max-w-3xl mx-auto" ref={searchInputRef}>
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            placeholder="Buscar por serie, modelo, hostname..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                            className="w-full bg-slate-950/50 border border-slate-600/50 text-white text-lg rounded-full py-4 pl-14 pr-14 focus:outline-none focus:border-blue-500/50 focus:bg-slate-950/80 transition-all duration-300 placeholder:text-slate-500 shadow-inner group-hover:border-slate-500/50"
+                        />
+                        <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                            <Search className="w-5 h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors duration-300" />
                         </div>
-                    )}
 
-                    {selectedDevice && (
-                        <button
-                            onClick={handleClearSelection}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    )}
+                        {searching && (
+                            <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                                <Loader className="w-5 h-5 text-blue-500 animate-spin" />
+                            </div>
+                        )}
+
+                        {selectedDevice && (
+                            <button
+                                onClick={handleClearSelection}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-all duration-200"
+                                title="Limpiar búsqueda"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
 
                     {/* Autocomplete Dropdown */}
                     {showDropdown && searchResults.length > 0 && !selectedDevice && (
-                        <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl max-h-96 overflow-y-auto">
-                            {searchResults.map(device => (
+                        <div className="absolute z-[100] w-full mt-3 bg-slate-800/95 backdrop-blur-xl border border-slate-600/50 rounded-xl shadow-2xl max-h-96 overflow-y-auto overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            {searchResults.map((device, index) => (
                                 <div
                                     key={device.id}
                                     onClick={() => handleSelectDevice(device)}
-                                    className="p-4 hover:bg-slate-700 cursor-pointer transition-colors border-b border-slate-700 last:border-0"
+                                    className={`p-4 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/50 last:border-0 group ${index % 2 === 0 ? 'bg-white/[0.02]' : ''}`}
                                 >
-                                    <div className="flex justify-between items-start mb-2">
+                                    <div className="flex justify-between items-start">
                                         <div>
-                                            <div className="font-bold text-white text-lg">{device.brand} {device.model}</div>
-                                            <div className="text-sm text-slate-400 font-mono">SN: {device.serial_number}</div>
+                                            <div className="font-bold text-white text-lg group-hover:text-blue-400 transition-colors">{device.brand} {device.model}</div>
+                                            <div className="text-sm text-slate-400 font-mono flex items-center gap-2 mt-1">
+                                                <span className="bg-slate-900 px-2 py-0.5 rounded text-xs border border-slate-700">SN</span>
+                                                {device.serial_number}
+                                            </div>
                                             {device.hostname && (
-                                                <div className="text-xs text-slate-500 mt-1">Hostname: {device.hostname}</div>
+                                                <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    {device.hostname}
+                                                </div>
                                             )}
                                         </div>
-                                        <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold ${device.status === 'available' ? 'bg-green-500/20 text-green-400' :
-                                            device.status === 'assigned' ? 'bg-blue-500/20 text-blue-400' :
-                                                'bg-slate-500/20 text-slate-400'
+                                        <span className={`text-xs px-3 py-1.5 rounded-full uppercase font-bold tracking-wider ${device.status === 'available' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                            device.status === 'assigned' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                                                'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                                             }`}>
                                             {device.status}
                                         </span>
@@ -371,48 +389,67 @@ const DecommissionPage = () => {
 
                 {/* Selected Device Form */}
                 {selectedDevice && (
-                    <div className="mt-6 p-6 bg-slate-900 rounded-lg border border-slate-700 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <div className="mb-6">
-                            <div className="text-sm text-slate-400 mb-2">Equipo Seleccionado:</div>
-                            <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg border border-blue-500/30">
-                                <div>
-                                    <div className="font-bold text-white text-lg">{selectedDevice.brand} {selectedDevice.model}</div>
-                                    <div className="text-sm text-blue-400 font-mono">SN: {selectedDevice.serial_number}</div>
+                    <div className="mt-8 p-8 bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-700/50 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -z-10 transform translate-x-1/2 -translate-y-1/2"></div>
+
+                        <div className="mb-8">
+                            <div className="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                                Equipo Seleccionado
+                            </div>
+                            <div className="flex items-center justify-between p-6 bg-slate-900/50 rounded-xl border border-blue-500/20 shadow-inner group transition-all hover:border-blue-500/40">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-blue-500/20 rounded-lg text-blue-400">
+                                        <Archive className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-white text-xl group-hover:text-blue-400 transition-colors">{selectedDevice.brand} {selectedDevice.model}</div>
+                                        <div className="text-sm text-slate-400 font-mono mt-1 flex items-center gap-2">
+                                            <span className="px-2 py-0.5 bg-slate-800 rounded text-xs border border-slate-700">SN</span>
+                                            {selectedDevice.serial_number}
+                                        </div>
+                                    </div>
                                 </div>
                                 <button
                                     onClick={handleClearSelection}
-                                    className="text-slate-400 hover:text-white p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                    className="text-slate-500 hover:text-white p-3 hover:bg-red-500/20 hover:border-red-500/50 border border-transparent rounded-xl transition-all duration-300 group/close"
+                                    title="Cancelar selección"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-5 h-5 group-hover/close:rotate-90 transition-transform" />
                                 </button>
                             </div>
                         </div>
 
-                        <form onSubmit={handleDecommission} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
+                        <form onSubmit={handleDecommission} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <label className="text-sm font-medium text-slate-300">Motivo de Baja *</label>
                                         <FormTemplateSelector onSelect={handleTemplateSelect} />
                                     </div>
-                                    <select
-                                        required
-                                        value={reason}
-                                        onChange={(e) => setReason(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 outline-none transition-all"
-                                    >
-                                        <option value="">Seleccionar motivo...</option>
-                                        <option value="Obsolescencia Tecnológica">Obsolescencia Tecnológica</option>
-                                        <option value="Daño Irreparable">Daño Irreparable</option>
-                                        <option value="Pérdida / Robo">Pérdida / Robo</option>
-                                        <option value="Donación">Donación</option>
-                                        <option value="Venta como Chatarra">Venta como Chatarra</option>
-                                        <option value="Otro">Otro</option>
-                                    </select>
+                                    <div className="relative">
+                                        <select
+                                            required
+                                            value={reason}
+                                            onChange={(e) => setReason(e.target.value)}
+                                            className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl px-4 py-4 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none transition-all appearance-none cursor-pointer hover:bg-slate-900/80"
+                                        >
+                                            <option value="">Seleccionar motivo...</option>
+                                            <option value="Obsolescencia Tecnológica">Obsolescencia Tecnológica</option>
+                                            <option value="Daño Irreparable">Daño Irreparable</option>
+                                            <option value="Pérdida / Robo">Pérdida / Robo</option>
+                                            <option value="Donación">Donación</option>
+                                            <option value="Venta como Chatarra">Venta como Chatarra</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <label className="text-sm font-medium text-slate-300">Observaciones / Diagnóstico Técnico *</label>
                                 <textarea
                                     required
@@ -420,13 +457,13 @@ const DecommissionPage = () => {
                                     onChange={(e) => setObservations(e.target.value)}
                                     rows="4"
                                     placeholder="Detalles sobre el estado del equipo, diagnóstico técnico, o circunstancias de la baja..."
-                                    className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 outline-none transition-all resize-none"
+                                    className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl px-4 py-4 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none transition-all resize-none placeholder:text-slate-600 hover:bg-slate-900/80"
                                 ></textarea>
                             </div>
 
                             {/* New Fields Section */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
-                                <div className="space-y-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-700/50">
+                                <div className="space-y-3">
                                     <label className="text-sm font-medium text-slate-300">Año de Fabricación</label>
                                     <input
                                         type="number"
@@ -434,37 +471,40 @@ const DecommissionPage = () => {
                                         max={new Date().getFullYear()}
                                         value={fabricationYear}
                                         onChange={(e) => setFabricationYear(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl px-4 py-4 text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/80"
                                         placeholder="Ej: 2020"
                                     />
                                     {fabricationYear && (
-                                        <div className="text-xs text-blue-400 mt-1 font-medium">
-                                            ⏱️ Tiempo de uso: {new Date().getFullYear() - parseInt(fabricationYear)} años
+                                        <div className="text-xs text-blue-400 mt-2 font-medium flex items-center gap-1.5 bg-blue-500/10 p-2 rounded-lg w-fit">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                                            Tiempo de uso: {new Date().getFullYear() - parseInt(fabricationYear)} años
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <label className="text-sm font-medium text-slate-300">Motivo de Compra</label>
                                     <input
                                         type="text"
                                         value={purchaseReason}
                                         onChange={(e) => setPurchaseReason(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        className="w-full bg-slate-900/50 border border-slate-600/50 rounded-xl px-4 py-4 text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/80"
                                         placeholder="Ej: Expansión de equipo, Reemplazo..."
                                     />
                                 </div>
                             </div>
 
                             {/* Image Upload Section */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-700/50">
                                 {/* Device Image Input */}
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                        <ImageIcon className="w-4 h-4 text-blue-400" />
+                                        <div className="p-1 bg-blue-500/20 rounded">
+                                            <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
+                                        </div>
                                         Foto del Equipo
                                     </label>
-                                    <div className="relative group">
+                                    <div className="relative group perspective-1000">
                                         <input
                                             type="file"
                                             ref={deviceInputRef}
@@ -475,26 +515,30 @@ const DecommissionPage = () => {
                                         />
                                         <label
                                             htmlFor="device-image-upload"
-                                            className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${deviceImagePreview
-                                                ? 'border-blue-500 bg-slate-800'
-                                                : 'border-slate-600 bg-slate-800 hover:border-blue-500 hover:bg-slate-700'
+                                            className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 transform group-hover:scale-[1.02] ${deviceImagePreview
+                                                ? 'border-blue-500/50 bg-slate-900/50 shadow-[0_0_20px_rgba(59,130,246,0.1)]'
+                                                : 'border-slate-600/50 bg-slate-900/30 hover:border-blue-500/50 hover:bg-slate-800/50'
                                                 }`}
                                         >
                                             {deviceImagePreview ? (
-                                                <div className="relative w-full h-full p-2">
+                                                <div className="relative w-full h-full p-2 group/preview">
                                                     <img
                                                         src={deviceImagePreview}
                                                         alt="Device preview"
-                                                        className="w-full h-full object-contain rounded"
+                                                        className="w-full h-full object-contain rounded-xl"
                                                     />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                                                    <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover/preview:opacity-100 flex flex-col items-center justify-center transition-all duration-300 rounded-xl backdrop-blur-sm">
+                                                        <ImageIcon className="w-8 h-8 text-blue-400 mb-2" />
                                                         <span className="text-white text-sm font-medium">Cambiar imagen</span>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                                                    <p className="text-xs text-slate-400">Clic para subir imagen</p>
+                                                    <div className="p-3 bg-slate-800 rounded-full mb-3 group-hover:bg-blue-500/20 transition-colors">
+                                                        <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-400 transition-colors" />
+                                                    </div>
+                                                    <p className="text-sm text-slate-400 font-medium">Clic para subir imagen</p>
+                                                    <p className="text-xs text-slate-500 mt-1">JPG, PNG (Max 5MB)</p>
                                                 </div>
                                             )}
                                         </label>
@@ -502,12 +546,14 @@ const DecommissionPage = () => {
                                 </div>
 
                                 {/* Serial Image Input */}
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-green-400" />
+                                        <div className="p-1 bg-green-500/20 rounded">
+                                            <FileText className="w-3.5 h-3.5 text-green-400" />
+                                        </div>
                                         Foto de la Serie
                                     </label>
-                                    <div className="relative group">
+                                    <div className="relative group perspective-1000">
                                         <input
                                             type="file"
                                             ref={serialInputRef}
@@ -518,26 +564,30 @@ const DecommissionPage = () => {
                                         />
                                         <label
                                             htmlFor="serial-image-upload"
-                                            className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${serialImagePreview
-                                                ? 'border-green-500 bg-slate-800'
-                                                : 'border-slate-600 bg-slate-800 hover:border-green-500 hover:bg-slate-700'
+                                            className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 transform group-hover:scale-[1.02] ${serialImagePreview
+                                                ? 'border-green-500/50 bg-slate-900/50 shadow-[0_0_20px_rgba(34,197,94,0.1)]'
+                                                : 'border-slate-600/50 bg-slate-900/30 hover:border-green-500/50 hover:bg-slate-800/50'
                                                 }`}
                                         >
                                             {serialImagePreview ? (
-                                                <div className="relative w-full h-full p-2">
+                                                <div className="relative w-full h-full p-2 group/preview">
                                                     <img
                                                         src={serialImagePreview}
                                                         alt="Serial preview"
-                                                        className="w-full h-full object-contain rounded"
+                                                        className="w-full h-full object-contain rounded-xl"
                                                     />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                                                    <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover/preview:opacity-100 flex flex-col items-center justify-center transition-all duration-300 rounded-xl backdrop-blur-sm">
+                                                        <ImageIcon className="w-8 h-8 text-green-400 mb-2" />
                                                         <span className="text-white text-sm font-medium">Cambiar imagen</span>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                                                    <p className="text-xs text-slate-400">Clic para subir imagen</p>
+                                                    <div className="p-3 bg-slate-800 rounded-full mb-3 group-hover:bg-green-500/20 transition-colors">
+                                                        <Upload className="w-6 h-6 text-slate-400 group-hover:text-green-400 transition-colors" />
+                                                    </div>
+                                                    <p className="text-sm text-slate-400 font-medium">Clic para subir imagen</p>
+                                                    <p className="text-xs text-slate-500 mt-1">JPG, PNG (Max 5MB)</p>
                                                 </div>
                                             )}
                                         </label>
@@ -545,26 +595,31 @@ const DecommissionPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-4 flex gap-3 text-orange-200 text-sm">
-                                <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                            <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/20 rounded-xl p-5 flex gap-4 text-orange-100 text-sm shadow-inner relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl -z-10"></div>
+                                <div className="p-2 bg-red-500/20 h-fit rounded-lg">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                </div>
                                 <div>
-                                    <div className="font-bold mb-1">⚠️ Acción Irreversible</div>
-                                    Al procesar la baja, el equipo cambiará a estado <strong>RETIRED</strong> y no podrá ser asignado nuevamente. Se generará un acta PDF automáticamente.
+                                    <div className="font-bold mb-1 text-red-400 text-lg">⚠️ Acción Irreversible</div>
+                                    <p className="text-slate-300 leading-relaxed">
+                                        Al procesar la baja, el equipo cambiará a estado <strong className="text-white bg-red-500/30 px-1.5 py-0.5 rounded text-xs border border-red-500/50">RETIRED</strong> y no podrá ser asignado nuevamente. Se generará un acta PDF automáticamente.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div className="flex justify-end gap-3 pt-6 border-t border-slate-700/50">
                                 <button
                                     type="button"
                                     onClick={handleClearSelection}
-                                    className="px-6 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors"
+                                    className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all duration-300 hover:shadow-lg border border-slate-700"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setIsSaveTemplateModalOpen(true)}
-                                    className="px-6 py-3 rounded-lg bg-blue-900/40 hover:bg-blue-900/60 text-blue-300 font-medium transition-colors border border-blue-800/50 flex items-center gap-2"
+                                    className="px-6 py-3 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-medium transition-all duration-300 border border-blue-500/30 flex items-center gap-2 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                                 >
                                     <Save className="w-4 h-4" />
                                     Guardar Plantilla
@@ -572,7 +627,7 @@ const DecommissionPage = () => {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-8 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-900/30 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold shadow-lg shadow-red-900/40 flex items-center gap-2 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                 >
                                     {processing ? (
                                         <>
@@ -593,69 +648,86 @@ const DecommissionPage = () => {
             </div>
 
             {/* History Section */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-                <div className="px-6 py-4 bg-slate-900/50 border-b border-slate-700">
-                    <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-slate-400" />
+            <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden shadow-xl">
+                <div className="px-8 py-6 bg-slate-900/50 border-b border-slate-700/50 flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+                        <div className="p-2 bg-slate-800 rounded-lg">
+                            <FileText className="w-5 h-5 text-slate-400" />
+                        </div>
                         Historial de Bajas
                     </h2>
+                    <div className="text-sm text-slate-400">
+                        Total: <span className="font-mono text-white">{history.length}</span> registros
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-slate-900/30 text-xs uppercase text-slate-400 font-medium border-b border-slate-700">
+                        <thead className="bg-slate-900/30 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700/50 tracking-wider">
                             <tr>
-                                <th className="px-6 py-4">Equipo</th>
-                                <th className="px-6 py-4">Motivo</th>
-                                <th className="px-6 py-4">Fecha</th>
-                                <th className="px-6 py-4">Observaciones</th>
-                                <th className="px-6 py-4 text-center">Acciones</th>
+                                <th className="px-8 py-5">Equipo</th>
+                                <th className="px-6 py-5">Motivo</th>
+                                <th className="px-6 py-5">Fecha</th>
+                                <th className="px-6 py-5">Observaciones</th>
+                                <th className="px-6 py-5 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700/50 text-sm">
+                        <tbody className="divide-y divide-slate-700/30 text-sm">
                             {loadingHistory ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                                        <Loader className="w-6 h-6 animate-spin mx-auto mb-2" />
-                                        Cargando historial...
+                                    <td colSpan="5" className="px-8 py-16 text-center text-slate-500">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <Loader className="w-8 h-8 animate-spin mb-4 text-blue-500" />
+                                            <p className="text-slate-400">Cargando historial...</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : history.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                                        <Archive className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                        No hay registros de bajas
+                                    <td colSpan="5" className="px-8 py-20 text-center text-slate-500">
+                                        <div className="flex flex-col items-center justify-center opacity-50">
+                                            <Archive className="w-16 h-16 mb-4 text-slate-600" />
+                                            <p className="text-lg font-medium text-slate-400">No hay registros de bajas</p>
+                                            <p className="text-sm mt-1">Los equipos dados de baja aparecerán aquí</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
-                                history.map((item) => (
-                                    <tr key={item.id} className="hover:bg-slate-700/30 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="font-bold text-white">{item.device.brand} {item.device.model}</div>
-                                            <div className="text-xs text-slate-400 font-mono mt-1">SN: {item.device.serial_number}</div>
+                                history.map((item, index) => (
+                                    <tr
+                                        key={item.id}
+                                        className={`hover:bg-slate-700/30 transition-all duration-200 group ${index % 2 === 0 ? 'bg-slate-800/10' : ''}`}
+                                    >
+                                        <td className="px-8 py-5">
+                                            <div className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">{item.device.brand} {item.device.model}</div>
+                                            <div className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                                {item.device.serial_number}
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-900/30 text-red-400 border border-red-900/50">
+                                        <td className="px-6 py-5">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 shadow-sm">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 animate-pulse"></span>
                                                 {item.reason}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-300">
+                                        <td className="px-6 py-5 text-slate-300 font-mono">
                                             {new Date(item.decommission_date).toLocaleDateString('es-PE', {
                                                 day: '2-digit', month: 'short', year: 'numeric'
                                             })}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-400 max-w-xs">
+                                        <td className="px-6 py-5 text-slate-400 max-w-xs">
                                             <div className="truncate" title={item.observations}>
-                                                {item.observations || '-'}
+                                                {item.observations || <span className="text-slate-600 italic">-</span>}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-2">
+                                        <td className="px-6 py-5 text-center">
+                                            <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                                 {item.acta_path && (
                                                     <button
                                                         onClick={() => handleDownloadActa(item)}
                                                         title="Descargar Acta"
-                                                        className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-900/20 transition-colors"
+                                                        className="text-blue-400 hover:text-white p-2.5 rounded-lg hover:bg-blue-500 transition-all shadow-sm hover:shadow-blue-500/20"
                                                     >
                                                         <Download className="w-4 h-4" />
                                                     </button>
@@ -664,7 +736,7 @@ const DecommissionPage = () => {
                                                 <button
                                                     onClick={() => handleEdit(item)}
                                                     title="Editar Baja"
-                                                    className="text-amber-400 hover:text-amber-300 p-2 rounded-lg hover:bg-amber-900/20 transition-colors"
+                                                    className="text-amber-400 hover:text-white p-2.5 rounded-lg hover:bg-amber-500 transition-all shadow-sm hover:shadow-amber-500/20"
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
@@ -672,7 +744,7 @@ const DecommissionPage = () => {
                                                 <button
                                                     onClick={() => handleDelete(item)}
                                                     title="Eliminar Baja"
-                                                    className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-900/20 transition-colors"
+                                                    className="text-red-400 hover:text-white p-2.5 rounded-lg hover:bg-red-500 transition-all shadow-sm hover:shadow-red-500/20"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

@@ -12,8 +12,10 @@ from pathlib import Path
 
 router = APIRouter()
 
-# Directorio base para almacenar PDFs
-ACTAS_DIR = Path("actas")
+# Directorio base para almacenar PDFs (Ruta Absoluta)
+# backend/routes/upload_actas.py -> parent.parent = backend
+BASE_DIR = Path(__file__).resolve().parent.parent
+ACTAS_DIR = BASE_DIR / "actas"
 ACTAS_DIR.mkdir(exist_ok=True)
 
 # Subdirectorios
@@ -156,12 +158,49 @@ async def upload_termination_mobile_acta(
         "path": str(file_path)
     }
 
+from fastapi import Query, Security
+from fastapi.security import APIKeyQuery
+
+# Definir esquema para token en query params
+query_scheme = APIKeyQuery(name="token", auto_error=False)
+
+async def get_current_user_download(
+    token: str = Security(query_scheme),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Autenticación específica para descargas: lee el token ddel query param ?token=...
+    """
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated (missing token)")
+    
+    try:
+        # Reutilizar lógica de decodificación de auth.py
+        # Como auth.get_current_user espera un token DE HEADER, aquí lo llamamos manual
+        payload = auth.jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+            
+        if not user.is_active:
+             raise HTTPException(status_code=400, detail="Inactive user")
+             
+        return user
+    except Exception as e:
+        print(f"Auth error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 @router.get("/assignments/{assignment_id}/download-acta")
 async def download_assignment_acta(
     assignment_id: int,
     db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_active_user)
-):
+    current_user: models.User = Depends(get_current_user_download)
+): 
+
     """Descarga el acta de una asignación"""
     assignment = db.query(models.Assignment).filter(models.Assignment.id == assignment_id).first()
     if not assignment:

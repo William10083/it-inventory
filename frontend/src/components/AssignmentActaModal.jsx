@@ -14,28 +14,24 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
     const [mobileAssignmentId, setMobileAssignmentId] = useState(null);
 
     const fetchActaInfo = useCallback(async () => {
-        console.log('Assignment object:', assignment);
-
         if (!assignment || !assignment.employee) {
-            console.log('No assignment or employee');
             return;
         }
 
         const employeeId = assignment.employee.id;
-        console.log('Employee ID:', employeeId);
+
 
         if (!employeeId) {
-            console.log('No employee ID found');
+
             return;
         }
 
         try {
-            // Use the new endpoint that returns structured acta information
-            console.log(`Fetching acta info for employee ${employeeId}`);
+
             const response = await axios.get(`${API_URL}/employees/${employeeId}/acta-info`);
             const data = response.data;
 
-            console.log('Acta info received:', data);
+
 
             setHasComputerDevices(data.has_computer_devices);
             setHasMobileDevices(data.has_mobile_devices);
@@ -66,7 +62,8 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                 // Use computer or mobile assignment ID from acta-info
                 const fallbackId = computerAssignmentId || mobileAssignmentId;
                 if (fallbackId) {
-                    window.open(`${API_URL}/assignments/${fallbackId}/acta`, '_blank');
+                    // Force download instead of opening in browser
+                    window.location.href = `${API_URL}/assignments/${fallbackId}/acta`;
                     return;
                 }
             }
@@ -74,14 +71,15 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
             return;
         }
 
-        window.open(`${API_URL}/assignments/${assignmentId}/acta`, '_blank');
+        // Force download instead of opening in browser
+        window.location.href = `${API_URL}/assignments/${assignmentId}/acta`;
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-slate-800 rounded-xl w-full max-w-4xl shadow-2xl border border-slate-700 overflow-hidden max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-700 bg-blue-500/10 sticky top-0 z-10">
+                <div className="p-6 border-b border-slate-700 bg-slate-800 sticky top-0 z-10">
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-2xl font-bold text-white flex items-center gap-2">

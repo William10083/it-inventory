@@ -259,7 +259,7 @@ def replace_placeholder_with_image(doc, placeholder, image_path, width_inches=2.
     return replaced
 
 
-def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeholder_text='{{TABLA}}'):
+def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeholder_text='{{TABLA}}', is_mobile_table=False):
     """
     Busca el placeholder de tabla e inserta una tabla de dispositivos en esa posición.
     
@@ -384,14 +384,20 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
         print(f"DEBUG: Placeholder not found anywhere. Tried variants: {placeholder_variants}")
         return False
     
-    # Identificar si es una tabla de venta basado en el placeholder o variable mapeada
+    # Identificar si es una tabla de venta o móvil basado en el placeholder o variable mapeada O argumento explicito
     is_sales_table = 'SALE_TABLE' in (actual_placeholder or '') or 'TABLA_VENTA' in (actual_placeholder or '')
+    if not is_mobile_table:
+        is_mobile_table = 'MOBILE' in (actual_placeholder or '') or 'CELULAR' in (actual_placeholder or '')
     
     # Crear tabla de dispositivos
     # Tabla Venta: 7 columnas (CANT., EQUIPO, ESTADO, MARCA, MODELO, NUMERO SERIE, CÓDIGO DE INVENTARIO)
+    # Tabla Movil: 9 columnas (CANT., EQUIPO, OPERADOR, ESTADO, MARCA, MODELO, SERIE, IMEI, N° CELULAR)
     # Tabla Standard: 8 columnas (incluye HOSTNAME)
     
-    num_cols = 7 if is_sales_table else 8
+    num_cols = 8
+    if is_sales_table: num_cols = 7
+    if is_mobile_table: num_cols = 9
+
     table = doc.add_table(rows=1, cols=num_cols)
     table.style = 'Table Grid'
     
@@ -403,12 +409,18 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             'CANT.', 'EQUIPO', 'ESTADO', 'MARCA', 'MODELO', 'NUMERO\nSERIE', 'CÓDIGO DE\nINVENTARIO'
         ]
         header_bg_color = "FF0000" # Rojo
+    elif is_mobile_table:
+        headers = [
+            'CANT.', 'EQUIPO', 'OPERADOR', 'ESTADO', 'MARCA', 'MODELO', 'SERIE', 'IMEI', 'N° CELULAR'
+        ]
+        header_bg_color = "002060" # Azul oscuro corporativo para móviles? O mantener Rojo? Usaremos Rojo por consistencia si no se especifica.
+        # El usuario no especificó, usaremos el mismo rojo para uniformidad.
+        header_bg_color = "FF0000"
     else:
         headers = [
             'CANT.', 'EQUIPO', 'ESTADO', 'MARCA', 'MODELO', 'SERIE', 'HOSTNAME', 'CÓDIGO DE\nINVENTARIO'
         ]
-        header_bg_color = "FF0000" # Usar rojo también por consistencia o mantener default? El usuario pidió rojo para venta.
-        # Mantener rojo ya que parece ser el estilo deseado
+        header_bg_color = "FF0000"
     
     for i, header_text in enumerate(headers):
         hdr_cells[i].text = header_text
@@ -443,101 +455,202 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
     # --- PROCESAMIENTO DE DISPOSITIVOS ---
     processed_devices = []
     
-    # 1. Transformación y Desglose
-    for dev in devices_info:
-        dtype = (dev.get('type', '') or '').upper()
-        brand = (dev.get('brand', '') or '').upper()
-        model = (dev.get('model', '') or '').upper()
-        serial = (dev.get('serial', '') or dev.get('imei', '') or '-').upper()
-        hostname = (dev.get('hostname', '') or '').upper()
-        inventory_code = (dev.get('inventory_code', '') or '').upper()
-        status = (dev.get('status', 'USADO') or 'USADO').upper()
-        
-        # KEYBOARD_MOUSE_KIT -> Separar en TECLADO y MOUSE
-        if dtype == 'KEYBOARD_MOUSE_KIT':
-            # Intentar separar modelos "HSA-A005K / HSA-A011M"
-            kb_model = model
-            ms_model = model
-            if '/' in model:
-                parts = model.split('/')
-                kb_model = parts[0].strip()
-                ms_model = parts[1].strip() if len(parts) > 1 else kb_model
+    if is_mobile_table:
+        # Lógica específica para móviles
+        for dev in devices_info:
+            dtype = (dev.get('type', '') or '').upper()
+            if dtype in ["MOBILE", "SMARTPHONE", "IPHONE"]: dtype = "CELULAR"
+            if dtype == "CHIP": dtype = "CHIP/SIM"
             
-            # TECLADO
+            # Agregar dispositivo principal
             processed_devices.append({
-                'type': 'TECLADO',
-                'brand': brand,
-                'model': kb_model,
-                'serial': serial, # Misma serie para ambos? Usualmente sí en kit, o serie del kit.
-                'hostname': '-',
-                'inventory_code': '-',
-                'status': status
+                'type': dtype,
+                'brand': (dev.get('brand', '') or '').upper(),
+                'model': (dev.get('model', '') or '').upper(),
+                'serial': (dev.get('serial', '') or '').upper(),
+                'imei': (dev.get('imei', '') or '-'),
+                'phone_number': (dev.get('phone_number', '') or '-'),
+                'status': 'NUEVO', # O tomar del dev
+                '_is_accessory': False
             })
-            # MOUSE
+
+            # Accesorios para CELULAR (usar datos reales si existen)
+            if dtype == "CELULAR":
+                print(f"DEBUG: Processing CELULAR accessories for device: {dev.get('brand', '')} {dev.get('model', '')}")
+                # 1. Agregar CARGADOR con datos reales si existen
+                charger_brand = dev.get('mobile_charger_brand', '') or dev.get('brand', '')
+                charger_model = dev.get('mobile_charger_model', '') or 'GENERICO'
+                charger_serial = dev.get('mobile_charger_serial', '') or '-'
+                
+                processed_devices.append({
+                    'type': 'CARGADOR DE CELULAR',
+                    'brand': charger_brand.upper(),
+                    'model': charger_model.upper(),
+                    'serial': charger_serial.upper(),
+                    'imei': '-',
+                    'phone_number': '-',
+                    'status': 'NUEVO',
+                    '_is_accessory': True
+                })
+                
+                # 2. Leer accesorios desde specifications si existen
+                specs_str = dev.get('specifications', '')
+                if specs_str:
+                    try:
+                        import json
+                        specs = json.loads(specs_str) if isinstance(specs_str, str) else specs_str
+                        
+                        # Definir accesorios a buscar
+                        accessories_map = [
+                            ("Cable USB", "Cable USB", "Tipo C"),  # (nombre, clave, valor_default)
+                            ("Auriculares", "Auriculares", "Incluido"),
+                            ("Adaptador Auriculares", "Adaptador Auriculares", "Incluido"),
+                            ("Case", "Case", "Incluido")
+                        ]
+                        
+                        for acc_name, acc_key, default_value in accessories_map:
+                            if acc_key in specs and specs[acc_key] and str(specs[acc_key]).lower() not in ["no", "false", ""]:
+                                acc_value = specs[acc_key]
+                                processed_devices.append({
+                                    'type': acc_name.upper(),
+                                    'brand': (dev.get('brand', '') or '').upper() if acc_name == "Cable USB" else 'GENERICO',
+                                    'model': acc_value.upper() if acc_value else default_value.upper(),
+                                    'serial': '-',
+                                    'imei': '-',
+                                    'phone_number': '-',
+                                    'status': 'NUEVO',
+                                    '_is_accessory': True
+                                })
+                    except (json.JSONDecodeError, TypeError, AttributeError):
+                        # Si no se puede parsear specifications, usar accesorios por defecto
+                        default_accessories = [
+                            {"type": "CABLE USB", "brand": (dev.get('brand', '') or '').upper(), "model": "TIPO C", "serial": "-"},
+                            {"type": "CASE / FUNDA", "brand": "GENERICO", "model": "INCLUIDO", "serial": "-"},
+                        ]
+                        for acc in default_accessories:
+                            processed_devices.append({
+                                'type': acc['type'],
+                                'brand': acc['brand'],
+                                'model': acc['model'],
+                                'serial': acc['serial'],
+                                'imei': '-',
+                                'phone_number': '-',
+                                'status': 'NUEVO',
+                                '_is_accessory': True
+                            })
+                else:
+                    # Si no hay specifications, usar accesorios por defecto
+                    default_accessories = [
+                        {"type": "CABLE USB", "brand": (dev.get('brand', '') or '').upper(), "model": "TIPO C", "serial": "-"},
+                        {"type": "CASE / FUNDA", "brand": "GENERICO", "model": "INCLUIDO", "serial": "-"},
+                    ]
+                    for acc in default_accessories:
+                        processed_devices.append({
+                            'type': acc['type'],
+                            'brand': acc['brand'],
+                            'model': acc['model'],
+                            'serial': acc['serial'],
+                            'imei': '-',
+                            'phone_number': '-',
+                            'status': 'NUEVO',
+                            '_is_accessory': True
+                        })
+    else:
+        # Lógica estándar (Cómputo/Venta)
+        for dev in devices_info:
+            dtype = (dev.get('type', '') or '').upper()
+            brand = (dev.get('brand', '') or '').upper()
+            model = (dev.get('model', '') or '').upper()
+            serial = (dev.get('serial', '') or dev.get('imei', '') or '-').upper()
+            hostname = (dev.get('hostname', '') or '').upper()
+            inventory_code = (dev.get('inventory_code', '') or '').upper()
+            status = (dev.get('status', 'USADO') or 'USADO').upper()
+            
+            # KEYBOARD_MOUSE_KIT -> Separar en TECLADO y MOUSE
+            if dtype == 'KEYBOARD_MOUSE_KIT':
+                # Intentar separar modelos "HSA-A005K / HSA-A011M"
+                kb_model = model
+                ms_model = model
+                if '/' in model:
+                    parts = model.split('/')
+                    kb_model = parts[0].strip()
+                    ms_model = parts[1].strip() if len(parts) > 1 else kb_model
+                
+                # TECLADO
+                processed_devices.append({
+                    'type': 'TECLADO',
+                    'brand': brand,
+                    'model': kb_model,
+                    'serial': serial, # Misma serie para ambos? Usualmente sí en kit, o serie del kit.
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': status
+                })
+                # MOUSE
+                processed_devices.append({
+                    'type': 'MOUSE',
+                    'brand': brand,
+                    'model': ms_model,
+                    'serial': serial,
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': status
+                })
+                continue
+
+            # Traducciones y Renombres
+            final_type = dtype
+            if dtype == 'HEADPHONES':
+                final_type = 'AURICULARES'
+            elif dtype == 'BACKPACK':
+                final_type = 'MOCHILA'
+                serial = '-'  # Mochila siempre serie '-'
+            elif dtype == 'CHARGER':
+                final_type = 'CARGADOR DE LAPTOP' # Default name for charger
+                # Regla: Ocultar series genéricas que empiezan con CHARGER-
+                if serial.upper().startswith('CHARGER-'):
+                    serial = '-'
+            elif dtype == 'LAPTOP':
+                 # Sales logic: "Laptop" is fine, but check current logic
+                 pass
+            
+            # Agregar dispositivo procesado
             processed_devices.append({
-                'type': 'MOUSE',
+                'type': final_type,
                 'brand': brand,
-                'model': ms_model,
+                'model': model,
                 'serial': serial,
-                'hostname': '-',
-                'inventory_code': '-',
+                'hostname': hostname,
+                'inventory_code': inventory_code,
                 'status': status
             })
-            continue
-
-        # Traducciones y Renombres
-        final_type = dtype
-        if dtype == 'HEADPHONES':
-            final_type = 'AURICULARES'
-        elif dtype == 'BACKPACK':
-            final_type = 'MOCHILA'
-            serial = '-'  # Mochila siempre serie '-'
-        elif dtype == 'CHARGER':
-            final_type = 'CARGADOR DE LAPTOP' # Default name for charger
-            # Regla: Ocultar series genéricas que empiezan con CHARGER-
-            if serial.upper().startswith('CHARGER-'):
-                serial = '-'
-        elif dtype == 'LAPTOP':
-             # Sales logic: "Laptop" is fine, but check current logic
-             pass
-        
-        # Agregar dispositivo procesado
-        processed_devices.append({
-            'type': final_type,
-            'brand': brand,
-            'model': model,
-            'serial': serial,
-            'hostname': hostname,
-            'inventory_code': inventory_code,
-            'status': status
-        })
 
 
-        # Agregar accesorios implícitos
-        if final_type == 'MONITOR':
-            # Heredar estado del monitor
-            cable_status = status 
-            
-            # Cable HDMI
-            processed_devices.append({
-                'type': 'CABLE HDMI',
-                'brand': '-',
-                'model': '-',
-                'serial': '-',
-                'hostname': '-',
-                'inventory_code': '-',
-                'status': cable_status
-            })
-            # Cable de Poder
-            processed_devices.append({
-                'type': 'CABLE DE PODER',
-                'brand': '-',
-                'model': '-',
-                'serial': '-',
-                'hostname': '-',
-                'inventory_code': '-',
-                'status': cable_status
-            })
+            # Agregar accesorios implícitos
+            if final_type == 'MONITOR':
+                # Heredar estado del monitor
+                cable_status = status 
+                
+                # Cable HDMI
+                processed_devices.append({
+                    'type': 'CABLE HDMI',
+                    'brand': '-',
+                    'model': '-',
+                    'serial': '-',
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': cable_status
+                })
+                # Cable de Poder
+                processed_devices.append({
+                    'type': 'CABLE DE PODER',
+                    'brand': '-',
+                    'model': '-',
+                    'serial': '-',
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': cable_status
+                })
 
     
     # 2. Ordenamiento
@@ -557,6 +670,10 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
         return order_map.get(d['type'], 99)
     
     processed_devices.sort(key=get_order)
+    print(f"DEBUG: Total processed_devices after adding accessories: {len(processed_devices)}")
+    if is_mobile_table:
+        for i, dev in enumerate(processed_devices):
+            print(f"DEBUG:   Device {i+1}: {dev.get('type', 'UNKNOWN')} - {dev.get('brand', '')} {dev.get('model', '')}")
 
     # Helper para establecer texto con formato
     def set_cell_text(cell, text, align=None, is_header=False):
@@ -580,14 +697,26 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
         for cell in row_cells:
             cell.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
-        set_cell_text(row_cells[1], dev['type'])
-        set_cell_text(row_cells[2], dev['status'], WD_ALIGN_PARAGRAPH.CENTER)
-        set_cell_text(row_cells[3], dev['brand'])
-        set_cell_text(row_cells[4], dev['model'])
-        set_cell_text(row_cells[5], dev['serial'])
-        
-        if is_sales_table:
+        if is_mobile_table:
+            # 9 columnas: CANT., EQUIPO, OPERADOR, ESTADO, MARCA, MODELO, SERIE, IMEI, N° CELULAR
+            if len(row_cells) >= 1: set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
+            if len(row_cells) >= 2: set_cell_text(row_cells[1], dev['type'])
+            if len(row_cells) >= 3: set_cell_text(row_cells[2], 'CLARO', WD_ALIGN_PARAGRAPH.CENTER) # Operador default
+            if len(row_cells) >= 4: set_cell_text(row_cells[3], dev.get('status', 'NUEVO'), WD_ALIGN_PARAGRAPH.CENTER)
+            if len(row_cells) >= 5: set_cell_text(row_cells[4], dev['brand'])
+            if len(row_cells) >= 6: set_cell_text(row_cells[5], dev['model'])
+            if len(row_cells) >= 7: set_cell_text(row_cells[6], dev['serial'])
+            if len(row_cells) >= 8: set_cell_text(row_cells[7], dev.get('imei', '-'))
+            if len(row_cells) >= 9: set_cell_text(row_cells[8], dev.get('phone_number', '-'))
+            
+        elif is_sales_table:
+            set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[1], dev['type'])
+            set_cell_text(row_cells[2], dev['status'], WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[3], dev['brand'])
+            set_cell_text(row_cells[4], dev['model'])
+            set_cell_text(row_cells[5], dev['serial'])
+            
             # Columna 6: Código Inventario (en index 6)
             inventory_value = 'N/A'
             if dev.get('inventory_code') and dev['inventory_code'] != '-' and dev['inventory_code'] != '':
@@ -601,6 +730,13 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             set_cell_text(row_cells[6], inventory_value)
             
         else:
+            set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[1], dev['type'])
+            set_cell_text(row_cells[2], dev['status'], WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[3], dev['brand'])
+            set_cell_text(row_cells[4], dev['model'])
+            set_cell_text(row_cells[5], dev['serial'])
+
             # Columna 6: Hostname (mostrar N/A si no tiene)
             hostname_value = 'N/A'
             if dev.get('hostname') and dev['hostname'] != '-' and dev['hostname'] != '':
@@ -642,15 +778,22 @@ def categorize_devices(devices_info):
     """
     Separate devices into computer equipment and mobile equipment.
     Returns: (computer_devices, mobile_devices)
+    
+    IMPORTANT: Chargers are now classified as COMPUTER equipment by default.
+    Only actual mobile devices (celular, chip) go to mobile_devices.
     """
     computer_devices = []
     mobile_devices = []
     
     for device in devices_info:
         device_type = device.get('type', '').lower()
-        if device_type in ['mobile', 'chip', 'celular', 'charger', 'cargador']:
+        
+        # Solo dispositivos móviles REALES van a mobile_devices
+        # Excluimos 'charger' y 'cargador' - ahora van a equipos de cómputo
+        if device_type in ['mobile', 'chip', 'celular']:
             mobile_devices.append(device)
         else:
+            # Todo lo demás va a cómputo (incluyendo cargadores)
             computer_devices.append(device)
     
     return computer_devices, mobile_devices
@@ -1041,11 +1184,9 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
     print(f"DEBUG: Final placeholders count: {len(placeholders)}")
 
     # === TRY TO INSERT TABLE AT PLACEHOLDER FIRST (BEFORE REPLACING OTHER PLACEHOLDERS) ===
-    # Skip table insertion for Decommission (Baja) reports as per user request
-    tabla_inserted = False
-    if not is_decommission:
-        tabla_inserted = insert_devices_table_at_placeholder(doc, devices_info, template=template)
-
+    # Attempt to insert table dynamics
+    # For batch actas (Computer), we DO NOT force mobile table. It should auto-detect from placeholder or default to computer.
+    tabla_inserted = insert_devices_table_at_placeholder(doc, devices_info, template=template)
     
     if tabla_inserted:
         print("DEBUG: Table inserted at {{TABLA}} placeholder")
@@ -1342,7 +1483,11 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
     # Prepare placeholders
     name_upper = employee_name.upper()
     dni_str = employee_dni if employee_dni else ""
-    comp_upper = employee_company.upper() if employee_company else "TRANSTOTAL AGENCIA MARITIMA S.A."
+    
+    # Ensure company has a default if missing
+    if not employee_company:
+        employee_company = "TRANSTOTAL AGENCIA MARITIMA S.A."
+    comp_upper = employee_company.upper()
     
     # Preparar datos del empleado para el mapeo dinámico
     employee_data = {
@@ -1415,6 +1560,16 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
         placeholders[f"{{{{MODELO_{dtype}}}}}"] = dev.get('model', '').upper()
         placeholders[f"{{{{IMEI_{dtype}}}}}"] = dev.get('imei', '').upper()
 
+    print(f"DEBUG: Final placeholders count: {len(placeholders)}")
+
+    # === TRY TO INSERT TABLE AT PLACEHOLDER FIRST (BEFORE REPLACING OTHER PLACEHOLDERS) ===
+    # Attempt to insert table dynamics
+    # Force is_mobile_table=True for mobile actas to ensure accessories are added even if placeholder is generic {{TABLA}}
+    tabla_inserted = insert_devices_table_at_placeholder(doc, devices_info, template=template, is_mobile_table=True)
+    
+    if tabla_inserted:
+        print("DEBUG: Table inserted at placeholder for mobile acta")
+
     # === REPLACE IN ALL DOCUMENT PARTS ===
     process_document_placeholders(doc, placeholders)
     
@@ -1457,31 +1612,183 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
                         copy_cell_format(template_row.cells[i], cell)
             
             device_type_display = device['type'].upper()
-            if device_type_display == "MOBILE":
+            if device_type_display in ["MOBILE", "SMARTPHONE", "IPHONE"]:
                 device_type_display = "CELULAR"
             elif device_type_display == "CHIP":
                 device_type_display = "CHIP/SIM"
+            
+            # Guardar el número de teléfono para usarlo en el CHIP
+            phone_number_for_chip = device.get('phone_number', '-')
             
             num_cols = len(cells)
             if num_cols >= 1:
                 cells[0].text = "1"  # CANT
                 cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 2:
-                cells[1].text = device_type_display  # EQUIPO
+                cells[1].text = device_type_display.upper()  # EQUIPO en mayúsculas
+                cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 3:
                 cells[2].text = "CLARO"  # OPERADOR
+                cells[2].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 4:
-                cells[3].text = "Nuevo"  # ESTADO
+                cells[3].text = "NUEVO"  # ESTADO en mayúsculas
+                cells[3].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 5:
                 cells[4].text = device['brand'].upper()  # MARCA
+                cells[4].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 6:
                 cells[5].text = device['model'].upper()  # MODELO
+                cells[5].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 7:
                 cells[6].text = device.get('serial', '-').upper()  # SERIE
+                cells[6].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 8:
-                cells[7].text = device.get('imei', '-')  # IMEI
+                cells[7].text = device.get('imei', '-').upper()  # IMEI
+                cells[7].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 9:
-                cells[8].text = device.get('phone_number', '-')  # TELEFONO
+                cells[8].text = "-"  # TELEFONO (ahora va en el CHIP)
+                cells[8].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Aplicar tamaño de fuente 8pt a todas las celdas
+            for cell in cells:
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Pt(8)
+            
+            # INJECT ACCESSORIES FOR MOBILE (usar datos reales si existen)
+            if device_type_display == "CELULAR":
+                # 1. Agregar CARGADOR con datos reales si existen
+                charger_brand = device.get('mobile_charger_brand', '') or device.get('brand', '')
+                charger_model = device.get('mobile_charger_model', '') or 'GENERICO'
+                charger_serial = device.get('mobile_charger_serial', '') or '-'
+                
+                # Agregar cargador
+                acc_row = devices_table.add_row()
+                acc_cells = acc_row.cells
+                if template_row:
+                    for i, cell in enumerate(acc_cells):
+                        if i < len(template_row.cells):
+                            copy_cell_format(template_row.cells[i], cell)
+                
+                if len(acc_cells) >= 1:
+                    acc_cells[0].text = "1"
+                    acc_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 2:
+                    acc_cells[1].text = "CARGADOR DE CELULAR"
+                    acc_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 3:
+                    acc_cells[2].text = "-"
+                    acc_cells[2].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 4:
+                    acc_cells[3].text = "NUEVO"
+                    acc_cells[3].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 5:
+                    acc_cells[4].text = charger_brand.upper()
+                    acc_cells[4].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 6:
+                    acc_cells[5].text = charger_model.upper()
+                    acc_cells[5].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 7:
+                    acc_cells[6].text = charger_serial.upper()
+                    acc_cells[6].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 8:
+                    acc_cells[7].text = "-"
+                    acc_cells[7].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(acc_cells) >= 9:
+                    acc_cells[8].text = "-"
+                    acc_cells[8].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                
+                # Aplicar tamaño de fuente 8pt al cargador
+                for cell in acc_cells:
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.font.size = Pt(8)
+                
+                # 2. Leer accesorios desde specifications si existen
+                specs_str = device.get('specifications', '')
+                accessories_to_add = []
+                
+                if specs_str:
+                    try:
+                        import json
+                        specs = json.loads(specs_str) if isinstance(specs_str, str) else specs_str
+                        
+                        # Definir accesorios a buscar
+                        accessories_map = [
+                            ("Cable USB", "Cable USB", "Tipo C"),
+                            ("Auriculares", "Auriculares", "Incluido"),
+                            ("Adaptador Auriculares", "Adaptador Auriculares", "Incluido"),
+                            ("Case", "Case", "Incluido")
+                        ]
+                        
+                        for acc_name, acc_key, default_value in accessories_map:
+                            if acc_key in specs and specs[acc_key] and str(specs[acc_key]).lower() not in ["no", "false", ""]:
+                                acc_value = specs[acc_key]
+                                accessories_to_add.append({
+                                    "type": acc_name.upper(),
+                                    "brand": device.get('brand', '').upper(),  # Usar marca del celular para TODOS los accesorios
+                                    "model": acc_value.upper() if acc_value else default_value.upper(),
+                                    "serial": "-"
+                                })
+                    except (json.JSONDecodeError, TypeError, AttributeError):
+                        # Si no se puede parsear, usar accesorios por defecto
+                        accessories_to_add = [
+                            {"type": "CABLE USB", "brand": device.get('brand', '').upper(), "model": "TIPO C", "serial": "-"},
+                            {"type": "CASE", "brand": device.get('brand', '').upper(), "model": "INCLUIDO", "serial": "-"},
+                        ]
+                else:
+                    # Si no hay specifications, usar accesorios por defecto
+                    accessories_to_add = [
+                        {"type": "CABLE USB", "brand": device.get('brand', '').upper(), "model": "TIPO C", "serial": "-"},
+                        {"type": "CASE", "brand": device.get('brand', '').upper(), "model": "INCLUIDO", "serial": "-"},
+                    ]
+                
+                # Agregar los accesorios a la tabla
+                for acc in accessories_to_add:
+                    acc_row = devices_table.add_row()
+                    acc_cells = acc_row.cells
+                    
+                    # Copy formatting if possible
+                    if template_row:
+                        for i, cell in enumerate(acc_cells):
+                            if i < len(template_row.cells):
+                                copy_cell_format(template_row.cells[i], cell)
+                    
+                    if len(acc_cells) >= 1:
+                        acc_cells[0].text = "1"
+                        acc_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 2:
+                        acc_cells[1].text = acc['type']
+                        acc_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 3:
+                        acc_cells[2].text = "-"  # Operador irrelevant
+                        acc_cells[2].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 4:
+                        acc_cells[3].text = "NUEVO"
+                        acc_cells[3].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 5:
+                        acc_cells[4].text = acc['brand']
+                        acc_cells[4].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 6:
+                        acc_cells[5].text = acc['model']
+                        acc_cells[5].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 7:
+                        acc_cells[6].text = acc['serial']
+                        acc_cells[6].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 8:
+                        acc_cells[7].text = "-"  # IMEI irrelevant
+                        acc_cells[7].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if len(acc_cells) >= 9:
+                        acc_cells[8].text = "-"  # Phone irrelevant
+                        acc_cells[8].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    
+                    # Aplicar tamaño de fuente 8pt a los accesorios
+                    for cell in acc_cells:
+                        for paragraph in cell.paragraphs:
+                            for run in paragraph.runs:
+                                run.font.size = Pt(8)
+     
+     
     
     # Handle Date
     for table in doc.tables:

@@ -119,11 +119,13 @@ def list_terminations(
         
         # Check if there are computer or mobile devices
         has_computer = any(
-            a.device and a.device.device_type in ['laptop', 'monitor', 'keyboard', 'mouse', 'kit teclado/mouse', 'mochila', 'stand'] 
+            a.device and a.device.device_type in ['laptop', 'monitor', 'keyboard', 'mouse', 'kit teclado/mouse', 'mochila', 'stand', 'charger'] 
             for a in assignments
         )
+        # Solo considerar dispositivos móviles REALES (celular, chip)
+        # Excluir cargadores - ahora van a equipos de cómputo
         has_mobile = any(
-            a.device and a.device.device_type in ['celular', 'chip', 'charger'] 
+            a.device and a.device.device_type in ['celular', 'chip'] 
             for a in assignments
         )
         
@@ -281,12 +283,13 @@ async def download_mobile_acta(termination_id: int, db: Session = Depends(databa
     if not termination:
         raise HTTPException(status_code=404, detail="Termination not found")
     
-    # Get mobile equipment assignments (including chargers)
+    # Get mobile equipment assignments (solo celular y chip, NO cargadores)
     assignments = db.query(models.Assignment).filter(
         models.Assignment.termination_id == termination_id
     ).all()
     
-    mobile_devices = [a for a in assignments if a.device.device_type in ['mobile', 'chip', 'charger']]
+    # Solo dispositivos móviles REALES (celular, chip)
+    mobile_devices = [a for a in assignments if a.device.device_type in ['celular', 'chip']]
     
     if not mobile_devices:
         raise HTTPException(status_code=404, detail="No mobile equipment found for this termination")

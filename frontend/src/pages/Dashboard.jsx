@@ -23,11 +23,13 @@ import Pagination from '../components/Pagination';
 import ExcelFilter from '../components/ExcelFilter';
 import AssignmentActaModal from '../components/AssignmentActaModal';
 import EmployeeCard from '../components/EmployeeCard';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const Dashboard = () => {
     const { showNotification, showConfirm } = useNotification();
+    const { token } = useAuth();
     const navigate = useNavigate();
 
     // 1. Core State
@@ -158,7 +160,7 @@ const Dashboard = () => {
 
     // Debounced search effect
     useEffect(() => {
-        const delay = searchQuery ? 500 : 0;
+        const delay = searchQuery ? 250 : 0; // Reducido de 500ms a 250ms para respuesta más rápida
         const handler = setTimeout(() => {
             fetchData(1);
         }, delay);
@@ -321,6 +323,8 @@ const Dashboard = () => {
                     d.model?.toLowerCase().includes(lowerSearch) ||
                     d.brand?.toLowerCase().includes(lowerSearch) ||
                     d.hostname?.toLowerCase().includes(lowerSearch) ||
+                    d.inventory_code?.toLowerCase().includes(lowerSearch) ||  // Añadido código de inventario
+                    d.status?.toLowerCase().includes(lowerSearch) ||
                     (deviceTypeNames[d.device_type] || '').toLowerCase().includes(lowerSearch);
 
                 const matchStatus = d.status?.toLowerCase().includes(lowerSearch);
@@ -1074,15 +1078,17 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center gap-4">
                                 {/* Export to Excel Button */}
-                                <a
-                                    href={`${API_URL}/export/assignments-template`}
-                                    target="_blank"
+                                <button
+                                    onClick={() => {
+                                        window.location.href = `${API_URL}/export/assignments-template?token=${token}`;
+                                        showNotification('✓ Iniciando exportación...', 'success');
+                                    }}
                                     className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                                     title="Exportar asignaciones a Excel"
                                 >
                                     <Download className="w-4 h-4" />
                                     Exportar a Excel
-                                </a>
+                                </button>
 
 
 

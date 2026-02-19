@@ -70,7 +70,8 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
                 "serial": a.device.serial_number,
                 "type": a.device.device_type,
                 "brand": a.device.brand,
-                "hostname": a.device.hostname
+                "hostname": a.device.hostname,
+                "inventory_code": a.device.inventory_code or ""  # Added inventory_code
             })
         
         # Add charger info if provided (from frontend selection)
@@ -93,9 +94,10 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
         )
         print(f"DEBUG: PDF generated at {pdf_path}")
 
-        # 5. Update PDF path for all
-        for a in created_assignments:
-            a.pdf_acta_path = pdf_path
+        # NOTE: NO guardar pdf_acta_path para actas generadas automáticamente
+        # Este campo se reserva SOLO para PDFs firmados subidos por el usuario
+        # for a in created_assignments:
+        #     a.pdf_acta_path = pdf_path
         
         db.commit()
         print("DEBUG: Batch assignment committed successfully")
@@ -145,7 +147,9 @@ def assign_device(assignment: schemas.AssignmentCreate, background_tasks: Backgr
         charger_serial
     )
     
-    db_assignment.pdf_acta_path = pdf_path
+    # NOTE: NO guardar pdf_acta_path para actas generadas automáticamente
+    # Este campo se reserva SOLO para PDFs firmados subidos por el usuario
+    # db_assignment.pdf_acta_path = pdf_path
     db.commit()
     
     # Audit Log
@@ -169,7 +173,6 @@ def return_device(device_id: int, db: Session = Depends(database.get_db)):
 
 @router.get("/assignments/{assignment_id}/pdf")
 @router.get("/assignments/{assignment_id}/acta")  # Alternative endpoint
-@router.get("/assignments/{assignment_id}/download-acta") # Explicit endpoint requested by frontend
 def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
     print(f"DEBUG: get_acta_pdf called for assignment {assignment_id}")
     import zipfile
@@ -209,8 +212,15 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
                 "model": assign.device.model or "",
                 "serial": assign.device.serial_number or "-",
                 "hostname": assign.device.hostname or "",  # Added hostname
+                "inventory_code": assign.device.inventory_code or "",  # Added inventory_code
                 "imei": assign.device.imei or "",
                 "phone_number": assign.device.phone_number or "",
+                # Datos del cargador de celular
+                "mobile_charger_brand": assign.device.mobile_charger_brand or "",
+                "mobile_charger_model": assign.device.mobile_charger_model or "",
+                "mobile_charger_serial": assign.device.mobile_charger_serial or "",
+                # Especificaciones (para accesorios del celular)
+                "specifications": assign.device.specifications or "",
                 # Calcular status: USADO si tiene assignments previos con OTROS usuarios
                 "status": "USADO" if db.query(models.Assignment).filter(
                     models.Assignment.device_id == assign.device.id,
@@ -269,19 +279,28 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
     
     # Generate mobile acta if has mobile devices
     if mobile_devices:
-        print(f"DEBUG: Generating mobile acta with {len(mobile_devices)} devices")
-        mobile_acta_path = pdf_generator.generate_mobile_acta(
-            assignment.id,
-            employee_name,
-            mobile_devices,
-            employee_dni,
-            employee_company, # Usar company aquí
-            template_path=mobile_template_path,
-            template=mobile_template,
-            acta_observations=assignment.notes
+        # Verificar que haya al menos un dispositivo móvil REAL (no solo accesorios/cargadores)
+        has_real_mobile = any(
+            dev.get('type', '').lower() in ['mobile', 'chip', 'celular'] 
+            for dev in mobile_devices
         )
-        mobile_filename = f"ACTA DE ENTREGA DE CELULAR - {employee_name.upper()} - {date_str}.docx"
-        generated_files.append((mobile_acta_path, mobile_filename))
+        
+        if has_real_mobile:
+            print(f"DEBUG: Generating mobile acta with {len(mobile_devices)} devices")
+            mobile_acta_path = pdf_generator.generate_mobile_acta(
+                assignment.id,
+                employee_name,
+                mobile_devices,
+                employee_dni,
+                employee_company, # Usar company aquí
+                template_path=mobile_template_path,
+                template=mobile_template,
+                acta_observations=assignment.notes
+            )
+            mobile_filename = f"ACTA DE ENTREGA DE CELULAR - {employee_name.upper()} - {date_str}.docx"
+            generated_files.append((mobile_acta_path, mobile_filename))
+        else:
+            print(f"DEBUG: Skipping mobile acta - no real mobile devices found (only accessories/chargers)")
     
     # If no devices, error
     if not generated_files:

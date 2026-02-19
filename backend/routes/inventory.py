@@ -82,6 +82,7 @@ def read_devices(
                 models.Device.model.ilike(search_filter),
                 models.Device.hostname.ilike(search_filter),
                 models.Device.inventory_code.ilike(search_filter),
+                models.Device.status.ilike(search_filter),  # Búsqueda por status (sold, available, assigned...)
                 # Check active assignments for employee matches
                 models.Device.assignments.any(
                     and_(
@@ -274,7 +275,23 @@ def update_device(device_id: int, device_update: schemas.DeviceUpdate, db: Sessi
         db_device.carrier = device_update.carrier if device_update.carrier.strip() else None
     if device_update.location is not None:
         db_device.location = device_update.location
-    
+        
+    # Laptop Charger Fields
+    if device_update.laptop_charger_brand is not None:
+        db_device.laptop_charger_brand = device_update.laptop_charger_brand
+    if device_update.laptop_charger_model is not None:
+        db_device.laptop_charger_model = device_update.laptop_charger_model
+    if device_update.laptop_charger_serial is not None:
+        db_device.laptop_charger_serial = device_update.laptop_charger_serial
+        
+    # Mobile Charger Fields
+    if device_update.mobile_charger_brand is not None:
+        db_device.mobile_charger_brand = device_update.mobile_charger_brand
+    if device_update.mobile_charger_model is not None:
+        db_device.mobile_charger_model = device_update.mobile_charger_model
+    if device_update.mobile_charger_serial is not None:
+        db_device.mobile_charger_serial = device_update.mobile_charger_serial
+
     db.commit()
     db.refresh(db_device)
     
@@ -346,19 +363,19 @@ def get_employee_acta_info(employee_id: int, db: Session = Depends(database.get_
         
         device_type = device.device_type
         
-        # Computer devices
-        if device_type in ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'stand', 'keyboard', 'mouse']:
+        # Computer devices (incluyendo cargadores de laptop)
+        if device_type in ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'stand', 'keyboard', 'mouse', 'charger']:
             has_computer_devices = True
             if not computer_assignment_id:
                 computer_assignment_id = assignment.id
-        # Mobile devices
-        elif device_type in ['celular', 'chip', 'charger']:
+        # Mobile devices (SOLO celular y chip, NO cargadores)
+        elif device_type in ['celular', 'chip']:
             has_mobile_devices = True
             if not mobile_assignment_id:
                 mobile_assignment_id = assignment.id
     
-    # Check ALL assignments (including returned) for actas
-    for assignment in db_employee.assignments:
+    # Check ONLY ACTIVE assignments for actas (not returned assignments)
+    for assignment in active_assignments:
         if assignment.pdf_acta_path:
             device = assignment.device
             if not device:
@@ -366,14 +383,14 @@ def get_employee_acta_info(employee_id: int, db: Session = Depends(database.get_
             
             device_type = device.device_type
             
-            # Computer acta
-            if device_type in ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'stand', 'keyboard', 'mouse']:
+            # Computer acta (incluyendo cargadores de laptop)
+            if device_type in ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'stand', 'keyboard', 'mouse', 'charger']:
                 if not computer_acta_path:
                     computer_acta_path = assignment.pdf_acta_path
                     # IMPORTANT: Update assignment ID to the one that HAS the acta
                     computer_assignment_id = assignment.id
-            # Mobile acta
-            elif device_type in ['mobile', 'chip', 'charger']:
+            # Mobile acta (SOLO celular y chip, NO cargadores)
+            elif device_type in ['celular', 'chip']:
                 if not mobile_acta_path:
                     mobile_acta_path = assignment.pdf_acta_path
                     # IMPORTANT: Update assignment ID to the one that HAS the acta

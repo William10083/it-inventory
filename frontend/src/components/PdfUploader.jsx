@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, FileText, Download, Loader, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -14,6 +15,7 @@ const PdfUploader = ({
     onUploadSuccess,
     onDeleteSuccess
 }) => {
+    const { token } = useAuth(); // Get token from context
     const { showNotification, showConfirm } = useNotification();
     const [uploading, setUploading] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -70,29 +72,16 @@ const PdfUploader = ({
         }
     };
 
-    const handleDownload = async () => {
-        try {
-            const response = await axios.get(downloadUrl, {
-                responseType: 'blob'
-            });
+    const handleDownload = () => {
+        // Use window.open or location.href to let the browser handle the download directly
+        // This avoids issues with Blob handling or double-encoding in JS
+        // Append token to URL for authentication
+        const urlWithToken = `${downloadUrl}?token=${token}`;
 
-            // Crear URL del blob y descargar
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `acta_firmada_${Date.now()}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+        // Force download in the same tab instead of opening a new one
+        window.location.href = urlWithToken;
 
-            showNotification('✓ Acta descargada', 'success');
-        } catch (err) {
-            console.error('Error downloading PDF:', err);
-            const errorMsg = err.response?.data?.detail || 'Error al descargar el acta';
-            showNotification(errorMsg, 'error');
-        }
+        showNotification('✓ Iniciando descarga...', 'success');
     };
 
     const handleDelete = async () => {

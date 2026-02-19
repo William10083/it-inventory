@@ -1,4 +1,6 @@
+import os
 from datetime import datetime, timedelta
+
 from typing import Union, Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -10,9 +12,15 @@ from database import get_db
 from pydantic import BaseModel
 
 # Secret key (in prod, use env var)
-SECRET_KEY = "supersecretkey_change_me_in_production"
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey_change_me_in_production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 hours
+
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -47,15 +55,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            logger.warning("Token payload missing 'sub' claim")
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"JWT validation error: {str(e)}")
         raise credentials_exception
         
     user = db.query(models.User).filter(models.User.username == token_data.username).first()
     if user is None:
+        logger.warning(f"User not found for username: {token_data.username}")
         raise credentials_exception
     return user
+
 
 async def get_current_active_user(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_active:

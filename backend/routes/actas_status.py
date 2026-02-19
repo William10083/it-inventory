@@ -341,3 +341,171 @@ def get_actas_status(
                            (terminations_total - terminations_signed)
         }
     }
+
+import io
+import zipfile
+import os
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
+
+@router.get("/actas-status/export-zip")
+def export_actas_zip(
+    status_filter: Optional[str] = 'signed',  # Default to signed for zip export
+    search: Optional[str] = None,
+    location_filter: Optional[str] = 'all',
+    type_filter: Optional[str] = Query(None), # Comma separated list of types
+    token: Optional[str] = Query(None),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Export filter actas as a ZIP file.
+    Naming format: ACTA DE ENTREGA EQUIPO COMPUTO - {USUARIO} - {DD-MM-AAAA}.pdf
+    """
+    
+    # Files to archive: list of tuples (file_path, archive_name)
+    files_to_archive = []
+    
+    # Parse type filters
+    allowed_types = []
+    if type_filter:
+        allowed_types = type_filter.split(',')
+    
+    # Helper to check if type is allowed
+    def is_type_allowed(label):
+        if not allowed_types: return True
+        return label in allowed_types
+
+    # 1. Employees query
+    query = db.query(models.Employee).options(
+        joinedload(models.Employee.assignments).joinedload(models.Assignment.device)
+    ).filter(models.Employee.is_active == True)
+    
+    # Apply location filter at DB level if possible, or python level if flexible match needed
+    # Frontend logic: loc.includes(filter)
+    if location_filter and location_filter != 'all':
+        query = query.filter(models.Employee.location.ilike(f"%{location_filter}%"))
+        
+    active_employees = query.all()
+    
+    # Pre-fetch sales for these employees
+    emp_names = [e.full_name for e in active_employees if e.full_name]
+    sales_map = {}
+    if emp_names:
+        sales = db.query(models.Sale).filter(models.Sale.buyer_name.in_(emp_names)).all()
+        for s in sales:
+            if s.buyer_name not in sales_map: sales_map[s.buyer_name] = []
+            sales_map[s.buyer_name].append(s)
+            
+    # Helper to check if file exists and add to list
+    def add_file(path, user_name, date_obj, prefix="ACTA DE ENTREGA EQUIPO COMPUTO"):
+        if not path or not os.path.exists(path):
+            return
+            
+        date_str = date_obj.strftime("%d-%m-%Y") if date_obj else "SIN-FECHA"
+        filename = f"{prefix} - {user_name} - {date_str}.pdf"
+        
+        # Ensure unique filename in archive
+        # Check current list
+        count = 1
+        original_filename = filename
+        while any(f[1] == filename for f in files_to_archive):
+             filename = f"{original_filename[:-4]}_{count}.pdf"
+             count += 1
+             
+        files_to_archive.append((path, filename))
+
+    for emp in active_employees:
+        # Search filter
+        if search and search.lower() not in emp.full_name.lower():
+            continue
+            
+        # Assignments
+        # We need to find the ACTA path. 
+        # Logic similar to get_actas_status: find valid acta path.
+        
+        # Computer Acta
+        # Filter check: 'Asignación - Cómputo'
+        if is_type_allowed('Asignación - Cómputo'):
+            computer_acta_path = None
+            computer_date = None
+            for a in emp.assignments:
+                if a.pdf_acta_path:
+                    d = a.device
+                    if d and d.device_type in ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'stand', 'keyboard', 'mouse']:
+                        computer_acta_path = a.pdf_acta_path
+                        computer_date = a.assigned_date
+                        break 
+            
+            if computer_acta_path and (status_filter in ['all', 'signed']):
+                 add_file(computer_acta_path, emp.full_name, computer_date, "ACTA DE ENTREGA EQUIPO COMPUTO")
+
+        # Mobile Acta
+        # Filter check: 'Asignación - Celular'
+        if is_type_allowed('Asignación - Celular'):
+            mobile_acta_path = None
+            mobile_date = None
+            for a in emp.assignments:
+                if a.pdf_acta_path:
+                    d = a.device
+                    if d and d.device_type in ['celular', 'chip', 'charger']:
+                        mobile_acta_path = a.pdf_acta_path
+                        mobile_date = a.assigned_date
+                        break
+                        
+            if mobile_acta_path and (status_filter in ['all', 'signed']):
+                 add_file(mobile_acta_path, emp.full_name, mobile_date, "ACTA DE ENTREGA EQUIPO COMPUTO (MOVIL)") 
+             
+        # Sales
+        # Filter check: 'Venta'
+        if is_type_allowed('Venta'):
+            for sale in sales_map.get(emp.full_name, []):
+                if sale.acta_path and (status_filter in ['all', 'signed']):
+                     add_file(sale.acta_path, sale.buyer_name, sale.sale_date, "ACTA DE VENTA")
+
+    # Terminations (Assignments returned)
+    # Reuse query filter if location applies to active employees (Terminated employees are NOT active usually).
+    # Logic in get_actas_status queries Terminations separately. We need to do the same.
+    
+    term_query = db.query(models.Termination).options(
+        joinedload(models.Termination.returned_assignments),
+        joinedload(models.Termination.employee)
+    )
+    
+    # Apply location filter to terminations (by employee location at time of termination? or current?)
+    # Termination has 'employee' relation.
+    if location_filter and location_filter != 'all':
+        term_query = term_query.join(models.Employee).filter(models.Employee.location.ilike(f"%{location_filter}%"))
+        
+    terminations = term_query.all()
+    
+    for term in terminations:
+        employee = term.employee
+        if search and search.lower() not in employee.full_name.lower():
+            continue
+            
+        if status_filter in ['all', 'signed']:
+            if term.computer_acta_path and is_type_allowed('Cese - Cómputo'):
+                add_file(term.computer_acta_path, employee.full_name, term.termination_date, "ACTA DE CESE COMPUTO")
+            if term.mobile_acta_path and is_type_allowed('Cese - Celular'):
+                add_file(term.mobile_acta_path, employee.full_name, term.termination_date, "ACTA DE CESE MOVIL")
+
+    # Create ZIP
+    # Memory buffer
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for path, name in files_to_archive:
+            try:
+                zip_file.write(path, name)
+            except Exception as e:
+                print(f"Error zipping {path}: {e}")
+                
+    zip_buffer.seek(0)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    zip_filename = f"Actas_Export_{timestamp}.zip"
+    
+    return StreamingResponse(
+        zip_buffer, 
+        media_type="application/zip", 
+        headers={"Content-Disposition": f"attachment; filename={zip_filename}"}
+    )

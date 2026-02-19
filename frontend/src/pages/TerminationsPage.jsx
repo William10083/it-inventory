@@ -21,11 +21,14 @@ const TerminationsPage = () => {
     const itemsPerPage = 20;
 
     useEffect(() => {
-        const timer = setTimeout(() => {
+        if (!searchTerm) {
             fetchTerminations(1);
-        }, 500);
-
-        return () => clearTimeout(timer);
+        } else {
+            const timer = setTimeout(() => {
+                fetchTerminations(1);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
     }, [searchTerm]);
 
     const fetchTerminations = async (page = currentPage) => {

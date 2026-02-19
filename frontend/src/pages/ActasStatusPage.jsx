@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Download, AlertTriangle, CheckCircle, Search, Filter, MapPin, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FileText, Download, AlertTriangle, CheckCircle, Search, Filter, MapPin, ChevronUp, ChevronDown, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ExcelFilter from '../components/ExcelFilter';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -12,6 +13,7 @@ const LOCATIONS = [
 
 const ActasStatusPage = () => {
     const navigate = useNavigate();
+    const { token } = useAuth();
     // Default empty state
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'signed', 'pending'
@@ -70,31 +72,41 @@ const ActasStatusPage = () => {
         }
     };
 
-    const handleDownload = async (type, id) => {
-        try {
-            let url = '';
-            if (type === 'assignment_computer' || type === 'assignment_mobile') {
-                url = `${API_URL}/assignments/${id}/download-acta`;
-            } else if (type === 'sale') {
-                url = `${API_URL}/sales/${id}/download-acta`;
-            } else if (type === 'termination_computer') {
-                url = `${API_URL}/terminations/${id}/download-computer-acta`;
-            } else if (type === 'termination_mobile') {
-                url = `${API_URL}/terminations/${id}/download-mobile-acta`;
-            }
-
-            const response = await axios.get(url, { responseType: 'blob' });
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = `acta_${type}_${id}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error('Error downloading acta:', error);
+    const handleDownload = (type, id) => {
+        let url = '';
+        if (type === 'assignment_computer' || type === 'assignment_mobile') {
+            url = `${API_URL}/assignments/${id}/download-acta`;
+        } else if (type === 'sale') {
+            url = `${API_URL}/sales/${id}/download-acta`;
+        } else if (type === 'termination_computer') {
+            url = `${API_URL}/terminations/${id}/download-computer-acta`;
+        } else if (type === 'termination_mobile') {
+            url = `${API_URL}/terminations/${id}/download-mobile-acta`;
         }
+
+        if (url) {
+            // Force download in the same tab, including auth token
+            window.location.href = `${url}?token=${token}`;
+        }
+    };
+
+    const handleBulkExport = () => {
+        // Build query params
+        const params = new URLSearchParams();
+        // Export only SIGNED actas as requested
+        params.append('status_filter', 'signed');
+
+        if (searchTerm) params.append('search', searchTerm);
+        if (locationFilter && locationFilter !== 'all') params.append('location_filter', locationFilter);
+
+        // Add Type Filter (Excel-like)
+        if (excelFilters.typeLabel && excelFilters.typeLabel.length > 0) {
+            params.append('type_filter', excelFilters.typeLabel.join(','));
+        }
+
+        if (token) params.append('token', token);
+
+        window.location.href = `${API_URL}/actas-status/export-zip?${params.toString()}`;
     };
 
     const getTypeLabel = (type) => {
@@ -136,46 +148,52 @@ const ActasStatusPage = () => {
     if (!data) return null; // Safe guard
 
     // Pre-process data with labels for filtering
-    const processedActas = [
-        ...(data.assignment_computer || []),
-        ...(data.assignment_mobile || []),
-        ...(data.sales || []),
-        ...(data.terminations || [])
-    ].map(acta => ({
-        ...acta,
-        typeLabel: getTypeLabel(acta.type),
-        statusLabel: acta.has_acta ? 'Firmada' : 'Pendiente'
-    }));
+    // Pre-process data with labels for filtering
+    const processedActas = useMemo(() => {
+        if (!data) return [];
+        return [
+            ...(data.assignment_computer || []),
+            ...(data.assignment_mobile || []),
+            ...(data.sales || []),
+            ...(data.terminations || [])
+        ].map(acta => ({
+            ...acta,
+            typeLabel: getTypeLabel(acta.type),
+            statusLabel: acta.has_acta ? 'Firmada' : 'Pendiente'
+        }));
+    }, [data]);
 
     // Filter Logic
-    const filteredActas = processedActas.filter(acta => {
-        // Location Filter (Global)
-        if (locationFilter !== 'all') {
-            const loc = (acta.employee_location || '').toLowerCase();
-            if (!loc.includes(locationFilter.toLowerCase())) return false;
-        }
+    const filteredActas = useMemo(() => {
+        return processedActas.filter(acta => {
+            // Location Filter (Global)
+            if (locationFilter !== 'all') {
+                const loc = (acta.employee_location || '').toLowerCase();
+                if (!loc.includes(locationFilter.toLowerCase())) return false;
+            }
 
-        // Excel Filters
-        if (excelFilters.employee_name.length > 0 && !excelFilters.employee_name.includes(acta.employee_name)) return false;
-        if (excelFilters.typeLabel.length > 0 && !excelFilters.typeLabel.includes(acta.typeLabel)) return false;
-        if (excelFilters.statusLabel.length > 0 && !excelFilters.statusLabel.includes(acta.statusLabel)) return false;
-        if (excelFilters.days_pending.length > 0 && !excelFilters.days_pending.includes(acta.days_pending)) return false;
+            // Excel Filters
+            if (excelFilters.employee_name.length > 0 && !excelFilters.employee_name.includes(acta.employee_name)) return false;
+            if (excelFilters.typeLabel.length > 0 && !excelFilters.typeLabel.includes(acta.typeLabel)) return false;
+            if (excelFilters.statusLabel.length > 0 && !excelFilters.statusLabel.includes(acta.statusLabel)) return false;
+            if (excelFilters.days_pending.length > 0 && !excelFilters.days_pending.includes(acta.days_pending)) return false;
 
-        return true;
-    }).sort((a, b) => {
-        const { key, direction } = sortConfig;
+            return true;
+        }).sort((a, b) => {
+            const { key, direction } = sortConfig;
 
-        let aVal = a[key] || '';
-        let bVal = b[key] || '';
+            let aVal = a[key] || '';
+            let bVal = b[key] || '';
 
-        // Handle string comparison manually if needed, otherwise generic
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+            // Handle string comparison manually if needed, otherwise generic
+            if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+            if (typeof bVal === 'string') bVal = bVal.toLowerCase();
 
-        if (aVal < bVal) return direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
+            if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [processedActas, locationFilter, excelFilters, sortConfig]);
 
     // Helper to update specific filter
     const updateExcelFilter = (key, values) => {
@@ -195,14 +213,24 @@ const ActasStatusPage = () => {
                         Seguimiento de actas firmadas y pendientes de asignaciones y ceses
                     </p>
                 </div>
-                <button
-                    onClick={() => navigate('/templates')}
-                    className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-slate-600 shadow-sm"
-                    title="Gestionar templates de actas"
-                >
-                    <FileText className="w-4 h-4" />
-                    Templates
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleBulkExport}
+                        className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-green-500 shadow-sm"
+                        title="Exportar actas firmadas (ZIP)"
+                    >
+                        <Archive className="w-4 h-4" />
+                        Exportar Filtrados (ZIP)
+                    </button>
+                    <button
+                        onClick={() => navigate('/templates')}
+                        className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-slate-600 shadow-sm"
+                        title="Gestionar templates de actas"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Templates
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}

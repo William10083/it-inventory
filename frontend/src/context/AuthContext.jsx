@@ -20,20 +20,24 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
+                // Set initial header for validation request
+                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
                 // Validate token by making a test request
-                const response = await axios.get(`${API_URL}/users/me`, {
-                    headers: { Authorization: `Bearer ${storedToken}` }
-                });
+                const response = await axios.get(`${API_URL}/users/me`);
 
                 // Token is valid, set user
                 setUser(response.data);
                 setToken(storedToken);
             } catch (error) {
-                // Token is invalid or expired, clear it
-                console.log('Token validation failed:', error.response?.status);
+                // Token is invalid or expired
+                if (error.response?.status !== 401) {
+                    console.error('Token validation error:', error);
+                }
                 localStorage.removeItem('token');
                 setToken(null);
                 setUser(null);
+                delete axios.defaults.headers.common['Authorization'];
             } finally {
                 setLoading(false);
             }
@@ -41,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 
         validateToken();
 
-        // Set up axios request interceptor
+        // Set up axios request interceptor to ensure token is always fresh from localStorage
         const requestInterceptor = axios.interceptors.request.use(
             (config) => {
                 const currentToken = localStorage.getItem('token');
@@ -57,7 +61,8 @@ export const AuthProvider = ({ children }) => {
         return () => {
             axios.interceptors.request.eject(requestInterceptor);
         };
-    }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+    }, [API_URL]);
+
 
     const login = async (username, password) => {
         try {

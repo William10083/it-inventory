@@ -113,7 +113,8 @@ def read_decommissions(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    decommissions = db.query(models.Decommission).order_by(models.Decommission.decommission_date.desc()).offset(skip).limit(limit).all()
+    from sqlalchemy.orm import joinedload
+    decommissions = db.query(models.Decommission).options(joinedload(models.Decommission.device)).order_by(models.Decommission.decommission_date.desc()).offset(skip).limit(limit).all()
     return decommissions
 
 @router.get("/{decommission_id}/download-acta")

@@ -124,14 +124,14 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
     const selectPerson = (person) => {
         if (person.type === 'employee') {
-            // Auto-fill from employee
-            setFormData({
-                ...formData,
+            // Auto-fill from employee usando updater funcional para evitar closure stale
+            setFormData(prev => ({
+                ...prev,
                 buyer_name: person.full_name || '',
                 buyer_email: person.email || '',
                 buyer_dni: person.dni || '',
                 buyer_phone: ''
-            });
+            }));
 
             // Auto-select employee's devices
             const devicesData = [];
@@ -159,13 +159,13 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
             }
         } else {
             // Auto-fill from previous buyer
-            setFormData({
-                ...formData,
+            setFormData(prev => ({
+                ...prev,
                 buyer_name: person.buyer_name || '',
                 buyer_dni: person.buyer_dni || '',
                 buyer_email: person.buyer_email || '',
                 buyer_phone: person.buyer_phone || ''
-            });
+            }));
         }
 
         setSuggestions([]);
@@ -389,7 +389,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={formData.buyer_name}
                                         onChange={(e) => handleFieldChange('name', e.target.value)}
                                         onFocus={() => setActiveField('name')}
-                                        onBlur={() => setTimeout(() => setActiveField(null), 200)}
+                                        onBlur={() => setTimeout(() => setActiveField(null), 300)}
                                         className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
@@ -401,6 +401,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                 <button
                                                     key={idx}
                                                     type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
                                                     className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
                                                 >
@@ -436,7 +437,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={formData.buyer_dni}
                                         onChange={(e) => handleFieldChange('dni', e.target.value)}
                                         onFocus={() => setActiveField('dni')}
-                                        onBlur={() => setTimeout(() => setActiveField(null), 200)}
+                                        onBlur={() => setTimeout(() => setActiveField(null), 300)}
                                         className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
@@ -448,6 +449,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                 <button
                                                     key={idx}
                                                     type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
                                                     className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
                                                 >
@@ -482,7 +484,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={formData.buyer_email}
                                         onChange={(e) => handleFieldChange('email', e.target.value)}
                                         onFocus={() => setActiveField('email')}
-                                        onBlur={() => setTimeout(() => setActiveField(null), 200)}
+                                        onBlur={() => setTimeout(() => setActiveField(null), 300)}
                                         className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
@@ -494,6 +496,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                 <button
                                                     key={idx}
                                                     type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
                                                     className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
                                                 >

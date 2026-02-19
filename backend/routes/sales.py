@@ -453,13 +453,18 @@ def generate_sale_acta(
         raise HTTPException(status_code=400, detail="Esta venta no tiene items registrados. No se puede generar el acta.")
     
     for item in sale_with_items.items:
+        # Intentar obtener hostname e inventory_code del device real (puede haber sido eliminado)
+        device_real = None
+        if item.device_id:
+            device_real = db.query(models.Device).filter(models.Device.id == item.device_id).first()
+        
         devices_info.append({
             'type': item.device_type,
             'brand': item.device_description.split()[0] if item.device_description else 'N/A',  # Extract brand from description
             'model': ' '.join(item.device_description.split()[1:]) if item.device_description else 'N/A',  # Extract model
             'serial': item.serial_number or 'N/A',
-            'hostname': '',  # Not stored in sale_items
-            'inventory_code': '',  # Not stored in sale_items
+            'hostname': (device_real.hostname or '') if device_real else '',
+            'inventory_code': (device_real.inventory_code or '') if device_real else '',
             'status': 'USADO',  # Sales are usually used items
             'price': item.price  # Now we have individual prices!
         })

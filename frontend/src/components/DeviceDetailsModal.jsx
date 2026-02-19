@@ -12,6 +12,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editedDevice, setEditedDevice] = useState({});
     const [isSaving, setIsSaving] = useState(false);
+    const [displayDevice, setDisplayDevice] = useState(device); // Added this line
 
     // Maintenance State
     const [maintenanceLogs, setMaintenanceLogs] = useState([]);
@@ -19,17 +20,39 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
     const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
     const [newLog, setNewLog] = useState({ description: '', cost: 0, vendor: '', status: 'open' });
 
+    const DEFAULT_SPECS = {
+        "PROBOOK 440 G11": "Procesador: Intel(R) Core(TM) Ultra 7 155U (1.70 GHz)\nRAM instalada: 16.0 GB (15.5 GB utilizable)\nAlmacenamiento: 1TB SSD",
+        "ELITEBOOK 640 G11": "Procesador: Intel(R) Core(TM) Ultra 7 155U (1.70 GHz)\nRAM instalada: 16.0 GB (15.5 GB utilizable)\nAlmacenamiento: 1TB SSD"
+    };
+
+    const getMetrics = (model) => {
+        if (!model) return "";
+        const upperModel = model.toUpperCase();
+        if (upperModel.includes("PROBOOK 440 G11") || upperModel.includes("ELITEBOOK")) {
+            return DEFAULT_SPECS["PROBOOK 440 G11"];
+        }
+        return "";
+    };
+
     useEffect(() => {
+        setDisplayDevice(device);
         if (isOpen && device) {
             setActiveTab('history');
             setShowMaintenanceForm(false);
             setIsEditMode(false);
             let parsedSpecs = {};
+            let currentSpecs = device.specifications;
+
+            // Apply default if empty
+            if (!currentSpecs && device.device_type === 'laptop') {
+                currentSpecs = getMetrics(device.model);
+            }
+
             try {
-                if (typeof device.specifications === 'string' && device.specifications.trim().startsWith('{')) {
-                    parsedSpecs = JSON.parse(device.specifications);
-                } else if (typeof device.specifications === 'object' && device.specifications !== null) {
-                    parsedSpecs = device.specifications;
+                if (typeof currentSpecs === 'string' && currentSpecs.trim().startsWith('{')) {
+                    parsedSpecs = JSON.parse(currentSpecs);
+                } else if (typeof currentSpecs === 'object' && currentSpecs !== null) {
+                    parsedSpecs = currentSpecs;
                 }
             } catch (e) {
                 console.error("Error parsing specs", e);
@@ -41,11 +64,14 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                 serial_number: device.serial_number || '',
                 barcode: device.barcode || '',
                 hostname: device.hostname || '',
-                specifications: device.specifications || '',
+                specifications: currentSpecs || '', // Pre-fill with default if empty
                 location: device.location || 'Callao',
                 imei: device.imei || parsedSpecs.imei || '',
                 phone_number: device.phone_number || parsedSpecs.phone_number || '',
-                carrier: device.carrier || parsedSpecs.carrier || ''
+                carrier: device.carrier || parsedSpecs.carrier || '',
+                laptop_charger_brand: device.laptop_charger_brand || '',
+                laptop_charger_model: device.laptop_charger_model || '',
+                laptop_charger_serial: device.laptop_charger_serial || ''
             });
             fetchMaintenanceLogs();
         }
@@ -54,10 +80,10 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
 
 
     const fetchMaintenanceLogs = async () => {
-        if (!device) return;
+        if (!displayDevice) return; // Changed from device to displayDevice
         setIsMaintenanceLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/maintenance/device/${device.id}`);
+            const res = await axios.get(`${API_URL}/maintenance/device/${displayDevice.id}`); // Changed from device to displayDevice
             setMaintenanceLogs(res.data);
         } catch (err) {
             console.error("Failed to fetch maintenance logs", err);
@@ -69,7 +95,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
     const handleStatusChange = async (newStatus) => {
         setStatusUpdating(true);
         try {
-            await axios.put(`${API_URL}/devices/${device.id}/status`, { status: newStatus });
+            await axios.put(`${API_URL}/devices/${displayDevice.id}/status`, { status: newStatus }); // Changed from device to displayDevice
             onUpdate();
             onClose();
         } catch (err) {
@@ -83,10 +109,11 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
     const handleSaveDevice = async () => {
         setIsSaving(true);
         try {
-            await axios.put(`${API_URL}/devices/${device.id}`, editedDevice);
+            const response = await axios.put(`${API_URL}/devices/${device.id}`, editedDevice);
+            setDisplayDevice(response.data);
             setIsEditMode(false);
             onUpdate();
-            onClose();
+            showNotification("Dispositivo actualizado correctamente", 'success');
         } catch (err) {
             console.error(err);
             showNotification(err.response?.data?.detail || "Error al guardar cambios", 'error');
@@ -150,7 +177,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
         }
     };
 
-    if (!isOpen || !device) return null;
+    if (!isOpen || !device || !displayDevice) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -159,10 +186,10 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                 {/* Header */}
                 <div className="p-6 border-b border-slate-700 flex justify-between items-start bg-slate-900/50">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">{device.model}</h2>
+                        <h2 className="text-2xl font-bold text-white">{displayDevice.model}</h2>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-primary font-mono bg-primary/10 px-2 py-0.5 rounded">{device.serial_number}</span>
-                            <span className="text-slate-400 text-sm">• {device.brand}</span>
+                            <span className="text-primary font-mono bg-primary/10 px-2 py-0.5 rounded">{displayDevice.serial_number}</span>
+                            <span className="text-slate-400 text-sm">• {displayDevice.brand}</span>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
@@ -207,35 +234,35 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         <div className="grid grid-cols-2 gap-4 border-b border-slate-700/50 pb-3">
                                             <div>
                                                 <p className="text-slate-500 text-xs uppercase">Serial Number</p>
-                                                <p className="text-white font-mono text-sm">{device.serial_number}</p>
+                                                <p className="text-white font-mono text-sm">{displayDevice.serial_number}</p>
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 text-xs uppercase">Barcode</p>
-                                                <p className="text-white font-mono text-sm">{device.barcode || "-"}</p>
+                                                <p className="text-white font-mono text-sm">{displayDevice.barcode || "-"}</p>
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 text-xs uppercase">Marca</p>
-                                                <p className="text-white text-sm font-bold">{device.brand}</p>
+                                                <p className="text-white text-sm font-bold">{displayDevice.brand}</p>
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 text-xs uppercase">Modelo</p>
-                                                <p className="text-white text-sm font-bold">{device.model}</p>
+                                                <p className="text-white text-sm font-bold">{displayDevice.model}</p>
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            {device.hostname && (
+                                            {displayDevice.hostname && (
                                                 <div className="flex justify-between items-center py-1">
                                                     <span className="text-slate-400 text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> Hostname</span>
-                                                    <span className="text-green-400 font-mono text-sm font-bold">{device.hostname}</span>
+                                                    <span className="text-green-400 font-mono text-sm font-bold">{displayDevice.hostname}</span>
                                                 </div>
                                             )}
-                                            {(device.device_type === 'mobile' || device.device_type === 'chip') && (() => {
+                                            {(['mobile', 'celular', 'smartphone', 'chip', 'sim'].includes((displayDevice.device_type || '').toLowerCase())) && (() => {
                                                 let displaySpecs = {};
                                                 try {
-                                                    if (typeof device.specifications === 'string' && device.specifications.trim().startsWith('{')) {
-                                                        displaySpecs = JSON.parse(device.specifications);
-                                                    } else if (typeof device.specifications === 'object') {
-                                                        displaySpecs = device.specifications || {};
+                                                    if (typeof displayDevice.specifications === 'string' && displayDevice.specifications.trim().startsWith('{')) {
+                                                        displaySpecs = JSON.parse(displayDevice.specifications);
+                                                    } else if (typeof displayDevice.specifications === 'object') {
+                                                        displaySpecs = displayDevice.specifications || {};
                                                     }
                                                 } catch (e) { }
 
@@ -243,45 +270,47 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                     <>
                                                         <div className="flex justify-between items-center py-1">
                                                             <span className="text-slate-400 text-sm">IMEI</span>
-                                                            <span className="text-white font-mono text-sm">{device.imei || displaySpecs.imei || "-"}</span>
+                                                            <span className="text-white font-mono text-sm">{displayDevice.imei || displaySpecs.imei || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center py-1">
                                                             <span className="text-slate-400 text-sm">Phone Number</span>
-                                                            <span className="text-white font-mono text-sm">{device.phone_number || displaySpecs.phone_number || "-"}</span>
+                                                            <span className="text-white font-mono text-sm">{displayDevice.phone_number || displaySpecs.phone_number || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center py-1">
                                                             <span className="text-slate-400 text-sm">Carrier</span>
-                                                            <span className="text-white text-sm">{device.carrier || displaySpecs.carrier || "-"}</span>
+                                                            <span className="text-white text-sm">{displayDevice.carrier || displaySpecs.carrier || "-"}</span>
                                                         </div>
                                                     </>
                                                 );
                                             })()}
                                             <div className="flex justify-between items-center py-1">
                                                 <span className="text-slate-400 text-sm flex items-center gap-2"><MapPin className="w-3 h-3" /> Sede</span>
-                                                <span className="text-blue-400 font-medium text-sm">{device.location || 'Callao'}</span>
+                                                <span className="text-blue-400 font-medium text-sm">{displayDevice.location || 'Callao'}</span>
                                             </div>
                                         </div>
-                                        {device.specifications && (
+                                        {(displayDevice.specifications || getMetrics(displayDevice.model)) && (
                                             <div className="pt-3 border-t border-slate-700/50 mt-3">
                                                 <p className="text-yellow-400 text-sm font-bold uppercase mb-2 flex items-center gap-2">
                                                     <Settings className="w-4 h-4" /> Especificaciones
                                                 </p>
                                                 <div className="bg-slate-800/50 p-3 rounded border border-slate-700">
                                                     {(() => {
+                                                        const specsToDisplay = displayDevice.specifications || getMetrics(displayDevice.model);
                                                         try {
                                                             let specsObj = {};
-                                                            if (typeof device.specifications === 'string' && device.specifications.trim().startsWith('{')) {
-                                                                specsObj = JSON.parse(device.specifications);
-                                                            } else if (typeof device.specifications === 'object') {
-                                                                specsObj = device.specifications;
+                                                            if (typeof specsToDisplay === 'string' && specsToDisplay.trim().startsWith('{')) {
+                                                                specsObj = JSON.parse(specsToDisplay);
+                                                            } else if (typeof specsToDisplay === 'object') {
+                                                                specsObj = specsToDisplay;
                                                             } else {
                                                                 // Plain text fallback
-                                                                return <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{device.specifications}</p>;
+                                                                return <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{specsToDisplay}</p>;
                                                             }
 
                                                             // Filter out metadata keys AND accessories (moved to right panel)
-                                                            const keysToHide = ['imei', 'phone_number', 'carrier', 'raw_notes', 'Cable USB', 'Auriculares', 'Adaptador Auriculares', 'Case'];
+                                                            const keysToHide = ['imei', 'phone_number', 'carrier', 'raw_notes', 'Cable USB', 'Auriculares', 'Adaptador Auriculares', 'Case', 'Funda', 'Carcasa', 'Mica', 'Protector'];
                                                             const validEntries = Object.entries(specsObj).filter(([key]) => !keysToHide.includes(key));
+
 
                                                             if (validEntries.length === 0) {
                                                                 // If only metadata existed, show nothing or raw notes
@@ -300,7 +329,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                                 </div>
                                                             );
                                                         } catch (e) {
-                                                            return <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{device.specifications}</p>;
+                                                            return <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{specsToDisplay}</p>;
                                                         }
                                                     })()}
                                                 </div>
@@ -358,7 +387,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-white text-sm font-mono focus:border-blue-500 focus:outline-none"
                                             />
                                         </div>
-                                        {(device.device_type === 'mobile' || device.device_type === 'chip') && (
+                                        {(['mobile', 'celular', 'smartphone', 'chip', 'sim'].includes((displayDevice.device_type || '').toLowerCase())) && (
                                             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
                                                 <div>
                                                     <label className="text-slate-500 text-xs uppercase block mb-1">IMEI</label>
@@ -408,6 +437,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 <option value="Oficina">Oficina Central</option>
                                             </select>
                                         </div>
+
                                         <div className="pt-2 border-t border-slate-700/50">
                                             <label className="text-slate-500 text-xs uppercase block mb-1">Especificaciones</label>
                                             <textarea
@@ -428,16 +458,16 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                             <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 space-y-3">
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-400">Current Status:</span>
-                                    <span className={`px-2 py-1 rounded text-sm font-bold uppercase ${device.status === 'available' ? 'text-green-400 bg-green-500/10' :
-                                        device.status === 'assigned' ? 'text-blue-400 bg-blue-500/10' :
+                                    <span className={`px-2 py-1 rounded text-sm font-bold uppercase ${displayDevice.status === 'available' ? 'text-green-400 bg-green-500/10' :
+                                        displayDevice.status === 'assigned' ? 'text-blue-400 bg-blue-500/10' :
                                             'text-red-400 bg-red-500/10'
                                         }`}>
-                                        {device.status}
+                                        {displayDevice.status}
                                     </span>
                                 </div>
 
                                 <a
-                                    href={`${API_URL}/devices/${device.id}/qr`}
+                                    href={`${API_URL}/devices/${displayDevice.id}/qr`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded border border-slate-600 transition-colors mb-2 mt-3"
@@ -445,25 +475,25 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     <QrCode className="w-4 h-4" /> Print Asset Tag
                                 </a>
 
-                                {device.status !== 'assigned' && (
+                                {displayDevice.status !== 'assigned' && (
                                     <div className="grid grid-cols-2 gap-2 pt-2">
                                         <button
                                             onClick={() => handleStatusChange('maintenance')}
-                                            disabled={statusUpdating || device.status === 'maintenance'}
+                                            disabled={statusUpdating || displayDevice.status === 'maintenance'}
                                             className="flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
                                         >
                                             <Settings className="w-4 h-4" /> Maintenance
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('retired')}
-                                            disabled={statusUpdating || device.status === 'retired'}
+                                            disabled={statusUpdating || displayDevice.status === 'retired'}
                                             className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
                                         >
                                             <AlertTriangle className="w-4 h-4" /> Retire
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('available')}
-                                            disabled={statusUpdating || device.status === 'available'}
+                                            disabled={statusUpdating || displayDevice.status === 'available'}
                                             className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
                                         >
                                             <CheckCircle className="w-4 h-4" /> Mark Available
@@ -471,47 +501,79 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     </div>
                                 )}
 
-                                {((device.device_type === 'laptop' || device.device_type === 'mobile') && device.status === 'assigned') && (
+                                {((displayDevice.device_type === 'laptop' || ['mobile', 'celular', 'smartphone', 'chip', 'sim'].includes((displayDevice.device_type || '').toLowerCase()))) && (
                                     <div className="mt-4 pt-4 border-t border-slate-700">
                                         <div className="text-sm font-bold text-yellow-300 uppercase tracking-wider mb-3">
-                                            Cargador de {device.device_type === 'laptop' ? 'Laptop' : 'Celular'}
+                                            Cargador de {displayDevice.device_type === 'laptop' ? 'Laptop' : 'Celular'}
                                         </div>
                                         <div className="bg-slate-800/50 p-3 rounded-lg border border-yellow-500/20 space-y-2">
-                                            {device.device_type === 'laptop' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-400 text-xs uppercase">Marca</span>
-                                                        <span className="text-white text-sm font-medium">{device.laptop_charger_brand || "-"}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-400 text-xs uppercase">Modelo</span>
-                                                        <span className="text-white text-sm font-medium">{device.laptop_charger_model || "-"}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-400 text-xs uppercase">Serie</span>
-                                                        <span className="text-white text-sm font-mono">{device.laptop_charger_serial || "-"}</span>
-                                                    </div>
-                                                    {!device.laptop_charger_brand && (
-                                                        <div className="text-xs text-slate-500 italic mt-1 pt-1 border-t border-slate-700/50">
-                                                            * No se ha asignado un cargador específico.
+                                            {displayDevice.device_type === 'laptop' ? (
+                                                !isEditMode ? (
+                                                    <>
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-slate-400 text-xs uppercase">Marca</span>
+                                                            <span className="text-white text-sm font-medium">{displayDevice.laptop_charger_brand || "-"}</span>
                                                         </div>
-                                                    )}
-                                                </>
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-slate-400 text-xs uppercase">Modelo</span>
+                                                            <span className="text-white text-sm font-medium">{displayDevice.laptop_charger_model || "-"}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-slate-400 text-xs uppercase">Serie</span>
+                                                            <span className="text-white text-sm font-mono">{displayDevice.laptop_charger_serial || "-"}</span>
+                                                        </div>
+                                                        {!displayDevice.laptop_charger_brand && (
+                                                            <div className="text-xs text-slate-500 italic mt-1 pt-1 border-t border-slate-700/50">
+                                                                * No se ha asignado un cargador específico.
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        <div>
+                                                            <label className="text-slate-500 text-xs uppercase block mb-1">Marca</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editedDevice.laptop_charger_brand || ''}
+                                                                onChange={(e) => setEditedDevice({ ...editedDevice, laptop_charger_brand: e.target.value })}
+                                                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-slate-500 text-xs uppercase block mb-1">Modelo</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editedDevice.laptop_charger_model || ''}
+                                                                onChange={(e) => setEditedDevice({ ...editedDevice, laptop_charger_model: e.target.value })}
+                                                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-slate-500 text-xs uppercase block mb-1">Serie</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editedDevice.laptop_charger_serial || ''}
+                                                                onChange={(e) => setEditedDevice({ ...editedDevice, laptop_charger_serial: e.target.value })}
+                                                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs font-mono focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )
                                             ) : (
                                                 <>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-slate-400 text-xs uppercase">Marca</span>
-                                                        <span className="text-white text-sm font-medium">{device.mobile_charger_brand || "-"}</span>
+                                                        <span className="text-white text-sm font-medium">{displayDevice.mobile_charger_brand || "-"}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-slate-400 text-xs uppercase">Modelo</span>
-                                                        <span className="text-white text-sm font-medium">{device.mobile_charger_model || "-"}</span>
+                                                        <span className="text-white text-sm font-medium">{displayDevice.mobile_charger_model || "-"}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-slate-400 text-xs uppercase">Serie</span>
-                                                        <span className="text-white text-sm font-mono">{device.mobile_charger_serial || "-"}</span>
+                                                        <span className="text-white text-sm font-mono">{displayDevice.mobile_charger_serial || "-"}</span>
                                                     </div>
-                                                    {!device.mobile_charger_brand && (
+                                                    {!displayDevice.mobile_charger_brand && (
                                                         <div className="text-xs text-slate-500 italic mt-1 pt-1 border-t border-slate-700/50">
                                                             * No se ha asignado un cargador específico.
                                                         </div>
@@ -523,18 +585,19 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                 )}
 
                                 {/* Mobile Accessories Section */}
-                                {(device.device_type === 'mobile' || device.device_type === 'chip') && (() => {
+                                {(['mobile', 'celular', 'smartphone', 'chip', 'sim'].includes((displayDevice.device_type || '').toLowerCase())) && (() => {
                                     let specs = {};
                                     try {
-                                        if (typeof device.specifications === 'string' && device.specifications.trim().startsWith('{')) {
-                                            specs = JSON.parse(device.specifications);
-                                        } else if (typeof device.specifications === 'object') {
-                                            specs = device.specifications || {};
+                                        if (typeof displayDevice.specifications === 'string' && displayDevice.specifications.trim().startsWith('{')) {
+                                            specs = JSON.parse(displayDevice.specifications);
+                                        } else if (typeof displayDevice.specifications === 'object') {
+                                            specs = displayDevice.specifications || {};
                                         }
                                     } catch (e) { }
 
-                                    const accKeys = ['Cable USB', 'Auriculares', 'Adaptador Auriculares', 'Case'];
+                                    const accKeys = ['Cable USB', 'Auriculares', 'Adaptador Auriculares', 'Case', 'Funda', 'Carcasa', 'Mica', 'Protector'];
                                     const accessories = Object.entries(specs).filter(([key]) => accKeys.includes(key));
+
 
                                     if (accessories.length > 0) {
                                         return (
@@ -554,7 +617,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     return null;
                                 })()}
 
-                                {device.device_type === 'monitor' && device.status === 'assigned' && (
+                                {displayDevice.device_type === 'monitor' && displayDevice.status === 'assigned' && (
                                     <div className="mt-4 pt-4 border-t border-slate-700">
                                         <div className="text-sm font-bold text-purple-300 uppercase tracking-wider mb-3">Accesorios del Monitor</div>
                                         <div className="bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 space-y-2">

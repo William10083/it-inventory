@@ -84,44 +84,29 @@ def calculate_analytics(db: Session, location: str = None):
         if status is None:
             return sum(stats_dict[device_type].values())
         return stats_dict[device_type].get(status, 0)
-    
-    # Employee statistics - filter by location if specified
-    employee_filter = models.Employee.is_active == True
-    if location:
-        employee_filter = and_(employee_filter, models.Employee.location == location)
-    
-    total_employees = db.query(func.count(models.Employee.id))\
-        .filter(employee_filter)\
-        .scalar() or 0
-    
-    # Employees by location
-    employees_by_location = db.query(
+
+    # Query 3: employees por location + assignments activos en UNA sola query
+    # Evita 3 round-trips separados a Supabase (total_employees, by_location, total_assignments)
+    emp_q = db.query(
         models.Employee.location,
-        func.count(models.Employee.id).label('count')
+        func.count(models.Employee.id).label('emp_count'),
+        func.count(models.Assignment.id).label('assign_count'),
+    ).outerjoin(
+        models.Assignment,
+        and_(
+            models.Assignment.employee_id == models.Employee.id,
+            models.Assignment.returned_date == None,
+        )
     ).filter(models.Employee.is_active == True)
-    
-    # If filtering by location, only show that location
+
     if location:
-        employees_by_location = employees_by_location.filter(models.Employee.location == location)
-    
-    employees_by_location = employees_by_location.group_by(models.Employee.location).all()
-    
-    location_stats = {loc: count for loc, count in employees_by_location}
-    
-    # Assignment statistics - filter by employee location if specified
-    assignment_filter = models.Assignment.returned_date == None
-    if location:
-        # Join with employees to filter by location
-        total_assignments = db.query(func.count(models.Assignment.id))\
-            .join(models.Employee, models.Assignment.employee_id == models.Employee.id)\
-            .filter(
-                assignment_filter,
-                models.Employee.location == location
-            ).scalar() or 0
-    else:
-        total_assignments = db.query(func.count(models.Assignment.id))\
-            .filter(assignment_filter)\
-            .scalar() or 0
+        emp_q = emp_q.filter(models.Employee.location == location)
+
+    emp_rows = emp_q.group_by(models.Employee.location).all()
+
+    location_stats = {loc: emp for loc, emp, _ in emp_rows}
+    total_employees = sum(emp for _, emp, _ in emp_rows)
+    total_assignments = sum(assign for _, _, assign in emp_rows)
     
     return {
         # Device statistics

@@ -1,18 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 from math import ceil
 import database, schemas, models, auth, cache
 import os
-import shutil
-from pathlib import Path
+import storage as supabase_storage
 
 router = APIRouter()
-
-# Directory for sale actas
-SALES_ACTAS_DIR = Path("uploaded_actas/ventas")
-SALES_ACTAS_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.get("/stats")
 def get_sales_stats(db: Session = Depends(database.get_db)):
@@ -312,8 +308,11 @@ def delete_sale(
         device.sale_id = None
     
     # Delete acta file if exists
-    if sale.acta_path and os.path.exists(sale.acta_path):
-        os.remove(sale.acta_path)
+    if sale.acta_path:
+        if supabase_storage.is_supabase_path(sale.acta_path):
+            supabase_storage.delete_file(sale.acta_path)
+        elif os.path.exists(sale.acta_path):
+            os.remove(sale.acta_path)
     
     # Delete sale record
     db.delete(sale)
@@ -338,51 +337,46 @@ async def upload_sale_acta(
     # Validate PDF
     if file.content_type != 'application/pdf':
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-    
+
     # Generate filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_buyer_name = "".join(c for c in sale.buyer_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
     filename = f"venta_{sale_id}_{safe_buyer_name}_{timestamp}.pdf"
-    file_path = SALES_ACTAS_DIR / filename
-    
-    # Save file
+    storage_path = f"actas/ventas/{filename}"
+
+    file_bytes = await file.read()
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
-    
-    # Update sale record
-    sale.acta_path = str(file_path)
+        supabase_storage.upload_file(file_bytes, storage_path)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    sale.acta_path = storage_path
     db.commit()
-    
-    return {
-        "message": "Acta uploaded successfully",
-        "filename": filename,
-        "path": str(file_path)
-    }
+
+    return {"message": "Acta uploaded successfully", "filename": filename, "path": storage_path}
 
 @router.get("/{sale_id}/download-acta")
 def download_sale_acta(sale_id: int, db: Session = Depends(database.get_db)):
-    """
-    Download sale acta (uploaded signed version)
-    """
+    """Download sale acta (uploaded signed version)"""
     from fastapi.responses import FileResponse
-    
+
     sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail="Sale not found")
-    
-    if not sale.acta_path or not os.path.exists(sale.acta_path):
+    if not sale.acta_path:
         raise HTTPException(status_code=404, detail="Acta not found")
-    
+
+    if supabase_storage.is_supabase_path(sale.acta_path):
+        return RedirectResponse(url=supabase_storage.get_public_url(sale.acta_path))
+
+    # Legacy local file
+    if not os.path.exists(sale.acta_path):
+        raise HTTPException(status_code=404, detail="Acta not found")
     return FileResponse(
         path=sale.acta_path,
         filename=f"Acta_Venta_{sale.buyer_name}_{sale_id}.pdf",
         media_type="application/pdf"
     )
-
-    return {"message": "Acta deleted successfully"}
 
 @router.post("/{sale_id}/generate-acta")
 def generate_sale_acta(

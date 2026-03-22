@@ -19,6 +19,10 @@ services:
         generateValue: true   # Render genera una clave aleatoria segura automáticamente
       - key: ALLOWED_ORIGINS
         sync: false           # Definir con la URL del frontend después del deploy
+      - key: SUPABASE_URL
+        sync: false           # https://gcncfvcereubvywxqpoe.supabase.co
+      - key: SUPABASE_ANON_KEY
+        sync: false           # Anon key del proyecto Supabase
 
   # ─── Frontend (React/Vite → Static Site) ─────────────────────────────────
   - type: web

@@ -18,3 +18,4 @@ pandas
 opencv-python-headless
 docx2pdf
 python-dotenv
+requests

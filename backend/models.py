@@ -9,6 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     full_name = Column(String)
+    dni = Column(String, nullable=True)
     hashed_password = Column(String)
     role = Column(String, default="user") # admin, user, viewer
     is_active = Column(Boolean, default=True)
@@ -43,9 +44,9 @@ class Employee(Base):
     dni = Column(String, unique=True, nullable=True)
     company = Column(String, nullable=True)
     position = Column(String, nullable=True) # Added position/puesto
-    location = Column(String, default="Callao", nullable=True)  # Office location/sede
+    location = Column(String, default="Callao", nullable=True, index=True)  # Heatmap + coverage filters
     expected_laptop_count = Column(Integer, default=1) # How many laptops this employee should have
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)  # Filtered on virtually every query
     
     # Termination fields
     termination_date = Column(DateTime, nullable=True)
@@ -64,13 +65,13 @@ class Device(Base):
     id = Column(Integer, primary_key=True, index=True)
     serial_number = Column(String, unique=True, index=True)
     barcode = Column(String, unique=True, index=True)  # Can be same as serial or custom asset tag
-    device_type = Column(String)  # Stored as string, validated via Pydantic or Enum
-    brand = Column(String)
-    model = Column(String)
-    hostname = Column(String, nullable=True) # Added Hostname
+    device_type = Column(String, index=True)  # Filtered constantly — needs index
+    brand = Column(String, index=True)
+    model = Column(String, index=True)
+    hostname = Column(String, nullable=True, index=True)
     inventory_code = Column(String, nullable=True) # Inventory/Asset code (e.g. INV-MON-001)
     specifications = Column(String, nullable=True) # e.g. "Ram 16GB, i7" for laptops
-    purchase_date = Column(Date, nullable=True)
+    purchase_date = Column(Date, nullable=True, index=True)  # Used in renewal count filter
     
     # Mobile Specific Fields
     imei = Column(String, unique=True, nullable=True, index=True)
@@ -90,8 +91,8 @@ class Device(Base):
     # Delivery type: NUEVO, INGRESO, or REEMPLAZO
     delivery_type = Column(String, default="NUEVO", nullable=True)
 
-    status = Column(String, default=DeviceStatus.AVAILABLE)
-    location = Column(String, default="Callao", nullable=True)  # Device location/sede
+    status = Column(String, default=DeviceStatus.AVAILABLE, index=True)  # Filtered on every query
+    location = Column(String, default="Callao", nullable=True, index=True)  # Global location filter
     
     # Soft delete fields
     deleted_at = Column(DateTime, nullable=True)
@@ -116,8 +117,9 @@ class Assignment(Base):
     device_id = Column(Integer, ForeignKey("devices.id"))
     employee_id = Column(Integer, ForeignKey("employees.id"))
     assigned_date = Column(DateTime, default=datetime.datetime.utcnow)
-    returned_date = Column(DateTime, nullable=True)
+    returned_date = Column(DateTime, nullable=True, index=True)  # Critical: WHERE returned_date IS NULL on every active-assignment query
     notes = Column(String, nullable=True)  # Notes when assigning
+    assignment_type = Column(String, nullable=True, default="ASIGNACION")  # ASIGNACION or REEMPLAZO
     pdf_acta_path = Column(String, nullable=True)  # Path to assignment acta
     
     # Return/Termination fields

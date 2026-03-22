@@ -21,6 +21,7 @@ const PdfUploader = ({
     const [deleting, setDeleting] = useState(false);
     const [file, setFile] = useState(null);
     const [hasPdf, setHasPdf] = useState(!!currentPdfPath);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Sync local state with prop changes
     useEffect(() => {
@@ -31,21 +32,42 @@ const PdfUploader = ({
     // Si ya existe un PDF, bloquear la subida
     const hasExistingPdf = hasPdf;
 
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile) {
-            // Validar que sea PDF
-            if (selectedFile.type !== 'application/pdf') {
-                showNotification('Solo se permiten archivos PDF', 'error');
-                return;
-            }
-            // Validar tamaño (10MB)
-            if (selectedFile.size > 10 * 1024 * 1024) {
-                showNotification('El archivo no debe superar 10MB', 'error');
-                return;
-            }
-            setFile(selectedFile);
+    const validateAndSetFile = (selectedFile) => {
+        if (!selectedFile) return;
+        if (selectedFile.type !== 'application/pdf') {
+            showNotification('Solo se permiten archivos PDF', 'error');
+            return;
         }
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            showNotification('El archivo no debe superar 10MB', 'error');
+            return;
+        }
+        setFile(selectedFile);
+    };
+
+    const handleFileChange = (e) => {
+        validateAndSetFile(e.target.files[0]);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (uploading || hasExistingPdf) return;
+        const droppedFile = e.dataTransfer.files[0];
+        validateAndSetFile(droppedFile);
     };
 
     const handleUpload = async () => {
@@ -170,10 +192,19 @@ const PdfUploader = ({
                 <div className="space-y-3">
                     <div className="flex gap-2">
                         <label className="flex-1 cursor-pointer">
-                            <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${file
-                                ? 'border-green-500 bg-green-500/10'
-                                : 'border-slate-600 hover:border-slate-500 bg-slate-800/50'
-                                }`}>
+                            <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+                                    file
+                                        ? 'border-green-500 bg-green-500/10'
+                                        : isDragging
+                                        ? 'border-blue-400 bg-blue-500/10'
+                                        : 'border-slate-600 hover:border-slate-500 bg-slate-800/50'
+                                }`}
+                                onDragOver={handleDragOver}
+                                onDragEnter={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
                                 <input
                                     type="file"
                                     accept=".pdf"

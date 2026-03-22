@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 from math import ceil
-import database, schemas, models, auth
+import database, schemas, models, auth, cache
 import os
 import shutil
 from pathlib import Path
@@ -110,7 +110,7 @@ def create_sale(
     
     db.commit()
     db.refresh(db_sale)
-    
+    cache.invalidate_all()
     return db_sale
 
 @router.get("/buyers/search")
@@ -151,59 +151,59 @@ def search_employees_with_devices(
     db: Session = Depends(database.get_db)
 ):
     """
-    Search for active employees by name, email, DNI, or phone
-    Returns employee info with their assigned laptop and monitor
+    Search for active employees by name, email, DNI, or phone.
+    Returns employee info with their assigned laptop and monitors.
+
+    Optimised: single query with joinedload instead of 60+ queries (N+1).
     """
     if not q or len(q) < 2:
         return []
-    
-    # Search active employees
-    employees = db.query(models.Employee).filter(
+
+    from sqlalchemy.orm import joinedload
+
+    # One query: employees + active assignments + devices (joinedload = 1 extra IN query each)
+    employees = db.query(models.Employee).options(
+        joinedload(models.Employee.assignments).joinedload(models.Assignment.device)
+    ).filter(
         models.Employee.is_active == True,
         (
-            (models.Employee.full_name.ilike(f"%{q}%")) |
-            (models.Employee.email.ilike(f"%{q}%")) |
-            (models.Employee.dni.ilike(f"%{q}%"))
+            models.Employee.full_name.ilike(f"%{q}%") |
+            models.Employee.email.ilike(f"%{q}%") |
+            models.Employee.dni.ilike(f"%{q}%")
         )
     ).limit(10).all()
-    
+
     result = []
     for emp in employees:
-        # Get active assignments for this employee
-        assignments = db.query(models.Assignment).filter(
-            models.Assignment.employee_id == emp.id,
-            models.Assignment.returned_date == None
-        ).all()
-        
-        # Find laptop and monitors (can have multiple monitors)
         laptop = None
-        monitors = []  # Changed to list to support multiple monitors
-        
-        for assignment in assignments:
-            device = db.query(models.Device).filter(
-                models.Device.id == assignment.device_id
-            ).first()
-            
-            if device and device.status == models.DeviceStatus.ASSIGNED:
-                if device.device_type == 'laptop' and not laptop:
-                    laptop = {
-                        "id": device.id,
-                        "brand": device.brand,
-                        "model": device.model,
-                        "serial_number": device.serial_number,
-                        "hostname": device.hostname,
-                        "device_type": device.device_type  # AGREGADO: necesario para el frontend
-                    }
-                elif device.device_type == 'monitor':  # Removed "and not monitor" to get ALL monitors
-                    monitors.append({
-                        "id": device.id,
-                        "brand": device.brand,
-                        "model": device.model,
-                        "serial_number": device.serial_number,
-                        "hostname": device.hostname,
-                        "device_type": device.device_type  # AGREGADO: necesario para el frontend
-                    })
-        
+        monitors = []
+
+        for assignment in emp.assignments:
+            if assignment.returned_date is not None:
+                continue
+            device = assignment.device  # already loaded, no extra query
+            if not device or device.status != models.DeviceStatus.ASSIGNED:
+                continue
+
+            if device.device_type == "laptop" and not laptop:
+                laptop = {
+                    "id": device.id,
+                    "brand": device.brand,
+                    "model": device.model,
+                    "serial_number": device.serial_number,
+                    "hostname": device.hostname,
+                    "device_type": device.device_type,
+                }
+            elif device.device_type == "monitor":
+                monitors.append({
+                    "id": device.id,
+                    "brand": device.brand,
+                    "model": device.model,
+                    "serial_number": device.serial_number,
+                    "hostname": device.hostname,
+                    "device_type": device.device_type,
+                })
+
         result.append({
             "employee_id": emp.id,
             "full_name": emp.full_name,
@@ -212,9 +212,9 @@ def search_employees_with_devices(
             "position": emp.position,
             "location": emp.location,
             "laptop": laptop,
-            "monitors": monitors  # Changed from "monitor" to "monitors" (plural)
+            "monitors": monitors,
         })
-    
+
     return result
 
 @router.get("/")
@@ -318,7 +318,7 @@ def delete_sale(
     # Delete sale record
     db.delete(sale)
     db.commit()
-    
+    cache.invalidate_all()
     return {"message": "Sale deleted and devices reverted to available"}
 
 @router.post("/{sale_id}/upload-acta")
@@ -458,12 +458,18 @@ def generate_sale_acta(
         if item.device_id:
             device_real = db.query(models.Device).filter(models.Device.id == item.device_id).first()
         
+        # Solo laptops/computadoras tienen hostname; monitores, cables, etc. no
+        DEVICE_TYPES_WITH_HOSTNAME = {'laptop', 'computer', 'desktop', 'pc'}
+        device_type_lower = (item.device_type or '').lower()
+        has_hostname = any(t in device_type_lower for t in DEVICE_TYPES_WITH_HOSTNAME)
+
         devices_info.append({
             'type': item.device_type,
             'brand': item.device_description.split()[0] if item.device_description else 'N/A',  # Extract brand from description
             'model': ' '.join(item.device_description.split()[1:]) if item.device_description else 'N/A',  # Extract model
             'serial': item.serial_number or 'N/A',
-            'hostname': (device_real.hostname or '') if device_real else '',
+            'imei': (device_real.imei or '') if device_real else '',
+            'hostname': (device_real.hostname or '') if (device_real and has_hostname) else '',
             'inventory_code': (device_real.inventory_code or '') if device_real else '',
             'status': 'USADO',  # Sales are usually used items
             'price': item.price  # Now we have individual prices!

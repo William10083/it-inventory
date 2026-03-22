@@ -7,6 +7,8 @@ import os
 import io
 from PIL import Image, ExifTags, ImageFilter, ImageOps
 from copy import deepcopy
+import cv2
+import numpy as np
 
 
 def replace_text_in_paragraph(paragraph, placeholders):
@@ -161,25 +163,252 @@ def copy_cell_format(source_cell, target_cell):
             target_para._element.insert(0, deepcopy(source_para._element.pPr))
 
 
+def _apply_exif_rotation(pil_img):
+    """Rota la imagen según la orientación EXIF."""
+    try:
+        exif = pil_img._getexif()
+        if exif:
+            for tag, val in exif.items():
+                if ExifTags.TAGS.get(tag) == 'Orientation':
+                    if val == 3:
+                        pil_img = pil_img.rotate(180, expand=True)
+                    elif val == 6:
+                        pil_img = pil_img.rotate(270, expand=True)
+                    elif val == 8:
+                        pil_img = pil_img.rotate(90, expand=True)
+                    break
+    except Exception:
+        pass
+    return pil_img
+
+
+def _pil_to_cv2(pil_img):
+    return cv2.cvtColor(np.array(pil_img.convert("RGB")), cv2.COLOR_RGB2BGR)
+
+
+def _cv2_to_pil(cv2_img):
+    return Image.fromarray(cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB))
+
+
+def _auto_rotate_cv2(img):
+    """Detecta si la imagen es landscape cuando debería ser portrait y la rota."""
+    h, w = img.shape[:2]
+    # Si es muy landscape (>1.5:1) y hay bordes arriba/abajo más blancos → probablemente girada
+    if w > h * 1.4:
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Verificar si el contenido principal está centrado horizontalmente
+        # Si la varianza vertical es mucho mayor que horizontal → rotar
+        var_h = np.var(np.mean(gray, axis=1))
+        var_w = np.var(np.mean(gray, axis=0))
+        if var_h > var_w * 1.5:
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    return img
+
+
+def _autocrop_device(img):
+    """
+    Recorta el dispositivo de su fondo detectando el objeto principal.
+    Funciona bien en fondos claros (mesa blanca) o fondos oscuros.
+    """
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    h, w = gray.shape
+
+    # Detectar si el fondo es claro u oscuro
+    corners = [gray[0,0], gray[0,w-1], gray[h-1,0], gray[h-1,w-1]]
+    bg_is_light = np.mean(corners) > 128
+
+    # Binarizar: el objeto es lo contrario al fondo
+    if bg_is_light:
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    else:
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Limpiar ruido pequeño con morfología
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5)))
+
+    # Encontrar bounding box del contenido
+    coords = cv2.findNonZero(thresh)
+    if coords is None:
+        return img  # fallback: sin recorte
+
+    x, y, bw, bh = cv2.boundingRect(coords)
+
+    # Añadir padding del 3%
+    pad_x = int(w * 0.03)
+    pad_y = int(h * 0.03)
+    x1 = max(0, x - pad_x)
+    y1 = max(0, y - pad_y)
+    x2 = min(w, x + bw + pad_x)
+    y2 = min(h, y + bh + pad_y)
+
+    cropped = img[y1:y2, x1:x2]
+
+    # Solo aplicar si el recorte es razonable (>30% del original)
+    if cropped.size > 0 and (bw * bh) > (w * h * 0.1):
+        return cropped
+    return img
+
+
+def _detect_serial_label(img):
+    """
+    Detecta y recorta la etiqueta de serie del dispositivo.
+    Busca la región rectangular con texto (etiqueta blanca/clara con texto).
+    """
+    h, w = img.shape[:2]
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # 1. Mejorar contraste
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    enhanced = clahe.apply(gray)
+
+    # 2. Detectar bordes
+    blurred = cv2.GaussianBlur(enhanced, (5, 5), 0)
+    edges = cv2.Canny(blurred, 30, 100)
+
+    # 3. Dilatar bordes para cerrar contornos
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    dilated = cv2.dilate(edges, kernel, iterations=2)
+
+    # 4. Encontrar contornos
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    img_area = w * h
+    best_candidate = None
+    best_score = 0
+
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        # Filtrar: la etiqueta debe ser entre 3% y 60% de la imagen
+        if area < img_area * 0.03 or area > img_area * 0.60:
+            continue
+
+        # Aproximar a polígono
+        peri = cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+
+        # Preferir formas rectangulares (4 vértices)
+        rect_score = 1.0 if len(approx) == 4 else 0.5
+
+        # Bounding rect
+        x, y, bw, bh = cv2.boundingRect(cnt)
+        aspect = max(bw, bh) / max(min(bw, bh), 1)
+
+        # Filtrar por aspecto: etiquetas suelen ser rectangulares (1:1 a 8:1)
+        if aspect > 10 or aspect < 0.8:
+            continue
+
+        # Score: preferir regiones con mucho detalle (texto)
+        roi = gray[y:y+bh, x:x+bw]
+        if roi.size == 0:
+            continue
+        detail_score = float(np.std(roi)) / 128.0
+
+        score = area * rect_score * detail_score
+        if score > best_score:
+            best_score = score
+            best_candidate = (x, y, bw, bh, approx)
+
+    if best_candidate is None:
+        # Fallback: crop centro de la imagen (donde suele estar la etiqueta)
+        print("DEBUG: Serial label not detected, using center crop fallback")
+        margin_x = int(w * 0.1)
+        margin_y = int(h * 0.1)
+        return img[margin_y:h-margin_y, margin_x:w-margin_x]
+
+    x, y, bw, bh, approx = best_candidate
+
+    # Si tenemos 4 puntos, aplicar transformación de perspectiva
+    if len(approx) == 4:
+        try:
+            pts = approx.reshape(4, 2).astype(np.float32)
+            # Ordenar puntos: top-left, top-right, bottom-right, bottom-left
+            s = pts.sum(axis=1)
+            diff = np.diff(pts, axis=1)
+            ordered = np.array([
+                pts[np.argmin(s)],
+                pts[np.argmin(diff)],
+                pts[np.argmax(s)],
+                pts[np.argmax(diff)],
+            ], dtype=np.float32)
+
+            dst_w = int(max(
+                np.linalg.norm(ordered[1] - ordered[0]),
+                np.linalg.norm(ordered[2] - ordered[3])
+            ))
+            dst_h = int(max(
+                np.linalg.norm(ordered[3] - ordered[0]),
+                np.linalg.norm(ordered[2] - ordered[1])
+            ))
+
+            if dst_w > 20 and dst_h > 20:
+                dst_pts = np.array([[0,0],[dst_w,0],[dst_w,dst_h],[0,dst_h]], dtype=np.float32)
+                M = cv2.getPerspectiveTransform(ordered, dst_pts)
+                warped = cv2.warpPerspective(img, M, (dst_w, dst_h))
+                return warped
+        except Exception as e:
+            print(f"DEBUG: Perspective transform failed: {e}")
+
+    # Fallback: crop directo con padding pequeño
+    pad = 8
+    x1 = max(0, x - pad)
+    y1 = max(0, y - pad)
+    x2 = min(w, x + bw + pad)
+    y2 = min(h, y + bh + pad)
+    return img[y1:y2, x1:x2]
+
+
 def get_optimized_image(image_path, is_serial=False):
     """
-    Carga la imagen optimizada para el documento.
-    Asume que la imagen ya fue procesada en el upload, pero asegura formato compatible.
+    Procesa la imagen para el documento:
+    - Corrige rotación EXIF
+    - Para imagen de equipo: auto-detecta y recorta el dispositivo
+    - Para imagen de serie: detecta y recorta la etiqueta de número de serie
     """
     try:
-        img = Image.open(image_path)
-        
-        # Asegurar formato RGB (evitar problemas con CMYK/Alpha en Docx)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-            
+        pil_img = Image.open(image_path)
+
+        # 1. Corregir rotación EXIF
+        pil_img = _apply_exif_rotation(pil_img)
+
+        # 2. Convertir a RGB
+        if pil_img.mode not in ("RGB",):
+            pil_img = pil_img.convert("RGB")
+
+        # 3. Convertir a OpenCV para procesamiento
+        cv_img = _pil_to_cv2(pil_img)
+
+        if is_serial:
+            # Pipeline para etiqueta de serie
+            print("DEBUG: Processing serial image — detecting label")
+            cv_img = _detect_serial_label(cv_img)
+        else:
+            # Pipeline para imagen del equipo
+            print("DEBUG: Processing device image — auto-crop")
+            cv_img = _auto_rotate_cv2(cv_img)
+            cv_img = _autocrop_device(cv_img)
+
+        # 4. Convertir de vuelta a PIL
+        result_pil = _cv2_to_pil(cv_img)
+
+        # 5. Serializar a BytesIO para python-docx
         img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='JPEG', quality=95) # High quality for final doc
+        result_pil.save(img_byte_arr, format='JPEG', quality=92)
         img_byte_arr.seek(0)
         return img_byte_arr
+
     except Exception as e:
-        print(f"ERROR: Could not load image {image_path}: {e}")
-        return image_path
+        print(f"ERROR: Could not process image {image_path}: {e}")
+        # Fallback: devolver imagen original sin procesar
+        try:
+            pil_img = Image.open(image_path).convert("RGB")
+            buf = io.BytesIO()
+            pil_img.save(buf, format='JPEG', quality=90)
+            buf.seek(0)
+            return buf
+        except Exception:
+            return image_path
 
 def get_spanish_date():
     """Generate Spanish date string"""
@@ -462,14 +691,17 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             if dtype in ["MOBILE", "SMARTPHONE", "IPHONE"]: dtype = "CELULAR"
             if dtype == "CHIP": dtype = "CHIP/SIM"
             
-            # Agregar dispositivo principal
+            # Guardar el número de teléfono para usarlo en el CHIP
+            phone_number_chip = (dev.get('phone_number', '') or '-')
+
+            # Agregar dispositivo principal (sin número de teléfono — va en la fila CHIP)
             processed_devices.append({
                 'type': dtype,
                 'brand': (dev.get('brand', '') or '').upper(),
                 'model': (dev.get('model', '') or '').upper(),
                 'serial': (dev.get('serial', '') or '').upper(),
                 'imei': (dev.get('imei', '') or '-'),
-                'phone_number': (dev.get('phone_number', '') or '-'),
+                'phone_number': '-',
                 'status': 'NUEVO', # O tomar del dev
                 '_is_accessory': False
             })
@@ -481,7 +713,7 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
                 charger_brand = dev.get('mobile_charger_brand', '') or dev.get('brand', '')
                 charger_model = dev.get('mobile_charger_model', '') or 'GENERICO'
                 charger_serial = dev.get('mobile_charger_serial', '') or '-'
-                
+
                 processed_devices.append({
                     'type': 'CARGADOR DE CELULAR',
                     'brand': charger_brand.upper(),
@@ -492,7 +724,7 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
                     'status': 'NUEVO',
                     '_is_accessory': True
                 })
-                
+
                 # 2. Leer accesorios desde specifications si existen
                 specs_str = dev.get('specifications', '')
                 if specs_str:
@@ -555,6 +787,18 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
                             'status': 'NUEVO',
                             '_is_accessory': True
                         })
+
+                # Agregar CHIP al final (después de todos los accesorios)
+                processed_devices.append({
+                    'type': 'CHIP',
+                    'brand': 'CLARO',
+                    'model': 'MICROCHIP',
+                    'serial': '-',
+                    'imei': '-',
+                    'phone_number': phone_number_chip,
+                    'status': 'NUEVO',
+                    '_is_accessory': True
+                })
     else:
         # Lógica estándar (Cómputo/Venta)
         for dev in devices_info:
@@ -567,7 +811,7 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             status = (dev.get('status', 'USADO') or 'USADO').upper()
             
             # KEYBOARD_MOUSE_KIT -> Separar en TECLADO y MOUSE
-            if dtype == 'KEYBOARD_MOUSE_KIT':
+            if dtype in ('KEYBOARD_MOUSE_KIT', 'KIT TECLADO/MOUSE', 'KIT_TECLADO/MOUSE'):
                 # Intentar separar modelos "HSA-A005K / HSA-A011M"
                 kb_model = model
                 ms_model = model
@@ -689,14 +933,45 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
                 else:
                     run.font.size = Pt(8)
 
+    # Helper to fill a computer row (8 cols)
+    def _fill_comp_row_template(row_cells, equipo, status, brand, model, serial, hostname, inventory_code):
+        if len(row_cells) >= 1: set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
+        if len(row_cells) >= 2: set_cell_text(row_cells[1], equipo)
+        if len(row_cells) >= 3: set_cell_text(row_cells[2], status, WD_ALIGN_PARAGRAPH.CENTER)
+        if len(row_cells) >= 4: set_cell_text(row_cells[3], brand)
+        if len(row_cells) >= 5: set_cell_text(row_cells[4], model)
+        if len(row_cells) >= 6: set_cell_text(row_cells[5], serial)
+        hostname_val = hostname if (hostname and hostname != '-' and hostname != '') else 'N/A'
+        inventory_val = inventory_code if (inventory_code and inventory_code != '-' and inventory_code != '') else 'N/A'
+        if len(row_cells) >= 7: set_cell_text(row_cells[6], hostname_val)
+        if len(row_cells) >= 8: set_cell_text(row_cells[7], inventory_val)
+
     # Agregar filas de dispositivos processed
     for dev in processed_devices:
+        dtype = (dev.get('type') or '').upper()
+
+        # KEYBOARD_MOUSE_KIT -> split into TECLADO + MOUSE rows (belt-and-suspenders)
+        if not is_mobile_table and not is_sales_table and dtype in ('KEYBOARD_MOUSE_KIT', 'KIT TECLADO/MOUSE', 'KIT_TECLADO/MOUSE'):
+            brand = dev.get('brand', '')
+            model = dev.get('model', '') or ''
+            serial = (dev.get('serial', '') or '').upper()
+            status = dev.get('status', 'USADO')
+            kb_model = model
+            ms_model = model
+            if '/' in model:
+                parts = model.split('/')
+                kb_model = parts[0].strip()
+                ms_model = parts[1].strip() if len(parts) > 1 else kb_model
+            _fill_comp_row_template(table.add_row().cells, 'TECLADO', status, brand, kb_model, serial, '-', '-')
+            _fill_comp_row_template(table.add_row().cells, 'MOUSE', status, brand, ms_model, serial, '-', '-')
+            continue
+
         row_cells = table.add_row().cells
-        
+
         # Centrar contenido verticalmente
         for cell in row_cells:
             cell.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
+
         if is_mobile_table:
             # 9 columnas: CANT., EQUIPO, OPERADOR, ESTADO, MARCA, MODELO, SERIE, IMEI, N° CELULAR
             if len(row_cells) >= 1: set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
@@ -708,7 +983,7 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             if len(row_cells) >= 7: set_cell_text(row_cells[6], dev['serial'])
             if len(row_cells) >= 8: set_cell_text(row_cells[7], dev.get('imei', '-'))
             if len(row_cells) >= 9: set_cell_text(row_cells[8], dev.get('phone_number', '-'))
-            
+
         elif is_sales_table:
             set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
             set_cell_text(row_cells[1], dev['type'])
@@ -716,19 +991,15 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             set_cell_text(row_cells[3], dev['brand'])
             set_cell_text(row_cells[4], dev['model'])
             set_cell_text(row_cells[5], dev['serial'])
-            
+
             # Columna 6: Código Inventario (en index 6)
             inventory_value = 'N/A'
             if dev.get('inventory_code') and dev['inventory_code'] != '-' and dev['inventory_code'] != '':
                 inventory_value = dev['inventory_code']
-            elif dev['type'] == 'LAPTOP' and dev.get('hostname'): # A veces el hostname es el codigo?
-                 pass # User asked for Inventory Code explicitly
-            
-            # Si no hay codigo, intentamos poner '-' o lo que corresponda
             if inventory_value == 'N/A': inventory_value = '-'
 
             set_cell_text(row_cells[6], inventory_value)
-            
+
         else:
             set_cell_text(row_cells[0], '1', WD_ALIGN_PARAGRAPH.CENTER)
             set_cell_text(row_cells[1], dev['type'])
@@ -742,7 +1013,7 @@ def insert_devices_table_at_placeholder(doc, devices_info, template=None, placeh
             if dev.get('hostname') and dev['hostname'] != '-' and dev['hostname'] != '':
                 hostname_value = dev['hostname']
             set_cell_text(row_cells[6], hostname_value)
-            
+
             # Columna 7: Código de Inventario (mostrar N/A si no tiene)
             inventory_value = 'N/A'
             if dev.get('inventory_code') and dev['inventory_code'] != '-' and dev['inventory_code'] != '':
@@ -844,6 +1115,11 @@ def build_placeholders_from_template(template, employee_data, devices_info=None)
     
     # Mapeo de variables del sistema a valores
     system_values = {
+        'ITEM': str(employee_data.get('item_number', '')),
+        'NOMBRE_TI': (employee_data.get('ti_name') or '').upper(),
+        'DNI_TI': employee_data.get('ti_dni') or '',
+        'OTROS_COMENTARIOS': employee_data.get('otros_comentarios') or '',
+        'TIPO_ASIGNACION': employee_data.get('tipo_asignacion') or '',
         'EMPLOYEE_NAME': employee_data.get('name', '').upper(),
         'EMPLOYEE_DNI': employee_data.get('dni', ''),
         'EMPLOYEE_COMPANY': employee_data.get('company', '').upper(),
@@ -919,11 +1195,86 @@ def build_placeholders_from_template(template, employee_data, devices_info=None)
         system_values['DEVICE_BRAND'] = (main_device.get('brand') or '').upper()
         system_values['DEVICE_SERIAL'] = (main_device.get('serial') or main_device.get('imei') or '').upper()
         system_values['DEVICE_TYPE'] = (main_device.get('type') or '').upper()
-        
+
         # Mapping AURICULARES and MOCHILA
         if system_values['DEVICE_TYPE'] == 'HEADPHONES': system_values['DEVICE_TYPE'] = 'AURICULARES'
         if system_values['DEVICE_TYPE'] == 'BACKPACK': system_values['DEVICE_TYPE'] = 'MOCHILA'
         if system_values['DEVICE_TYPE'] == 'CHARGER': system_values['DEVICE_TYPE'] = 'CARGADOR'
+
+        # Auriculares
+        auriculares_dev = next((d for d in devices_info if (d.get('type') or '').lower() in ('auriculares', 'headphones')), None)
+        if auriculares_dev:
+            system_values['AURICULARES_BRAND'] = (auriculares_dev.get('brand') or '').upper()
+            system_values['AURICULARES_MODEL'] = (auriculares_dev.get('model') or '').upper()
+            system_values['AURICULARES_SERIAL'] = (auriculares_dev.get('serial') or '').upper()
+            system_values['AURICULARES_INVENTORY_CODE'] = (auriculares_dev.get('inventory_code') or '').upper()
+        else:
+            system_values['AURICULARES_BRAND'] = system_values['AURICULARES_MODEL'] = system_values['AURICULARES_SERIAL'] = system_values['AURICULARES_INVENTORY_CODE'] = ''
+
+        # Mochila
+        mochila_dev = next((d for d in devices_info if (d.get('type') or '').lower() in ('mochila', 'backpack')), None)
+        if mochila_dev:
+            system_values['MOCHILA_BRAND'] = (mochila_dev.get('brand') or '').upper()
+            system_values['MOCHILA_MODEL'] = (mochila_dev.get('model') or '').upper()
+            system_values['MOCHILA_SERIAL'] = (mochila_dev.get('serial') or '').upper()
+            system_values['MOCHILA_INVENTORY_CODE'] = (mochila_dev.get('inventory_code') or '').upper()
+        else:
+            system_values['MOCHILA_BRAND'] = system_values['MOCHILA_MODEL'] = system_values['MOCHILA_SERIAL'] = system_values['MOCHILA_INVENTORY_CODE'] = ''
+
+        # Monitor
+        monitor_dev = next((d for d in devices_info if (d.get('type') or '').lower() == 'monitor'), None)
+        if monitor_dev:
+            system_values['MONITOR_BRAND'] = (monitor_dev.get('brand') or '').upper()
+            system_values['MONITOR_MODEL'] = (monitor_dev.get('model') or '').upper()
+            system_values['MONITOR_SERIAL'] = (monitor_dev.get('serial') or '').upper()
+            system_values['MONITOR_INVENTORY_CODE'] = (monitor_dev.get('inventory_code') or '').upper()
+        else:
+            system_values['MONITOR_BRAND'] = system_values['MONITOR_MODEL'] = system_values['MONITOR_SERIAL'] = system_values['MONITOR_INVENTORY_CODE'] = ''
+
+        # Cargador laptop
+        cargador_dev = next((d for d in devices_info if (d.get('type') or '').lower() in ('charger', 'cargador')), None)
+        if cargador_dev:
+            system_values['CARGADOR_BRAND'] = (cargador_dev.get('brand') or '').upper()
+            system_values['CARGADOR_MODEL'] = (cargador_dev.get('model') or '').upper()
+            system_values['CARGADOR_SERIAL'] = (cargador_dev.get('serial') or '').upper()
+        else:
+            system_values['CARGADOR_BRAND'] = system_values['CARGADOR_MODEL'] = system_values['CARGADOR_SERIAL'] = ''
+
+        # Teclado
+        teclado_dev = next((d for d in devices_info if (d.get('type') or '').lower() in ('teclado', 'keyboard')), None)
+        if teclado_dev:
+            system_values['TECLADO_BRAND'] = (teclado_dev.get('brand') or '').upper()
+            system_values['TECLADO_MODEL'] = (teclado_dev.get('model') or '').upper()
+            system_values['TECLADO_SERIAL'] = (teclado_dev.get('serial') or '').upper()
+            system_values['TECLADO_INVENTORY_CODE'] = (teclado_dev.get('inventory_code') or '').upper()
+        else:
+            system_values['TECLADO_BRAND'] = system_values['TECLADO_MODEL'] = system_values['TECLADO_SERIAL'] = system_values['TECLADO_INVENTORY_CODE'] = ''
+
+        # Mouse
+        mouse_dev = next((d for d in devices_info if (d.get('type') or '').lower() == 'mouse'), None)
+        if mouse_dev:
+            system_values['MOUSE_BRAND'] = (mouse_dev.get('brand') or '').upper()
+            system_values['MOUSE_MODEL'] = (mouse_dev.get('model') or '').upper()
+            system_values['MOUSE_SERIAL'] = (mouse_dev.get('serial') or '').upper()
+            system_values['MOUSE_INVENTORY_CODE'] = (mouse_dev.get('inventory_code') or '').upper()
+        else:
+            system_values['MOUSE_BRAND'] = system_values['MOUSE_MODEL'] = system_values['MOUSE_SERIAL'] = system_values['MOUSE_INVENTORY_CODE'] = ''
+
+        # Segunda laptop
+        laptops = [d for d in devices_info if (d.get('type') or '').lower() == 'laptop']
+        laptop2 = laptops[1] if len(laptops) >= 2 else None
+        if laptop2:
+            system_values['LAPTOP2_BRAND'] = (laptop2.get('brand') or '').upper()
+            system_values['LAPTOP2_MODEL'] = (laptop2.get('model') or '').upper()
+            system_values['LAPTOP2_SERIAL'] = (laptop2.get('serial') or '').upper()
+            system_values['LAPTOP2_HOSTNAME'] = (laptop2.get('hostname') or '').upper()
+            system_values['LAPTOP2_INVENTORY_CODE'] = (laptop2.get('inventory_code') or '').upper()
+        else:
+            system_values['LAPTOP2_BRAND'] = ''
+            system_values['LAPTOP2_MODEL'] = ''
+            system_values['LAPTOP2_SERIAL'] = ''
+            system_values['LAPTOP2_HOSTNAME'] = ''
+            system_values['LAPTOP2_INVENTORY_CODE'] = ''
     
     # Lista de variables de tabla que NO deben ser reemplazadas como texto
     # Estas serán manejadas por insert_devices_table_at_placeholder()
@@ -954,18 +1305,23 @@ def build_placeholders_from_template(template, employee_data, devices_info=None)
             continue
         
         if system_var in system_values:
-            # Agregar con {{}} y variantes con espacios
-            placeholders[f"{{{{{placeholder_name}}}}}"] = system_values[system_var]
-            placeholders[f"{{{{ {placeholder_name} }}}}"] = system_values[system_var]
-            # También agregar variantes en minúsculas y capitalize
-            placeholders[f"{{{{{placeholder_name.lower()}}}}}"] = system_values[system_var]
-            placeholders[f"{{{{ {placeholder_name.lower()} }}}}"] = system_values[system_var]
+            val = system_values[system_var]
+            # Variantes con dobles llaves {{VAR}}
+            placeholders[f"{{{{{placeholder_name}}}}}"] = val
+            placeholders[f"{{{{ {placeholder_name} }}}}"] = val
+            placeholders[f"{{{{{placeholder_name.lower()}}}}}"] = val
+            placeholders[f"{{{{ {placeholder_name.lower()} }}}}"] = val
+            # Variantes con llave simple {VAR} (para templates que usan ese formato)
+            placeholders[f"{{{placeholder_name}}}"] = val
+            placeholders[f"{{ {placeholder_name} }}"] = val
+            placeholders[f"{{{placeholder_name.lower()}}}"] = val
+            placeholders[f"{{ {placeholder_name.lower()} }}"] = val
     
     print(f"DEBUG: Built {len(placeholders)} placeholders from template mapping (excluding table variables)")
     return placeholders
 
 
-def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: list, employee_dni: str = "", employee_company: str = "", template_path: str = None, template=None, acta_observations: str = None, decommission_data: dict = None):
+def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: list, employee_dni: str = "", employee_company: str = "", template_path: str = None, template=None, acta_observations: str = None, decommission_data: dict = None, item_number: int = None, ti_name: str = "", ti_dni: str = "", otros_comentarios: str = "", tipo_asignacion: str = "ASIGNACION"):
     # Generates a PDF for a batch of devices with dynamic table rows.
     # Uses the provided template_path or defaults to acta_template.docx.
     # Args:
@@ -1058,9 +1414,14 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
         'location': 'CALLAO',
         'observations': acta_observations,
         'template_type': t_type,
-        'decommission_data': decommission_data
+        'decommission_data': decommission_data,
+        'item_number': item_number,
+        'ti_name': ti_name,
+        'ti_dni': ti_dni,
+        'otros_comentarios': otros_comentarios,
+        'tipo_asignacion': tipo_asignacion,
     }
-    
+
     # Construir placeholders dinámicamente desde el template
     if template:
         placeholders = build_placeholders_from_template(template, employee_data, devices_info)
@@ -1183,15 +1544,18 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
     
     print(f"DEBUG: Final placeholders count: {len(placeholders)}")
 
+    # === DEBUG: log device types ===
+    print(f"DEBUG generate_batch_acta: devices_info types = {[d.get('type') for d in devices_info]}")
+
     # === TRY TO INSERT TABLE AT PLACEHOLDER FIRST (BEFORE REPLACING OTHER PLACEHOLDERS) ===
     # Attempt to insert table dynamics
     # For batch actas (Computer), we DO NOT force mobile table. It should auto-detect from placeholder or default to computer.
     tabla_inserted = insert_devices_table_at_placeholder(doc, devices_info, template=template)
-    
+
     if tabla_inserted:
-        print("DEBUG: Table inserted at {{TABLA}} placeholder")
+        print("DEBUG: tabla_inserted=True -> usando ruta de template (insert_devices_table_at_placeholder)")
     else:
-        print("DEBUG: Table NOT inserted (placeholder not found or error)")
+        print("DEBUG: tabla_inserted=False -> usando ruta LEGACY")
     
     # === REPLACE ALL OTHER PLACEHOLDERS ===
     process_document_placeholders(doc, placeholders)
@@ -1327,8 +1691,37 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
         # Build final device list with accessories inserted after their parent devices
         final_devices = []
         for device in sorted_devices:
-            final_devices.append(device)
             device_type = device.get('type', '').upper()
+
+            # KEYBOARD_MOUSE_KIT -> split into TECLADO and MOUSE rows
+            if device_type in ('KEYBOARD_MOUSE_KIT', 'KIT TECLADO/MOUSE', 'KIT_TECLADO/MOUSE'):
+                kb_model = device.get('model', '')
+                ms_model = device.get('model', '')
+                if '/' in kb_model:
+                    parts = kb_model.split('/')
+                    kb_model = parts[0].strip()
+                    ms_model = parts[1].strip() if len(parts) > 1 else kb_model
+                final_devices.append({
+                    'type': 'TECLADO',
+                    'brand': device.get('brand', ''),
+                    'model': kb_model,
+                    'serial': device.get('serial', '-'),
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': device.get('status', 'USADO'),
+                })
+                final_devices.append({
+                    'type': 'MOUSE',
+                    'brand': device.get('brand', ''),
+                    'model': ms_model,
+                    'serial': device.get('serial', '-'),
+                    'hostname': '-',
+                    'inventory_code': '-',
+                    'status': device.get('status', 'USADO'),
+                })
+                continue
+
+            final_devices.append(device)
             
             # If this is a laptop, add charger right after (unless a charger is already in the list)
             if device_type == 'LAPTOP':
@@ -1371,42 +1764,44 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
         print(f"DEBUG: Cleared all non-header rows")
         print(f"DEBUG: Will add {len(final_devices)} device rows")
         
-        # Add device rows using simple add_row
-        for idx, device in enumerate(final_devices):
-            new_row = devices_table.add_row()
-            cells = new_row.cells
-            
-            device_type = device.get('type', '').upper()
-            device_type_display = type_map.get(device_type, device_type)
-            hostname = device.get('hostname', '-')
-            inventory_name = device.get('inventory_name', '-')
-            
-            # Populate all 8 columns: CANT, EQUIPO, ESTADO, MARCA, MODELO, SERIE, (empty), NOMBRE EQUIPO/INVENTARIO
-            if len(cells) >= 1:
-                cells[0].text = "1"  # CANT
-            if len(cells) >= 2:
-                cells[1].text = device_type_display  # EQUIPO
-            if len(cells) >= 3:
-                cells[2].text = "Nuevo"  # ESTADO
-            if len(cells) >= 4:
-                cells[3].text = (device.get('brand') or '').upper()  # MARCA
-            if len(cells) >= 5:
-                cells[4].text = (device.get('model') or '').upper()  # MODELO
-            if len(cells) >= 6:
-                cells[5].text = (device.get('serial') or '').upper()  # SERIE
-            if len(cells) >= 7:
-                cells[6].text = ""  # Empty column (possibly for manual notes)
-            if len(cells) >= 8:
-                cells[7].text = hostname if hostname else "-"  # NOMBRE EQUIPO/INVENTARIO
-            
-            # Apply formatting to all populated columns
+        def _fill_comp_row(cells, equipo, brand, model, serial, hostname):
+            if len(cells) >= 1: cells[0].text = "1"
+            if len(cells) >= 2: cells[1].text = equipo
+            if len(cells) >= 3: cells[2].text = "Nuevo"
+            if len(cells) >= 4: cells[3].text = (brand or '').upper()
+            if len(cells) >= 5: cells[4].text = (model or '').upper()
+            if len(cells) >= 6: cells[5].text = (serial or '').upper()
+            if len(cells) >= 7: cells[6].text = ""
+            if len(cells) >= 8: cells[7].text = hostname if hostname else "-"
             for cell_idx in range(min(8, len(cells))):
-                cell = cells[cell_idx]
-                for para in cell.paragraphs:
+                for para in cells[cell_idx].paragraphs:
                     for run in para.runs:
                         run.font.size = Pt(9)
-            
-            print(f"DEBUG: Added device row {idx}: {device_type_display} (8 columns)")
+
+        # Add device rows using simple add_row
+        for idx, device in enumerate(final_devices):
+            device_type = device.get('type', '').upper()
+            brand = device.get('brand', '')
+            model = device.get('model', '') or ''
+            serial = device.get('serial', '-') or '-'
+            hostname = device.get('hostname', '-') or '-'
+
+            # KEYBOARD_MOUSE_KIT -> two rows (belt-and-suspenders, pre-processing may have already split)
+            if device_type in ('KEYBOARD_MOUSE_KIT', 'KIT TECLADO/MOUSE', 'KIT_TECLADO/MOUSE'):
+                kb_model = model
+                ms_model = model
+                if '/' in model:
+                    parts = model.split('/')
+                    kb_model = parts[0].strip()
+                    ms_model = parts[1].strip() if len(parts) > 1 else kb_model
+                _fill_comp_row(devices_table.add_row().cells, 'TECLADO', brand, kb_model, serial, '-')
+                _fill_comp_row(devices_table.add_row().cells, 'MOUSE', brand, ms_model, serial, '-')
+                print(f"DEBUG: Added TECLADO + MOUSE rows (split from KIT)")
+                continue
+
+            device_type_display = type_map.get(device_type, device_type)
+            _fill_comp_row(devices_table.add_row().cells, device_type_display, brand, model, serial, hostname)
+            print(f"DEBUG: Added device row {idx}: {device_type_display}")
         
         # Re-add OBSERVACIONES row at the end (should span all columns)
         if obs_text:
@@ -1445,7 +1840,7 @@ def generate_batch_acta(assignment_id: int, employee_name: str, devices_info: li
 
 
 
-def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: list, employee_dni: str = "", employee_company: str = "", template_path: str = None, template=None, acta_observations: str = None):
+def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: list, employee_dni: str = "", employee_company: str = "", template_path: str = None, template=None, acta_observations: str = None, item_number: int = None, ti_name: str = "", ti_dni: str = "", otros_comentarios: str = "", tipo_asignacion: str = "ASIGNACION"):
     # Generates acta for mobile devices using provided or default mobile template.
     # Setup Output
     filename = f"acta_celular_{assignment_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
@@ -1496,7 +1891,12 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
         'company': employee_company,
         'location': 'CALLAO',
         'observations': acta_observations,
-        'template_type': 'ASSIGNMENT_MOBILE'
+        'template_type': 'ASSIGNMENT_MOBILE',
+        'item_number': item_number,
+        'ti_name': ti_name,
+        'ti_dni': ti_dni,
+        'otros_comentarios': otros_comentarios,
+        'tipo_asignacion': tipo_asignacion,
     }
     
     # Construir placeholders dinámicamente desde el template
@@ -1558,7 +1958,7 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
         placeholders[f"{{{{SERIE_{dtype}}}}}"] = dev.get('serial', '').strip() or dev.get('imei', '-')
         placeholders[f"{{{{MARCA_{dtype}}}}}"] = dev.get('brand', '').upper()
         placeholders[f"{{{{MODELO_{dtype}}}}}"] = dev.get('model', '').upper()
-        placeholders[f"{{{{IMEI_{dtype}}}}}"] = dev.get('imei', '').upper()
+        placeholders[f"{{{{IMEI_{dtype}}}}}"] = (dev.get('imei') or '').upper()
 
     print(f"DEBUG: Final placeholders count: {len(placeholders)}")
 
@@ -1602,6 +2002,8 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
         
         # Add rows for mobile devices
         for device in devices_info:
+            print(f"DEBUG mobile_acta: type='{device.get('type')}' brand='{device.get('brand')}' imei='{device.get('imei')}' serial='{device.get('serial')}'")
+
             row = devices_table.add_row()
             cells = row.cells
             
@@ -1643,7 +2045,7 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
                 cells[6].text = device.get('serial', '-').upper()  # SERIE
                 cells[6].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 8:
-                cells[7].text = device.get('imei', '-').upper()  # IMEI
+                cells[7].text = (device.get('imei') or '-').upper()  # IMEI
                 cells[7].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             if num_cols >= 9:
                 cells[8].text = "-"  # TELEFONO (ahora va en el CHIP)
@@ -1703,7 +2105,7 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
                     for paragraph in cell.paragraphs:
                         for run in paragraph.runs:
                             run.font.size = Pt(8)
-                
+
                 # 2. Leer accesorios desde specifications si existen
                 specs_str = device.get('specifications', '')
                 accessories_to_add = []
@@ -1787,9 +2189,47 @@ def generate_mobile_acta(assignment_id: int, employee_name: str, devices_info: l
                         for paragraph in cell.paragraphs:
                             for run in paragraph.runs:
                                 run.font.size = Pt(8)
-     
-     
-    
+
+                # Agregar CHIP al final (después de todos los accesorios)
+                chip_row = devices_table.add_row()
+                chip_cells = chip_row.cells
+                if template_row:
+                    for i, cell in enumerate(chip_cells):
+                        if i < len(template_row.cells):
+                            copy_cell_format(template_row.cells[i], cell)
+                if len(chip_cells) >= 1:
+                    chip_cells[0].text = "1"
+                    chip_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 2:
+                    chip_cells[1].text = "CHIP"
+                    chip_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 3:
+                    chip_cells[2].text = "CLARO"
+                    chip_cells[2].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 4:
+                    chip_cells[3].text = "NUEVO"
+                    chip_cells[3].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 5:
+                    chip_cells[4].text = "CLARO"
+                    chip_cells[4].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 6:
+                    chip_cells[5].text = "MICROCHIP"
+                    chip_cells[5].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 7:
+                    chip_cells[6].text = "-"
+                    chip_cells[6].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 8:
+                    chip_cells[7].text = "-"
+                    chip_cells[7].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if len(chip_cells) >= 9:
+                    chip_cells[8].text = phone_number_for_chip
+                    chip_cells[8].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                for cell in chip_cells:
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.font.size = Pt(8)
+
+
     # Handle Date
     for table in doc.tables:
         for row in table.rows:

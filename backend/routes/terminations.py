@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
-import database, schemas, crud, models, auth
+import database, schemas, crud, models, auth, cache
 
 router = APIRouter()
 
@@ -66,7 +66,7 @@ def create_termination(
     
     db.commit()
     db.refresh(db_termination)
-    
+    cache.invalidate_all()
     return db_termination
 
 @router.get("/terminations/")
@@ -376,5 +376,5 @@ def delete_termination(
     # Delete termination record
     db.delete(termination)
     db.commit()
-    
+    cache.invalidate_all()
     return {"message": "Termination deleted and effects reverted successfully"}

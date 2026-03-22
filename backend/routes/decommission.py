@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-import models, schemas, crud
+import models, schemas, crud, cache
 from auth import get_current_user
 
 router = APIRouter()
@@ -52,6 +52,7 @@ def create_decommission(
     db.add(new_decommission)
     db.commit()
     db.refresh(new_decommission)
+    cache.invalidate_all()
     
     # 4. Generate PDF
     try:
@@ -221,7 +222,8 @@ def update_decommission(
         
     db.commit()
     db.refresh(db_decommission)
-    
+    cache.invalidate_all()
+
     # 3. Regenerate PDF
     try:
         from pdf_generator import generate_batch_acta
@@ -317,5 +319,5 @@ def delete_decommission(
     # 4. Delete Record
     db.delete(db_decommission)
     db.commit()
-    
+    cache.invalidate_all()
     return None

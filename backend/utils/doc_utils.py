@@ -150,19 +150,21 @@ def replace_variables_in_docx(source_path: str, dest_path: str, variables: Dict[
                         
                         for key, value in variables.items():
                             val_str = str(value)
-                            
-                            # Robust Pattern allowing whitespace
-                            # Matches {{ KEY }} with optional tags and whitespace
-                            pattern = re.compile(r"\{(?:<[^>]+>)*\{(?:<[^>]+>)*\s*" + re.escape(key) + r"\s*(?:<[^>]+>)*\}(?:<[^>]+>)*\}")
-                            
+
+                            # Pattern for {{KEY}} with optional XML tags and whitespace between braces
+                            pattern_double = re.compile(r"\{(?:<[^>]+>)*\{(?:<[^>]+>)*\s*" + re.escape(key) + r"\s*(?:<[^>]+>)*\}(?:<[^>]+>)*\}")
+                            # Pattern for {KEY} with optional XML tags and whitespace
+                            pattern_single = re.compile(r"\{(?:<[^>]+>)*\s*" + re.escape(key) + r"\s*(?:<[^>]+>)*\}")
+
                             # Check if this key corresponds to a pre-generated table XML
                             if table_xml_map and key in table_xml_map:
                                 table_xml = table_xml_map[key]
-                                # Hacky XML injection: Break out of current run/paragraph, insert table, start new
                                 replacement = f"</w:t></w:r></w:p>{table_xml}<w:p><w:r><w:t>"
-                                xml_content = pattern.sub(replacement, xml_content)
+                                xml_content = pattern_double.sub(replacement, xml_content)
+                                xml_content = pattern_single.sub(replacement, xml_content)
                             else:
-                                xml_content = pattern.sub(val_str, xml_content)
+                                xml_content = pattern_double.sub(val_str, xml_content)
+                                xml_content = pattern_single.sub(val_str, xml_content)
                             
                         content = xml_content.encode('utf-8')
                     

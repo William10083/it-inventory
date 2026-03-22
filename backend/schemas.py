@@ -43,6 +43,10 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    dni: Optional[str] = None
+
 
 class DeviceBase(BaseModel):
     serial_number: Optional[str] = None
@@ -179,7 +183,7 @@ class AssignmentWithDevice(BaseModel):
     id: int
     assigned_date: datetime
     returned_date: Optional[datetime] = None
-    device: Device
+    device: Optional[Device] = None
     notes: Optional[str] = None
     pdf_acta_path: Optional[str] = None
 
@@ -202,6 +206,7 @@ class AssignmentBatchCreate(BaseModel):
     device_ids: List[int]
     notes: Optional[str] = None
     charger_info: Optional[ChargerInfo] = None
+    assignment_type: Optional[str] = "ASIGNACION"  # ASIGNACION or REEMPLAZO
 
 # Maintenance Schemas
 class MaintenanceLogBase(BaseModel):

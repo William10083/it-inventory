@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
-import database, schemas, crud, pdf_generator
+import database, schemas, crud, pdf_generator, cache
 import models
 from services import audit, email
 import auth
@@ -38,6 +38,8 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
             print(f"DEBUG: Assigning device {device_id} to {batch.employee_id}")
             db_assignment = crud.assign_device(db, assignment_data)
             if db_assignment:
+                # Save assignment type
+                db_assignment.assignment_type = batch.assignment_type or "ASIGNACION"
                 # Sync device location with employee location
                 device = db.query(models.Device).filter(models.Device.id == device_id).first()
                 employee = db.query(models.Employee).filter(models.Employee.id == batch.employee_id).first()
@@ -45,7 +47,7 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
                     old_location = device.location
                     device.location = employee.location
                     print(f"DEBUG: Updated device {device_id} location from '{old_location}' to '{employee.location}'")
-                
+
                 created_assignments.append(db_assignment)
             else:
                 print(f"DEBUG: crud.assign_device returned None for {device_id}")
@@ -100,8 +102,9 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
         #     a.pdf_acta_path = pdf_path
         
         db.commit()
+        cache.invalidate_all()
         print("DEBUG: Batch assignment committed successfully")
-        
+
         return created_assignments
     except Exception as e:
         print(f"DEBUG: Exception in batch assignment: {e}")
@@ -151,7 +154,8 @@ def assign_device(assignment: schemas.AssignmentCreate, background_tasks: Backgr
     # Este campo se reserva SOLO para PDFs firmados subidos por el usuario
     # db_assignment.pdf_acta_path = pdf_path
     db.commit()
-    
+    cache.invalidate_all()
+
     # Audit Log
     try:
         audit.log_action(db, current_user.id, "ASSIGNMENT_CREATED", f"Device {db_assignment.device.model} assigned to {db_assignment.employee.full_name}")
@@ -169,11 +173,12 @@ def return_device(device_id: int, db: Session = Depends(database.get_db)):
     device = crud.return_device(db, device_id)
     if not device:
         raise HTTPException(status_code=400, detail="Device not assigned or not found")
+    cache.invalidate_all()
     return {"status": "returned", "device_serial": device.serial_number}
 
 @router.get("/assignments/{assignment_id}/pdf")
 @router.get("/assignments/{assignment_id}/acta")  # Alternative endpoint
-def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
+def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_optional_current_user)):
     print(f"DEBUG: get_acta_pdf called for assignment {assignment_id}")
     import zipfile
     from io import BytesIO
@@ -192,41 +197,76 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
     if not assignment.employee or not assignment.device:
         raise HTTPException(status_code=400, detail="Assignment missing employee or device data")
     
-    # Get ALL active assignments for this employee
+    # Get ALL active assignments for this employee (with device eager loaded)
     employee_id = assignment.employee_id
-    all_assignments = db.query(models.Assignment).filter(
+    from sqlalchemy.orm import joinedload as _jl
+    all_assignments = db.query(models.Assignment).options(
+        _jl(models.Assignment.device)
+    ).filter(
         models.Assignment.employee_id == employee_id,
         models.Assignment.returned_date == None
     ).all()
-    
+
     print(f"DEBUG: Found {len(all_assignments)} active assignments for employee {employee_id}")
-    
+
+    # Batch query: which device_ids were previously assigned to OTHER employees?
+    # One query instead of 1 per assignment (N+1 fix)
+    active_device_ids = [a.device.id for a in all_assignments if a.device]
+    previously_assigned_ids: set[int] = set()
+    if active_device_ids:
+        from sqlalchemy import distinct as _distinct
+        rows = db.query(_distinct(models.Assignment.device_id)).filter(
+            models.Assignment.device_id.in_(active_device_ids),
+            models.Assignment.employee_id != employee_id,
+        ).all()
+        previously_assigned_ids = {r[0] for r in rows}
+
     # Prepare devices info
     devices_info = []
     for assign in all_assignments:
-        db.refresh(assign)
         if assign.device:
-            devices_info.append({
-                "type": assign.device.device_type,
+            # Parse specifications JSON for fallback IMEI/phone values
+            import json as _json
+            _specs = {}
+            try:
+                if assign.device.specifications:
+                    _specs = _json.loads(assign.device.specifications)
+            except Exception:
+                pass
+
+            _imei = assign.device.imei or _specs.get('imei') or _specs.get('IMEI') or ""
+            _phone = assign.device.phone_number or _specs.get('phone_number') or _specs.get('numero_linea') or ""
+
+            # Use pre-fetched set — no query per iteration
+            _status = "USADO" if assign.device.id in previously_assigned_ids else "NUEVO"
+
+            _base = {
                 "brand": assign.device.brand or "",
-                "model": assign.device.model or "",
                 "serial": assign.device.serial_number or "-",
-                "hostname": assign.device.hostname or "",  # Added hostname
-                "inventory_code": assign.device.inventory_code or "",  # Added inventory_code
-                "imei": assign.device.imei or "",
-                "phone_number": assign.device.phone_number or "",
-                # Datos del cargador de celular
+                "hostname": assign.device.hostname or "",
+                "inventory_code": assign.device.inventory_code or "",
+                "imei": _imei,
+                "phone_number": _phone,
                 "mobile_charger_brand": assign.device.mobile_charger_brand or "",
                 "mobile_charger_model": assign.device.mobile_charger_model or "",
                 "mobile_charger_serial": assign.device.mobile_charger_serial or "",
-                # Especificaciones (para accesorios del celular)
                 "specifications": assign.device.specifications or "",
-                # Calcular status: USADO si tiene assignments previos con OTROS usuarios
-                "status": "USADO" if db.query(models.Assignment).filter(
-                    models.Assignment.device_id == assign.device.id,
-                    models.Assignment.employee_id != assign.employee_id
-                ).count() > 0 else "NUEVO"
-            })
+                "status": _status,
+            }
+
+            # KEYBOARD_MOUSE_KIT -> split into separate TECLADO and MOUSE entries
+            _dtype_lower = (assign.device.device_type or "").lower()
+            if _dtype_lower in ("keyboard_mouse_kit", "kit teclado/mouse", "kit_teclado_mouse"):
+                _model = assign.device.model or ""
+                kb_model, ms_model = _model, _model
+                if "/" in _model:
+                    parts = _model.split("/", 1)
+                    kb_model = parts[0].strip()
+                    ms_model = parts[1].strip()
+                devices_info.append({**_base, "type": "teclado", "model": kb_model})
+                devices_info.append({**_base, "type": "mouse",   "model": ms_model})
+            else:
+                devices_info.append({**_base, "type": assign.device.device_type, "model": assign.device.model or ""})
     
     # Categorize devices
     computer_devices, mobile_devices = pdf_generator.categorize_devices(devices_info)
@@ -254,13 +294,25 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
     employee_dni = assignment.employee.dni or ""
     # Corregido: Usar Company real, no departamento
     employee_company = assignment.employee.company or "TRANSTOTAL AGENCIA MARITIMA S.A."
-    
+
+    # Item number: conteo de empleados activos (correlativo)
+    item_number = db.query(models.Employee).filter(models.Employee.is_active == True).count()
+
+    # Datos del TI (usuario logueado)
+    ti_name = (current_user.full_name or "") if current_user else ""
+    ti_dni = (current_user.dni or "") if current_user else ""
+
+    # Tipo de asignación → otros comentarios
+    assignment_type = assignment.assignment_type or "ASIGNACION"
+    otros_comentarios = "ASIGNACION DE EQUIPO" if assignment_type == "ASIGNACION" else "REEMPLAZO DE EQUIPO"
+    tipo_asignacion = assignment_type  # ASIGNACION o REEMPLAZO
+
     # Date for filename
     now = datetime.now()
     date_str = now.strftime("%d-%m-%Y")
-    
+
     generated_files = []
-    
+
     # Generate computer acta if has computer devices
     if computer_devices:
         print(f"DEBUG: Generating computer acta with {len(computer_devices)} devices")
@@ -269,10 +321,15 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
             employee_name,
             computer_devices,
             employee_dni,
-            employee_company, # Usar company aquí
+            employee_company,
             template_path=comp_template_path,
             template=comp_template,
-            acta_observations=assignment.notes
+            acta_observations=assignment.notes,
+            item_number=item_number,
+            ti_name=ti_name,
+            ti_dni=ti_dni,
+            otros_comentarios=otros_comentarios,
+            tipo_asignacion=tipo_asignacion,
         )
         computer_filename = f"ACTA DE ENTREGA EQUIPO COMPUTO - {employee_name.upper()} - {date_str}.docx"
         generated_files.append((computer_acta_path, computer_filename))
@@ -292,10 +349,15 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
                 employee_name,
                 mobile_devices,
                 employee_dni,
-                employee_company, # Usar company aquí
+                employee_company,
                 template_path=mobile_template_path,
                 template=mobile_template,
-                acta_observations=assignment.notes
+                acta_observations=assignment.notes,
+                item_number=item_number,
+                ti_name=ti_name,
+                ti_dni=ti_dni,
+                otros_comentarios=otros_comentarios,
+                tipo_asignacion=tipo_asignacion,
             )
             mobile_filename = f"ACTA DE ENTREGA DE CELULAR - {employee_name.upper()} - {date_str}.docx"
             generated_files.append((mobile_acta_path, mobile_filename))
@@ -359,9 +421,40 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error creating ZIP: {str(e)}")
 
-# GET all assignments
-@router.get("/assignments/", response_model=List[schemas.AssignmentWithDevice])
-def get_all_assignments(db: Session = Depends(database.get_db)):
-    """Get all assignments with employee and device details"""
-    assignments = db.query(models.Assignment).all()
-    return assignments
+# GET all assignments (paginated)
+@router.get("/assignments/")
+def get_all_assignments(
+    skip: int = 0,
+    limit: int = 100,
+    employee_id: int = None,
+    active_only: bool = False,
+    db: Session = Depends(database.get_db),
+):
+    """
+    Get assignments with pagination and optional filters.
+    - active_only=true → solo asignaciones sin fecha de devolución
+    - employee_id → filtrar por empleado
+    """
+    from sqlalchemy.orm import joinedload as _jl
+    from math import ceil
+
+    query = db.query(models.Assignment).options(
+        _jl(models.Assignment.device),
+        _jl(models.Assignment.employee),
+    )
+
+    if active_only:
+        query = query.filter(models.Assignment.returned_date == None)
+    if employee_id:
+        query = query.filter(models.Assignment.employee_id == employee_id)
+
+    total = query.count()
+    assignments = query.order_by(models.Assignment.id.desc()).offset(skip).limit(limit).all()
+
+    return {
+        "items": assignments,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "pages": ceil(total / limit) if limit > 0 else 0,
+    }

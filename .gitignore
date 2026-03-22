@@ -37,3 +37,15 @@ backend/generated_pdfs/
 backend/extracted_media/
 backend/devices_backup_data.sql
 backend/current_serials.txt
+
+# Backups y temporales
+*.bak
+backend/templates/temp/
+backend/uploaded_actas/
+backend/actas/
+backend/share/
+audit_error.log
+
+# Scripts de migración (ya ejecutados)
+backend/migrate_imei.py
+backend/migrate_indexes.py

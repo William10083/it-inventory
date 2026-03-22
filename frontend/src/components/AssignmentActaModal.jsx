@@ -131,14 +131,8 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                                 deleteUrl={`${API_URL}/assignments/${computerAssignmentId}/delete-acta`}
                                 currentPdfPath={computerActa}
                                 label="Acta Firmada - Cómputo (PDF)"
-                                onUploadSuccess={() => {
-                                    fetchActaInfo(); // Refresh data
-                                    if (onSuccess) onSuccess();
-                                }}
-                                onDeleteSuccess={() => {
-                                    fetchActaInfo(); // Refresh data
-                                    if (onSuccess) onSuccess();
-                                }}
+                                onUploadSuccess={() => fetchActaInfo()}
+                                onDeleteSuccess={() => fetchActaInfo()}
                             />
                         </div>
                     )}
@@ -159,14 +153,8 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                                 deleteUrl={`${API_URL}/assignments/${mobileAssignmentId}/delete-acta`}
                                 currentPdfPath={mobileActa}
                                 label="Acta Firmada - Celular (PDF)"
-                                onUploadSuccess={() => {
-                                    fetchActaInfo(); // Refresh data
-                                    if (onSuccess) onSuccess();
-                                }}
-                                onDeleteSuccess={() => {
-                                    fetchActaInfo(); // Refresh data
-                                    if (onSuccess) onSuccess();
-                                }}
+                                onUploadSuccess={() => fetchActaInfo()}
+                                onDeleteSuccess={() => fetchActaInfo()}
                             />
                         </div>
                     )}

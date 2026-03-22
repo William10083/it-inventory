@@ -1,259 +1,203 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func
-import database, models
+import database, models, cache, auth
 import datetime
 from typing import Optional
 
 router = APIRouter()
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Endpoint
+# ──────────────────────────────────────────────────────────────────────────────
+
 @router.get("/stats")
-def get_stats(location: Optional[str] = Query(None), db: Session = Depends(database.get_db)):
-    """Get inventory statistics, optionally filtered by location"""
-    
-    # Build base query for devices with location filter, EXCLUDING SOLD devices
-    device_query = db.query(models.Device).filter(
+def get_stats(
+    location: Optional[str] = Query(None),
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(auth.get_current_active_user),
+):
+    """
+    Get inventory statistics, optionally filtered by location.
+
+    Optimisations vs. original:
+    - Renewal count: SQL date filter instead of loading all devices in Python
+    - Employee list: SQL location filter instead of Python list comprehension
+    - Pending equipment: selectinload (1 query) + O(N) Python — no nested loops
+    - Equipment summary: 1 GROUP BY query instead of 6 separate queries
+    - Result: ~6 queries total vs. 20+ in the original
+    """
+
+    # Check cache first
+    cached = cache.get_stats(location)
+    if cached:
+        return cached
+
+    loc_filter = bool(location and location != "all")
+
+    # ── 1. Total Assets (non-sold, non-deleted) ────────────────────────────
+    base_device_filter = [
         models.Device.deleted_at == None,
-        models.Device.status != models.DeviceStatus.SOLD
-    )
-    if location and location != "all":
-        device_query = device_query.filter(models.Device.location == location)
-    
-    # Build base query for employees with location filter (Active only for KPIs)
-    employee_query = db.query(models.Employee).filter(
-        models.Employee.deleted_at == None,
-        models.Employee.is_active == True
-    )
-    if location and location != "all":
-        employee_query = employee_query.filter(models.Employee.location == location)
-    
-    # 1. Total Assets
-    total_devices = device_query.count()
-    
-    # 2. Status Breakdown (filtered by location)
-    status_query = db.query(
-        models.Device.status, 
+        models.Device.status != models.DeviceStatus.SOLD,
+    ]
+    if loc_filter:
+        base_device_filter.append(models.Device.location == location)
+
+    total_devices = db.query(func.count(models.Device.id)).filter(*base_device_filter).scalar() or 0
+
+    # ── 2. Status Breakdown — single GROUP BY ─────────────────────────────
+    status_q = db.query(
+        models.Device.status,
         func.count(models.Device.id)
-    ).filter(
-        models.Device.deleted_at == None,
-        models.Device.status != models.DeviceStatus.SOLD
-    )
-    if location and location != "all":
-        status_query = status_query.filter(models.Device.location == location)
-    status_counts = status_query.group_by(models.Device.status).all()
-    
-    stats_by_status = {status: count for status, count in status_counts}
-    
-    # 3. Type Breakdown (filtered by location)
-    type_query = db.query(
-        models.Device.device_type, 
+    ).filter(*base_device_filter).group_by(models.Device.status)
+    stats_by_status = {s: c for s, c in status_q.all()}
+
+    # ── 3. Type Breakdown — single GROUP BY ───────────────────────────────
+    type_q = db.query(
+        models.Device.device_type,
         func.count(models.Device.id)
+    ).filter(*base_device_filter).group_by(models.Device.device_type)
+    stats_by_type = {t: c for t, c in type_q.all()}
+
+    # ── 4. Employees + Assignments + Devices — ONE selectinload query ──────
+    #  This eliminates N+1 completely: all assignments and their devices
+    #  are fetched with a single IN subquery per relationship level.
+    emp_q = db.query(models.Employee).options(
+        selectinload(models.Employee.assignments).selectinload(models.Assignment.device)
     ).filter(
-        models.Device.deleted_at == None,
-        models.Device.status != models.DeviceStatus.SOLD
-    )
-    if location and location != "all":
-        type_query = type_query.filter(models.Device.location == location)
-    type_counts = type_query.group_by(models.Device.device_type).all()
-    
-    stats_by_type = {dtype: count for dtype, count in type_counts}
-    
-    # 4. Employee Stats (filtered by location)
-    total_employees = employee_query.count()
-    
-    # Get active assignments for employees in this location
-    # Get active assignments for employees in this location
-    # MUST join Employee to filter by is_active status of the employee (exclude terminated)
-    assignment_query = db.query(models.Assignment).join(models.Employee).filter(
-        models.Assignment.returned_date == None,
         models.Employee.is_active == True,
-        models.Employee.deleted_at == None
+        models.Employee.deleted_at == None,
     )
-    if location and location != "all":
-        # Filter assignments by employee location
-        assignment_query = assignment_query.filter(models.Employee.location == location)
-    
-    active_assignments = assignment_query.all()
-    assigned_employee_ids = set(a.employee_id for a in active_assignments)
-    employees_with_devices = len(assigned_employee_ids)
-    
-    # 5. Renewal Forecast (Devices > 3 years old, filtered by location)
-    # SQLite doesn't have easy date diff function in standardSQL, doing in python for simplicity
-    # Assumption: purchase_date is populated.
-    renewal_count = 0
-    renewal_query = db.query(models.Device)
-    if location and location != "all":
-        renewal_query = renewal_query.filter(models.Device.location == location)
-    
-    all_devices_for_renewal = renewal_query.all()
-    
-    today = datetime.date.today()
-    for d in all_devices_for_renewal:
-        if d.purchase_date:
-            age_years = (today - d.purchase_date).days / 365.25
-            if age_years > 3:
-                renewal_count += 1
-                
-    # 6. Low Stock Alerts (Available < 3)
-    available_query = db.query(
-        models.Device.device_type, 
+    if loc_filter:
+        emp_q = emp_q.filter(models.Employee.location == location)
+    employees_in_location = emp_q.all()
+
+    total_employees = len(employees_in_location)
+
+    # Build per-employee active device map entirely from loaded data (0 extra queries)
+    employee_devices: dict[int, tuple[set, int]] = {}
+    for emp in employees_in_location:
+        types: set[str] = set()
+        laptop_count = 0
+        for a in emp.assignments:
+            if a.returned_date is None and a.device:
+                types.add(a.device.device_type)
+                if a.device.device_type == "laptop":
+                    laptop_count += 1
+        employee_devices[emp.id] = (types, laptop_count)
+
+    employees_with_devices = sum(1 for types, _ in employee_devices.values() if types)
+
+    # ── 5. Renewal Count — SQL date filter (no Python loop over all devices) ─
+    three_years_ago = datetime.date.today() - datetime.timedelta(days=3 * 365)
+    renewal_q = db.query(func.count(models.Device.id)).filter(
+        models.Device.deleted_at == None,
+        models.Device.status != models.DeviceStatus.SOLD,
+        models.Device.purchase_date != None,
+        models.Device.purchase_date < three_years_ago,
+    )
+    if loc_filter:
+        renewal_q = renewal_q.filter(models.Device.location == location)
+    renewal_count = renewal_q.scalar() or 0
+
+    # ── 6. Low Stock Alerts — single GROUP BY ─────────────────────────────
+    avail_q = db.query(
+        models.Device.device_type,
         func.count(models.Device.id)
     ).filter(models.Device.status == models.DeviceStatus.AVAILABLE)
-    
-    if location and location != "all":
-        available_query = available_query.filter(models.Device.location == location)
-        
-    available_counts = available_query.group_by(models.Device.device_type).all()
-    
-    available_map = {dtype: count for dtype, count in available_counts}
-    low_stock = []
-    # Check for all types defined in Enum
-    for dtype in models.DeviceType:
-        count = available_map.get(dtype, 0)
-        if count < 5:
-            low_stock.append({"type": dtype, "count": count})
+    if loc_filter:
+        avail_q = avail_q.filter(models.Device.location == location)
+    available_map = {t: c for t, c in avail_q.group_by(models.Device.device_type).all()}
+    low_stock = [
+        {"type": dtype, "count": available_map.get(dtype, 0)}
+        for dtype in models.DeviceType
+        if available_map.get(dtype, 0) < 5
+    ]
 
-    # 7. Unassigned Employees (Action Items)
-    # Get list of employees without active assignments
-    unassigned_query = db.query(models.Employee).filter(~models.Employee.id.in_(assigned_employee_ids), models.Employee.is_active == True)
-    
-    if location and location != "all":
-        unassigned_query = unassigned_query.filter(models.Employee.location == location)
-        
-    unassigned_employees = unassigned_query.limit(5).all()
-    unassigned_names = [e.full_name for e in unassigned_employees]
+    # ── 7. Unassigned employees (from already-loaded data) ─────────────────
+    assigned_emp_ids = {eid for eid, (types, _) in employee_devices.items() if types}
+    unassigned_names = [
+        emp.full_name for emp in employees_in_location
+        if emp.id not in assigned_emp_ids
+    ][:5]
 
-    # 8. Pending Equipment to Assign (Count of employees missing each essential equipment)
-    # Group active assignments by employee to see what each has
-    from collections import defaultdict
-    employee_devices = defaultdict(set)
-    
-    # Get all employees and filter by location if provided
-    all_employees = db.query(models.Employee).filter(models.Employee.is_active == True).all()
-    
-    # Filter employees by location if specified
-    if location and location != 'all':
-        employees_in_location = [e for e in all_employees if e.location == location]
-    else:
-        employees_in_location = all_employees
-    
-    employee_ids_in_location = {e.id for e in employees_in_location}
-    
-    # Build map of what devices each employee has
-    for a in active_assignments:
-        if a.device and a.employee_id in employee_ids_in_location:
-            employee_devices[a.employee_id].add(a.device.device_type)
-    
-    # Count how many employees (in this location) are missing each essential equipment type
-    essential_equipment = ['laptop', 'monitor', 'kit teclado/mouse', 'mochila', 'auriculares', 'celular']
-    pending_equipment = {}
-    
-    # Calculate pending for ALL active employees in the location
-    for equipment_type in essential_equipment:
-        missing_count = 0
-        for emp in employees_in_location:
-            # Check laptop count specifically (ALWAYS check usage for everyone)
-            if equipment_type == 'laptop':
-                # Count how many laptops this employee has assigned
-                owned_laptops = 0
-                for a in active_assignments:
-                    if a.employee_id == emp.id and a.device and a.device.device_type == 'laptop':
-                        owned_laptops += 1
-                
-                # Check against expected count (default 1)
-                expected = getattr(emp, 'expected_laptop_count', 1) or 1 # Fallback if None
-                if owned_laptops < expected:
-                    missing_count += (expected - owned_laptops)
+    # ── 8. Pending Equipment — O(N) Python, 0 extra queries ───────────────
+    essential_equipment = ["laptop", "monitor", "kit teclado/mouse", "mochila", "auriculares", "celular"]
+    pending_equipment = {eq: 0 for eq in essential_equipment}
 
-            # Skip pending check for mobiles (not everyone needs one)
-            # elif equipment_type == 'mobile':
-            #     pass
-            
-            # Check specific equipment rules based on role
-            elif equipment_type not in employee_devices[emp.id]:
-                position = (emp.position or "").lower()
-                is_chofer = "chofer" in position or "conductor" in position
-                is_practicante = "practicante" in position
+    for emp in employees_in_location:
+        position = (emp.position or "").lower()
+        is_chofer = "chofer" in position or "conductor" in position
+        is_practicante = "practicante" in position
+        types, owned_laptops = employee_devices.get(emp.id, (set(), 0))
 
-                # Logic per equipment type
-                if equipment_type == 'celular':
-                    # Practicantes do NOT need mobile
-                    if not is_practicante:
-                        missing_count += 1
-                
-                elif equipment_type in ['monitor', 'kit teclado/mouse', 'mochila', 'auriculares']:
-                    # Chofers do NOT need these accessories (only laptop + mobile)
-                    if not is_chofer:
-                        missing_count += 1
-                
-                else:
-                    # Default for other types -> Count as missing
-                    missing_count += 1
-        pending_equipment[equipment_type] = missing_count
+        # Laptops: can expect more than 1
+        expected = emp.expected_laptop_count or 1
+        if owned_laptops < expected:
+            pending_equipment["laptop"] += expected - owned_laptops
 
-    # 9. Comprehensive Equipment Summary filtered by location
-    # Get devices assigned to employees in this location
-    devices_assigned_in_location = set()
-    for a in active_assignments:
-        if a.employee_id in employee_ids_in_location and a.device:
-            devices_assigned_in_location.add(a.device.id)
-    
+        # Accessories (choferes only need laptop + celular)
+        for eq in ["monitor", "kit teclado/mouse", "mochila", "auriculares"]:
+            if eq not in types and not is_chofer:
+                pending_equipment[eq] += 1
+
+        # Celular (practicantes no necesitan)
+        if "celular" not in types and not is_practicante:
+            pending_equipment["celular"] += 1
+
+    # ── 9. Equipment Summary — 1 GROUP BY instead of 6 separate queries ───
+    ts_raw = db.query(
+        models.Device.device_type,
+        models.Device.status,
+        func.count(models.Device.id).label("count"),
+    ).filter(
+        models.Device.device_type.in_(essential_equipment),
+        models.Device.deleted_at == None,
+        models.Device.status != models.DeviceStatus.SOLD,
+    )
+    if loc_filter:
+        ts_raw = ts_raw.filter(models.Device.location == location)
+    ts_raw = ts_raw.group_by(models.Device.device_type, models.Device.status).all()
+
+    ts_map: dict[str, dict[str, int]] = {}
+    for dtype, status, count in ts_raw:
+        ts_map.setdefault(dtype, {})[status] = count
+
     equipment_summary = {}
-    for equipment_type in essential_equipment:
-        # Query devices of this type with location filter, EXCLUDING SOLD
-        device_type_query = db.query(models.Device).filter(
-            models.Device.device_type == equipment_type,
-            models.Device.deleted_at == None,
-            models.Device.status != models.DeviceStatus.SOLD
-        )
-        
-        # Filter by location if specified
-        if location and location != 'all':
-            devices_of_type_in_location = device_type_query.filter(models.Device.location == location).all()
-        else:
-            devices_of_type_in_location = device_type_query.all()
-        
-        total_in_location = len(devices_of_type_in_location)
-        
-        # Assigned = devices of this type with status 'assigned' IN THIS LOCATION
-        # This fixes the discrepancy where a device in this location assigned to an employee from another location wasn't counted.
-        assigned = sum(1 for d in devices_of_type_in_location if d.status == models.DeviceStatus.ASSIGNED)
-        
-        # Available = devices of this type that are available IN THIS LOCATION
-        available = sum(1 for d in devices_of_type_in_location if d.status == models.DeviceStatus.AVAILABLE)
-        
-        # Pending = employees in this location missing this equipment
-        pending = pending_equipment.get(equipment_type, 0)
-        
-        # Calculate if we have enough stock to cover pending assignments
-        deficit = max(0, pending - available)
-        surplus = max(0, available - pending)
-        
-        equipment_summary[equipment_type] = {
-            "total": total_in_location,
-            "assigned": assigned,
-            "available": available,
-            "pending": pending,
-            "deficit": deficit,
-            "surplus": surplus,
-            "covered": available >= pending
+    for eq in essential_equipment:
+        eq_map = ts_map.get(eq, {})
+        total_eq = sum(eq_map.values())
+        assigned_eq = eq_map.get(models.DeviceStatus.ASSIGNED, 0)
+        available_eq = eq_map.get(models.DeviceStatus.AVAILABLE, 0)
+        pending_eq = pending_equipment.get(eq, 0)
+        equipment_summary[eq] = {
+            "total": total_eq,
+            "assigned": assigned_eq,
+            "available": available_eq,
+            "pending": pending_eq,
+            "deficit": max(0, pending_eq - available_eq),
+            "surplus": max(0, available_eq - pending_eq),
+            "covered": available_eq >= pending_eq,
         }
 
-    return {
+    result = {
         "total_devices": total_devices,
         "status_breakdown": stats_by_status,
         "type_breakdown": stats_by_type,
         "employee_stats": {
             "total": total_employees,
             "with_devices": employees_with_devices,
-            "without_devices": total_employees - employees_with_devices
+            "without_devices": total_employees - employees_with_devices,
         },
         "alerts": {
             "renewal_needed": renewal_count,
             "low_stock": low_stock,
-            "unassigned_employees": unassigned_names
+            "unassigned_employees": unassigned_names,
         },
         "pending_equipment": pending_equipment,
-        "equipment_summary": equipment_summary
+        "equipment_summary": equipment_summary,
     }
 
+    cache.set_stats(location, result)
+    return result

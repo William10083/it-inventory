@@ -40,7 +40,14 @@ else:
     print(f"Database URL: {SQLALCHEMY_DATABASE_URL}")
 
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    # Connection pool settings (PostgreSQL)
+    pool_size=10,          # Persistent connections kept open
+    max_overflow=20,       # Extra connections allowed under burst load
+    pool_pre_ping=True,    # Verify connection health before using (avoids "server closed connection" errors)
+    pool_recycle=3600,     # Recycle connections after 1h to avoid stale connections
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

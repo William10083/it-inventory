@@ -22,20 +22,22 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 
 def extract_variables_from_docx(file_path):
     """
-    Extract variables in format {{variable_name}} from docx xml content.
+    Extract variables in format {variable_name} or {{variable_name}} from docx xml content.
     """
     variables = set()
     try:
         with zipfile.ZipFile(file_path) as z:
             xml_content = z.read('word/document.xml').decode('utf-8')
             clean_text = re.sub(r'<[^>]+>', '', xml_content)
-            matches = re.findall(r'\{\{([^}]+)\}\}', clean_text)
-            for m in matches:
+            # Match {{VAR}} first, then single {VAR} (only UPPERCASE_WITH_UNDERSCORES to avoid false positives)
+            double_matches = re.findall(r'\{\{([^}]+)\}\}', clean_text)
+            single_matches = re.findall(r'\{([A-Z][A-Z0-9_]+)\}', clean_text)
+            for m in double_matches + single_matches:
                 variables.add(m.strip())
-                
+
     except Exception as e:
         print(f"Error parsing docx: {e}")
-    
+
     return list(variables)
 
 def _get_preview_table_xml(table_type: str) -> str:

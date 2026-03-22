@@ -1,16 +1,21 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+import os
+import time
+import logging
+from collections import defaultdict
+from datetime import timedelta
+
+from fastapi import FastAPI, Depends, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from routes import inventory, assignments, maintenance, terminations, analytics
-import database, models
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import Depends, HTTPException, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
+
+from routes import inventory, assignments, maintenance, terminations, analytics
 from database import get_db
-import auth
-import schemas
-from datetime import timedelta
+import database, models, auth, schemas
 
 # Create tables
 models.Base.metadata.create_all(bind=database.engine)
@@ -104,44 +109,110 @@ tags_metadata = [
     },
 ]
 
-import logging
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment config
+# ──────────────────────────────────────────────────────────────────────────────
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+_IS_PROD = ENVIRONMENT == "production"
+
+# CORS: en producción leer desde env var; en desarrollo permitir localhost
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Security middleware classes
+# ──────────────────────────────────────────────────────────────────────────────
+
+class LoginRateLimitMiddleware(BaseHTTPMiddleware):
+    """
+    Bloquea IPs que superen MAX_ATTEMPTS intentos de login en WINDOW_SECONDS.
+    Protege /login y /token contra ataques de fuerza bruta.
+    """
+    MAX_ATTEMPTS = 5
+    WINDOW_SECONDS = 60
+    _PROTECTED = {"/login", "/token"}
+    _log: dict = defaultdict(list)
+
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "POST" and request.url.path in self._PROTECTED:
+            ip = request.client.host if request.client else "unknown"
+            now = time.monotonic()
+            # Limpiar intentos fuera de la ventana
+            self._log[ip] = [t for t in self._log[ip] if now - t < self.WINDOW_SECONDS]
+            if len(self._log[ip]) >= self.MAX_ATTEMPTS:
+                logger.warning(f"Rate limit superado en {request.url.path} desde IP {ip}")
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": "Demasiados intentos. Espera 1 minuto antes de intentar de nuevo."},
+                )
+            self._log[ip].append(now)
+        return await call_next(request)
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Agrega headers de seguridad estándar a todas las respuestas."""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# App — docs deshabilitados en producción
+# ──────────────────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="🖥️ IT Inventory System API",
+    title="IT Inventory System API",
     description=description,
     version="2.2.0",
-    contact={
-        "name": "Soporte TI",
-        "email": "soporte@empresa.com",
-    },
+    contact={"name": "Soporte TI", "email": "soporte@empresa.com"},
     openapi_tags=tags_metadata,
-    # Configuración mejorada de Swagger UI
+    # En producción no exponer la documentación interactiva
+    docs_url=None if _IS_PROD else "/docs",
+    redoc_url=None if _IS_PROD else "/redoc",
+    openapi_url=None if _IS_PROD else "/openapi.json",
     swagger_ui_parameters={
-        "defaultModelsExpandDepth": -1,  # Oculta schemas por defecto para UI más limpia
-        "docExpansion": "none",  # Colapsa todos los endpoints por defecto
-        "filter": True,  # Habilita búsqueda de endpoints
-        "syntaxHighlight.theme": "monokai",  # Tema oscuro para código
-        "tryItOutEnabled": True,  # Habilita "Try it out" por defecto
-    }
+        "defaultModelsExpandDepth": -1,
+        "docExpansion": "none",
+        "filter": True,
+        "syntaxHighlight.theme": "monokai",
+        "tryItOutEnabled": True,
+    },
 )
 
-# CORS - Note: allow_origins=["*"] is not compatible with allow_credentials=True in FastAPI
-# If credentials is true, we must specify origins or use a pattern.
-# For now, let's keep it simple by setting allow_credentials to True but only with specific origins if needed,
-# or set allow_origins=["*"] and allow_credentials=False if cookies aren't used.
-# Since we use Bearer tokens, allow_credentials=False is often fine unless you need cookies.
+# Validar SECRET_KEY al arrancar — falla rápido si está en default
+@app.on_event("startup")
+async def validate_secret_key():
+    secret = os.getenv("SECRET_KEY", "")
+    if not secret or secret == "supersecretkey_change_me_in_production":
+        if _IS_PROD:
+            raise RuntimeError(
+                "SECRET_KEY no configurada o usa el valor por defecto. "
+                "Define la variable de entorno SECRET_KEY antes de iniciar en producción."
+            )
+        else:
+            logger.warning(
+                "ADVERTENCIA DE SEGURIDAD: SECRET_KEY usa el valor por defecto. "
+                "Configura SECRET_KEY en producción."
+            )
+
+# Middleware (orden: primero se registra = más externo = ejecuta primero)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(LoginRateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False, # Changed to False for origin wildcard compatibility
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # GZip Compression - Compress responses larger than 1KB
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
@@ -175,9 +246,10 @@ from routes import form_templates
 app.include_router(form_templates.router, tags=["Form Templates"])
 from routes import image_builder
 app.include_router(image_builder.router, tags=["Image Builder"])
+from routes import powerbi
+app.include_router(powerbi.router, tags=["Power BI"])
 
 # Serve static files (uploaded images)
-import os
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -186,12 +258,15 @@ def read_root():
     return {"message": "IT Inventory API is running"}
 
 @app.get("/debug/count")
-def debug_count(db: Session = Depends(get_db)):
+def debug_count(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_active_user),
+):
+    """Endpoint de diagnóstico — requiere autenticación. No expone DB URL."""
     try:
         dev_count = db.query(models.Device).count()
         emp_count = db.query(models.Employee).count()
-        db_path = str(db.bind.url)
-        return {"devices": dev_count, "employees": emp_count, "db_url": db_path}
+        return {"devices": dev_count, "employees": emp_count}
     except Exception as e:
         return {"error": str(e)}
 
@@ -231,5 +306,30 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
     return {
         "id": current_user.id,
         "username": current_user.username,
+        "full_name": current_user.full_name or "",
+        "dni": current_user.dni or "",
+        "role": current_user.role,
+        "is_active": current_user.is_active
+    }
+
+@app.put("/users/me")
+async def update_current_user_profile(
+    profile: schemas.UserProfileUpdate,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user's profile (full_name, dni)"""
+    if profile.full_name is not None:
+        current_user.full_name = profile.full_name
+    if profile.dni is not None:
+        current_user.dni = profile.dni
+    db.commit()
+    db.refresh(current_user)
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "full_name": current_user.full_name or "",
+        "dni": current_user.dni or "",
+        "role": current_user.role,
         "is_active": current_user.is_active
     }

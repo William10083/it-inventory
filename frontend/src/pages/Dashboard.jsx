@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Plus, Search, Download, Package, Users, Monitor, Smartphone, Box, Laptop, X, Trash2, UserX, Briefcase, CheckCircle, AlertCircle, Filter, Keyboard, Mouse, BatteryCharging, Headphones, Tv, MapPin, FileText, Edit, ChevronUp, ChevronDown } from 'lucide-react';
 import DeviceDetailsModal from '../components/DeviceDetailsModal';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import PowerBIDashboard from '../components/PowerBIDashboard';
 import SoftwareList from '../components/SoftwareList';
 import EmployeeRegistrationModal from '../components/EmployeeRegistrationModal';
 import TerminationModal from '../components/TerminationModal';
@@ -142,19 +143,22 @@ const Dashboard = () => {
         }
     }, [currentPage, searchQuery, typeFilters, statusFilters, excelLocationFilters, locationFilter, sortConfig, activeTab]);
 
-    // Fetch all devices for filter dropdowns (no pagination)
+    // Fetch distinct values for filter dropdowns — replaces loading 10 000 devices
     const fetchAllDevices = async () => {
         try {
-            const response = await axios.get(`${API_URL}/devices/`, {
-                params: {
-                    skip: 0,
-                    limit: 10000, // Get all devices for filters
-                    include_deleted: false
-                }
-            });
-            setAllDevices(response.data.items || []);
+            const response = await axios.get(`${API_URL}/devices/filter-options`);
+            const opts = response.data;
+            // ExcelFilter expects an array of objects and reads item[column].
+            // We build a minimal combined array: each entry has only its own field set.
+            // ExcelFilter already filters out null/undefined/'', so mixing is safe.
+            setAllDevices([
+                ...opts.types.map(t => ({ device_type: t })),
+                ...opts.brands.map(b => ({ brand: b })),
+                ...opts.statuses.map(s => ({ status: s })),
+                ...opts.locations.map(l => ({ location: l })),
+            ]);
         } catch (error) {
-            console.error("Error fetching all devices:", error);
+            console.error("Error fetching filter options:", error);
         }
     };
 
@@ -598,7 +602,23 @@ const Dashboard = () => {
                         <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard de Inventario</h1>
                         <p className="text-slate-400 mt-1">Gestiona dispositivos, asignaciones y empleados</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center flex-wrap">
+                        {/* Global Location Filter */}
+                        <select
+                            value={locationFilter}
+                            onChange={(e) => setLocationFilter(e.target.value)}
+                            className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-primary min-w-[150px]"
+                        >
+                            <option value="all">Todas las Sedes</option>
+                            <option value="Callao">Callao</option>
+                            <option value="San Isidro">San Isidro</option>
+                            <option value="Mollendo">Mollendo</option>
+                            <option value="Ilo">Ilo</option>
+                            <option value="Pucallpa">Pucallpa</option>
+                            <option value="Chimbote">Chimbote</option>
+                            <option value="Supe">Supe</option>
+                            <option value="Tacna">Tacna</option>
+                        </select>
 
                         <button
                             onClick={() => {
@@ -748,7 +768,7 @@ const Dashboard = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setOpenDropdown(openDropdown === 'otros' ? null : 'otros')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 rounded ${['analytics', 'software', 'logs'].includes(activeTab)
+                                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 rounded ${['analytics', 'powerbi', 'software', 'logs'].includes(activeTab)
                                     ? 'text-white bg-slate-700'
                                     : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                                     }`}
@@ -764,6 +784,13 @@ const Dashboard = () => {
                                             }`}
                                     >
                                         📊 Analytics
+                                    </button>
+                                    <button
+                                        onClick={() => { setActiveTab('powerbi'); setOpenDropdown(null); }}
+                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'powerbi' ? 'text-white bg-blue-500/20 border-l-2 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                                            }`}
+                                    >
+                                        ⚡ Power BI
                                     </button>
                                     <button
                                         onClick={() => { setActiveTab('software'); setOpenDropdown(null); }}
@@ -803,26 +830,6 @@ const Dashboard = () => {
                             <div className="flex gap-4 mb-2 overflow-x-auto pb-2">
                                 {/* Scanner Input */}
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
-
-                                {/* Spacer to push location filter to the right */}
-                                <div className="flex-1"></div>
-
-                                {/* Location Filter - Moved to right */}
-                                <select
-                                    value={locationFilter}
-                                    onChange={(e) => setLocationFilter(e.target.value)}
-                                    className="bg-slate-900 border border-slate-600 rounded-md p-2.5 text-white focus:outline-none focus:border-primary min-w-[160px]"
-                                >
-                                    <option value="all">Todas las Sedes</option>
-                                    <option value="Callao">Callao</option>
-                                    <option value="San Isidro">San Isidro</option>
-                                    <option value="Mollendo">Mollendo</option>
-                                    <option value="Ilo">Ilo</option>
-                                    <option value="Pucallpa">Pucallpa</option>
-                                    <option value="Chimbote">Chimbote</option>
-                                    <option value="Supe">Supe</option>
-                                    <option value="Tacna">Tacna</option>
-                                </select>
                             </div>
                         )}
                         <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
@@ -1104,24 +1111,8 @@ const Dashboard = () => {
                                     </select>
                                 </div>
 
-                                {/* Location Filter */}
+                                {/* Location Filter removed - now global in header */}
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-slate-400" />
-                                    <select
-                                        value={locationFilter}
-                                        onChange={(e) => setLocationFilter(e.target.value)}
-                                        className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-white"
-                                    >
-                                        <option value="all">Todas las Sedes</option>
-                                        <option value="Callao">Callao</option>
-                                        <option value="San Isidro">San Isidro</option>
-                                        <option value="Mollendo">Mollendo</option>
-                                        <option value="Ilo">Ilo</option>
-                                        <option value="Pucallpa">Pucallpa</option>
-                                        <option value="Chimbote">Chimbote</option>
-                                        <option value="Supe">Supe</option>
-                                        <option value="Tacna">Tacna</option>
-                                    </select>
                                 </div>
                                 <span className="text-2xl font-bold text-white">
                                     {employeesWithAssignments.length}
@@ -1175,7 +1166,8 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {activeTab === 'analytics' && <AnalyticsDashboard employees={employees} />}
+                {activeTab === 'analytics' && <AnalyticsDashboard employees={employees} locationFilter={locationFilter} />}
+                {activeTab === 'powerbi' && <PowerBIDashboard locationFilter={locationFilter} />}
                 {activeTab === 'actas' && <ActasStatusPage />}
                 {activeTab === 'sales' && <SalesPage />}
                 {activeTab === 'software' && <SoftwareList />}

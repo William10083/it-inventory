@@ -11,6 +11,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [employees, setEmployees] = useState([]);
     const [notes, setNotes] = useState('');
+    const [assignmentType, setAssignmentType] = useState('ASIGNACION');
     const [loading, setLoading] = useState(false);
     const [searching, setSearching] = useState(false);
 
@@ -28,6 +29,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
             setEmployeeId('');
             setSelectedEmployee(null);
             setNotes('');
+            setAssignmentType('ASIGNACION');
             setEmployees([]);
             setChargerOption('default');
             setCustomChargerBrand('HP');
@@ -113,7 +115,8 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                 device_ids: deviceIds,
                 employee_id: selectedEmployee.id,
                 notes: notes,
-                charger_info: chargerInfo
+                charger_info: chargerInfo,
+                assignment_type: assignmentType
             });
 
             onSuccess();
@@ -285,6 +288,21 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                             )}
                         </div>
                     )}
+
+                    {/* Tipo de asignación */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Tipo de Asignación</label>
+                        <div className="flex gap-3">
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'ASIGNACION' ? 'bg-blue-500/20 border-blue-500/60 text-blue-300' : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'}`}>
+                                <input type="radio" name="assignmentType" value="ASIGNACION" checked={assignmentType === 'ASIGNACION'} onChange={() => setAssignmentType('ASIGNACION')} className="hidden" />
+                                <span className="font-medium text-sm">Asignación</span>
+                            </label>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'REEMPLAZO' ? 'bg-orange-500/20 border-orange-500/60 text-orange-300' : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'}`}>
+                                <input type="radio" name="assignmentType" value="REEMPLAZO" checked={assignmentType === 'REEMPLAZO'} onChange={() => setAssignmentType('REEMPLAZO')} className="hidden" />
+                                <span className="font-medium text-sm">Reemplazo</span>
+                            </label>
+                        </div>
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1">Notes (Optional)</label>

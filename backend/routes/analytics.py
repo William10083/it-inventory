@@ -1,41 +1,11 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
-import database, models
+import database, models, cache, auth
 
 router = APIRouter()
-
-# Simple in-memory cache (5 minutes TTL) - now supports multiple locations
-_analytics_cache = {}
-
-def get_cached_analytics(db: Session, location: Optional[str] = None):
-    """
-    Get analytics with caching to avoid recalculating frequently.
-    Cache expires after 5 minutes.
-    Separate cache entries for each location.
-    """
-    now = datetime.now()
-    cache_key = location if location else "all"
-    
-    # Check if cache is valid for this location
-    if (cache_key in _analytics_cache and 
-        _analytics_cache[cache_key]["data"] is not None and 
-        _analytics_cache[cache_key]["timestamp"] is not None and 
-        now - _analytics_cache[cache_key]["timestamp"] < timedelta(minutes=5)):
-        return _analytics_cache[cache_key]["data"]
-    
-    # Calculate analytics using aggregated queries
-    analytics = calculate_analytics(db, location)
-    
-    # Update cache for this location
-    _analytics_cache[cache_key] = {
-        "data": analytics,
-        "timestamp": now
-    }
-    
-    return analytics
 
 def calculate_analytics(db: Session, location: str = None):
     """
@@ -211,7 +181,8 @@ def calculate_analytics(db: Session, location: str = None):
 @router.get("/analytics/")
 def get_analytics(
     location: Optional[str] = Query(None, description="Filter analytics by location (e.g., 'Callao', 'Lima')"),
-    db: Session = Depends(database.get_db)
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(auth.get_current_active_user),
 ):
     """
     Get analytics dashboard data with caching.
@@ -221,14 +192,23 @@ def get_analytics(
         location: Optional location filter
         db: Database session
     """
-    return get_cached_analytics(db, location)
+    cached = cache.get_analytics(location)
+    if cached:
+        return cached
+    result = calculate_analytics(db, location)
+    cache.set_analytics(location, result)
+    return result
 
 @router.post("/analytics/refresh")
-def refresh_analytics_cache(db: Session = Depends(database.get_db)):
+def refresh_analytics_cache(
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(auth.get_current_active_user),
+):
     """
     Force refresh the analytics cache for all locations.
     Useful after bulk operations.
     """
-    global _analytics_cache
-    _analytics_cache = {}
-    return get_cached_analytics(db)
+    cache.invalidate_all()
+    result = calculate_analytics(db)
+    cache.set_analytics(None, result)
+    return result

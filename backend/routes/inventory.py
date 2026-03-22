@@ -5,7 +5,7 @@ import qrcode
 from sqlalchemy.orm import Session
 from sqlalchemy import case, asc, desc, or_, and_
 from typing import List
-import database, schemas, crud
+import database, schemas, crud, cache
 import models
 from services import audit
 import auth
@@ -19,12 +19,12 @@ def create_device(device: schemas.DeviceCreate, db: Session = Depends(database.g
         raise HTTPException(status_code=400, detail="Serial number already registered")
     
     new_device = crud.create_device(db=db, device=device)
-    
+
     # Audit Log with snapshot
     try:
         audit.log_action_with_snapshot(
-            db, 
-            current_user.id, 
+            db,
+            current_user.id,
             "DEVICE_CREATED",
             "device",
             new_device.id,
@@ -35,6 +35,7 @@ def create_device(device: schemas.DeviceCreate, db: Session = Depends(database.g
     except Exception:
         pass # Don't fail request if log fails
 
+    cache.invalidate_all()
     return new_device
 
 @router.get("/devices/")
@@ -193,6 +194,38 @@ def read_devices(
         "pages": pages
     }
 
+@router.get("/devices/filter-options")
+def get_device_filter_options(db: Session = Depends(database.get_db)):
+    """
+    Returns distinct values for inventory filter dropdowns.
+    Replaces loading 10 000 devices just to extract unique values client-side.
+    """
+    from sqlalchemy import distinct
+
+    types     = [r[0] for r in db.query(distinct(models.Device.device_type)).filter(
+        models.Device.deleted_at == None,
+        models.Device.device_type != None,
+        models.Device.device_type != 'charger',
+    ).order_by(models.Device.device_type).all()]
+
+    statuses  = [r[0] for r in db.query(distinct(models.Device.status)).filter(
+        models.Device.deleted_at == None,
+        models.Device.status != None,
+    ).order_by(models.Device.status).all()]
+
+    locations = [r[0] for r in db.query(distinct(models.Device.location)).filter(
+        models.Device.deleted_at == None,
+        models.Device.location != None,
+    ).order_by(models.Device.location).all()]
+
+    brands    = [r[0] for r in db.query(distinct(models.Device.brand)).filter(
+        models.Device.deleted_at == None,
+        models.Device.brand != None,
+    ).order_by(models.Device.brand).all()]
+
+    return {"types": types, "statuses": statuses, "locations": locations, "brands": brands}
+
+
 @router.get("/devices/{device_id}", response_model=schemas.DeviceDetail)
 def read_device(device_id: int, db: Session = Depends(database.get_db)):
     db_device = crud.get_device(db, device_id=device_id)
@@ -228,9 +261,10 @@ def update_device_status(device_id: int, status_update: schemas.DeviceUpdate, db
         db_device.status = status_update.status
     if status_update.specifications is not None:
         db_device.specifications = status_update.specifications
-        
+
     db.commit()
     db.refresh(db_device)
+    cache.invalidate_all()
     return db_device
 
 @router.put("/devices/{device_id}", response_model=schemas.Device)
@@ -294,10 +328,10 @@ def update_device(device_id: int, device_update: schemas.DeviceUpdate, db: Sessi
 
     db.commit()
     db.refresh(db_device)
-    
+
     # Capture snapshot after update
     snapshot_after = audit.get_entity_snapshot(db_device)
-    
+
     # Audit log with snapshots
     try:
         audit.log_action_with_snapshot(
@@ -313,7 +347,8 @@ def update_device(device_id: int, device_update: schemas.DeviceUpdate, db: Sessi
         )
     except Exception:
         pass
-    
+
+    cache.invalidate_all()
     return db_device
 
 @router.post("/employees/", response_model=schemas.Employee)
@@ -321,7 +356,9 @@ def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(data
     db_employee = crud.get_employee_by_email(db, email=employee.email)
     if db_employee:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_employee(db=db, employee=employee)
+    new_emp = crud.create_employee(db=db, employee=employee)
+    cache.invalidate_all()
+    return new_emp
 
 @router.get("/employees/", response_model=List[schemas.EmployeeDetail])
 def read_employees(skip: int = 0, limit: int = 100, search: str = None, active_only: bool = False, db: Session = Depends(database.get_db)):
@@ -413,6 +450,7 @@ def update_employee(employee_id: int, employee_update: schemas.EmployeeUpdate, d
     db_employee = crud.update_employee(db, employee_id=employee_id, employee_update=employee_update)
     if db_employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
+    cache.invalidate_all()
     return db_employee
 
 @router.delete("/devices/{device_id}", response_model=schemas.Device)
@@ -434,7 +472,7 @@ def delete_device(device_id: int, db: Session = Depends(database.get_db), curren
     db_device.deleted_by_user_id = current_user.id
     db.commit()
     db.refresh(db_device)
-    
+
     # Audit log
     try:
         audit.log_action_with_snapshot(
@@ -449,7 +487,8 @@ def delete_device(device_id: int, db: Session = Depends(database.get_db), curren
         )
     except Exception:
         pass
-    
+
+    cache.invalidate_all()
     return db_device
 
 @router.delete("/employees/{employee_id}", response_model=schemas.Employee)
@@ -471,7 +510,7 @@ def delete_employee(employee_id: int, db: Session = Depends(database.get_db), cu
     db_employee.deleted_by_user_id = current_user.id
     db.commit()
     db.refresh(db_employee)
-    
+
     # Audit log
     try:
         audit.log_action_with_snapshot(
@@ -486,5 +525,6 @@ def delete_employee(employee_id: int, db: Session = Depends(database.get_db), cu
         )
     except Exception:
         pass
-    
+
+    cache.invalidate_all()
     return db_employee

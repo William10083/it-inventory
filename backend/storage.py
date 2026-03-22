@@ -16,8 +16,8 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gcncfvcereubvywxqpoe.supabase.co").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjbmNmdmNlcmV1YnZ5d3hxcG9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NDc4NDgsImV4cCI6MjA4NjIyMzg0OH0.6_Do-IMxMgGc_XlS9YbGVrjluVNJNWdc6inMqsMZ5o8")
 BUCKET = "actas"
 
 

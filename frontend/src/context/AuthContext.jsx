@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             return {
                 success: false,
-                message: err.response?.data?.detail || 'Login failed'
+                error: err.response?.data?.detail || 'Usuario o contraseña incorrectos'
             };
         }
     };

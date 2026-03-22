@@ -17,9 +17,6 @@ from routes import inventory, assignments, maintenance, terminations, analytics
 from database import get_db
 import database, models, auth, schemas
 
-# Create tables
-models.Base.metadata.create_all(bind=database.engine)
-
 description = """
 API para la gestión de inventario de TI, asignaciones y control de activos.
 
@@ -196,6 +193,16 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Error interno del servidor. Revisa los logs para más detalles."},
     )
+
+@app.on_event("startup")
+async def startup_db():
+    """Crear tablas en el startup (no en import time) para que un error de DB no impida arrancar."""
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+        logger.info("DB: tablas verificadas/creadas correctamente")
+    except Exception as e:
+        logger.error(f"DB: error al crear tablas en startup: {type(e).__name__}: {e}")
+        # No re-raise — la app arranca igual; los endpoints fallarán con error claro si DB no responde
 
 # Validar SECRET_KEY al arrancar — falla rápido si está en default
 @app.on_event("startup")

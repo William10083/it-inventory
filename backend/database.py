@@ -28,8 +28,8 @@ else:
         SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
     logger.info("DB: using DATABASE_URL from environment")
 
-# Detectar si es Supabase (pooler) para ajustar configuración
-_is_supabase = "supabase.com" in SQLALCHEMY_DATABASE_URL
+# Detectar si es Supabase (pooler: supabase.com / directo: supabase.co)
+_is_supabase = "supabase.com" in SQLALCHEMY_DATABASE_URL or "supabase.co" in SQLALCHEMY_DATABASE_URL
 
 # PgBouncer (Supabase pooler) requiere:
 # - SSL (sslmode=require)

@@ -19,3 +19,5 @@ opencv-python-headless
 docx2pdf
 python-dotenv
 requests
+google-api-python-client
+google-auth

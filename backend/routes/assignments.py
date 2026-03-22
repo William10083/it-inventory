@@ -11,7 +11,7 @@ import os
 router = APIRouter()
 
 @router.post("/assignments/batch", response_model=List[schemas.Assignment])
-def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depends(database.get_db)):
+def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
     print(f"DEBUG: Received batch assignment request: {batch}")
     try:
         created_assignments = []
@@ -36,7 +36,7 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
                 notes=batch.notes
             )
             print(f"DEBUG: Assigning device {device_id} to {batch.employee_id}")
-            db_assignment = crud.assign_device(db, assignment_data)
+            db_assignment = crud.assign_device(db, assignment_data, user_id=current_user.id)
             if db_assignment:
                 # Save assignment type
                 db_assignment.assignment_type = batch.assignment_type or "ASIGNACION"
@@ -114,7 +114,7 @@ def assign_device_batch(batch: schemas.AssignmentBatchCreate, db: Session = Depe
 
 @router.post("/assignments/", response_model=schemas.Assignment)
 def assign_device(assignment: schemas.AssignmentCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
-    db_assignment = crud.assign_device(db, assignment)
+    db_assignment = crud.assign_device(db, assignment, user_id=current_user.id)
     if not db_assignment:
         raise HTTPException(status_code=400, detail="Device not available or not found")
     
@@ -333,15 +333,21 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db), cur
         )
         computer_filename = f"ACTA DE ENTREGA EQUIPO COMPUTO - {employee_name.upper()} - {date_str}.docx"
         generated_files.append((computer_acta_path, computer_filename))
-    
+        # Subir a Google Drive en background
+        try:
+            import google_drive_service
+            google_drive_service.upload_file_async(computer_acta_path, "asignaciones", computer_filename)
+        except Exception:
+            pass
+
     # Generate mobile acta if has mobile devices
     if mobile_devices:
         # Verificar que haya al menos un dispositivo móvil REAL (no solo accesorios/cargadores)
         has_real_mobile = any(
-            dev.get('type', '').lower() in ['mobile', 'chip', 'celular'] 
+            dev.get('type', '').lower() in ['mobile', 'chip', 'celular']
             for dev in mobile_devices
         )
-        
+
         if has_real_mobile:
             print(f"DEBUG: Generating mobile acta with {len(mobile_devices)} devices")
             mobile_acta_path = pdf_generator.generate_mobile_acta(
@@ -361,6 +367,12 @@ def get_acta_pdf(assignment_id: int, db: Session = Depends(database.get_db), cur
             )
             mobile_filename = f"ACTA DE ENTREGA DE CELULAR - {employee_name.upper()} - {date_str}.docx"
             generated_files.append((mobile_acta_path, mobile_filename))
+            # Subir a Google Drive en background
+            try:
+                import google_drive_service
+                google_drive_service.upload_file_async(mobile_acta_path, "asignaciones", mobile_filename)
+            except Exception:
+                pass
         else:
             print(f"DEBUG: Skipping mobile acta - no real mobile devices found (only accessories/chargers)")
     

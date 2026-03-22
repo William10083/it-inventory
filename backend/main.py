@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 
 from routes import inventory, assignments, maintenance, terminations, analytics
@@ -186,6 +186,16 @@ app = FastAPI(
         "tryItOutEnabled": True,
     },
 )
+
+# Handler global: captura excepciones no controladas y las loguea correctamente
+# Evita que BaseHTTPMiddleware las trague y devuelva "Internal Server Error" opaco
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {type(exc).__name__}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Error interno del servidor. Revisa los logs para más detalles."},
+    )
 
 # Validar SECRET_KEY al arrancar — falla rápido si está en default
 @app.on_event("startup")

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -20,17 +20,11 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                // Set initial header for validation request
                 axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-
-                // Validate token by making a test request
                 const response = await axios.get(`${API_URL}/users/me`);
-
-                // Token is valid, set user
                 setUser(response.data);
                 setToken(storedToken);
             } catch (error) {
-                // Token is invalid or expired
                 if (error.response?.status !== 401) {
                     console.error('Token validation error:', error);
                 }
@@ -45,7 +39,6 @@ export const AuthProvider = ({ children }) => {
 
         validateToken();
 
-        // Set up axios request interceptor to ensure token is always fresh from localStorage
         const requestInterceptor = axios.interceptors.request.use(
             (config) => {
                 const currentToken = localStorage.getItem('token');
@@ -57,7 +50,6 @@ export const AuthProvider = ({ children }) => {
             (error) => Promise.reject(error)
         );
 
-        // Cleanup interceptor on component unmount
         return () => {
             axios.interceptors.request.eject(requestInterceptor);
         };
@@ -67,21 +59,32 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const res = await axios.post(`${API_URL}/login`, { username, password });
-            const { access_token } = res.data;
+            const { access_token, must_change_password } = res.data;
 
             localStorage.setItem('token', access_token);
             setToken(access_token);
-            setUser({ username });
-
-            // Set authorization header
             axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
-            return { success: true };
+            // Fetch full user profile after login
+            const profileRes = await axios.get(`${API_URL}/users/me`);
+            setUser(profileRes.data);
+
+            return { success: true, must_change_password: Boolean(must_change_password) };
         } catch (err) {
             return {
                 success: false,
                 error: err.response?.data?.detail || 'Usuario o contraseña incorrectos'
             };
+        }
+    };
+
+    const refreshUser = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/users/me`);
+            setUser(response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error refreshing user:', error);
         }
     };
 
@@ -93,7 +96,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading, refreshUser }}>
             {!loading && children}
         </AuthContext.Provider>
     );

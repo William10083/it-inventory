@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Save, Loader } from 'lucide-react';
+import { X, User, Save, Loader, Mail, CheckCircle, Send } from 'lucide-react';
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
 
@@ -20,6 +20,13 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     const [customChargerBrand, setCustomChargerBrand] = useState('HP');
     const [customChargerModel, setCustomChargerModel] = useState('');
 
+    // Post-assignment email
+    const [assignmentDone, setAssignmentDone] = useState(false);
+    const [lastAssignedEmployee, setLastAssignedEmployee] = useState(null);
+    const [emailTo, setEmailTo] = useState('');
+    const [sendingEmail, setSendingEmail] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
+
     // Check if assigning a laptop
     const hasLaptop = devices.some(d => d.device_type === 'laptop');
 
@@ -34,6 +41,10 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
             setChargerOption('default');
             setCustomChargerBrand('HP');
             setCustomChargerModel('');
+            setAssignmentDone(false);
+            setLastAssignedEmployee(null);
+            setEmailTo('');
+            setEmailSent(false);
         }
     }, [isOpen, hasLaptop]);
 
@@ -57,6 +68,38 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     }, [employeeId, selectedEmployee]);
 
     if (!isOpen) return null;
+
+    const handleSendEmail = async () => {
+        if (!emailTo) return;
+        setSendingEmail(true);
+        try {
+            const deviceList = devices.map(d => `• ${d.device_type.toUpperCase()} — ${d.brand} ${d.model} (S/N: ${d.serial_number || '-'})`).join('<br/>');
+            const body = `
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
+                    <h2 style="color:#1d4ed8">Asignación de Equipos TI</h2>
+                    <p>Estimado/a <strong>${lastAssignedEmployee?.full_name}</strong>,</p>
+                    <p>Le informamos que se le han asignado los siguientes equipos:</p>
+                    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:16px 0">
+                        ${deviceList}
+                    </div>
+                    <p>Por favor, confirme la recepción de los equipos firmando el acta correspondiente.</p>
+                    <p style="color:#6b7280;font-size:12px;margin-top:24px">Este correo fue generado automáticamente por el sistema IT Inventory.</p>
+                </div>
+            `;
+            await axios.post(`${API_URL}/send-email`, {
+                to_email: emailTo,
+                subject: `Asignación de equipos TI — ${lastAssignedEmployee?.full_name}`,
+                body_html: body
+            });
+            setEmailSent(true);
+            showNotification('Correo enviado exitosamente', 'success');
+        } catch (err) {
+            const msg = err.response?.data?.detail || 'Error al enviar correo';
+            showNotification(msg, 'error');
+        } finally {
+            setSendingEmail(false);
+        }
+    };
 
     const handleAssign = async () => {
         if (!selectedEmployee) {
@@ -120,7 +163,10 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
             });
 
             onSuccess();
-            onClose();
+            // Show post-assignment email option instead of closing immediately
+            setLastAssignedEmployee(selectedEmployee);
+            setEmailTo(selectedEmployee?.email || '');
+            setAssignmentDone(true);
 
         } catch (error) {
             console.error(error);
@@ -135,6 +181,59 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
         setEmployeeId(emp.full_name);
         setEmployees([]); // Hide results
     };
+
+    // Post-assignment success screen
+    if (assignmentDone) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <div className="bg-slate-800 rounded-xl w-full max-w-md shadow-2xl border border-slate-700 overflow-hidden">
+                    <div className="p-6 text-center">
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/20 mb-4">
+                            <CheckCircle className="w-8 h-8 text-green-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-1">¡Asignación completada!</h3>
+                        <p className="text-slate-400 text-sm mb-6">
+                            {devices.length} equipo{devices.length > 1 ? 's' : ''} asignado{devices.length > 1 ? 's' : ''} a <span className="text-white font-medium">{lastAssignedEmployee?.full_name}</span>
+                        </p>
+
+                        {emailSent ? (
+                            <div className="flex items-center justify-center gap-2 text-green-400 text-sm mb-6">
+                                <CheckCircle className="w-4 h-4" />
+                                Correo enviado a {emailTo}
+                            </div>
+                        ) : (
+                            <div className="bg-slate-700/50 rounded-lg p-4 mb-6 text-left space-y-3">
+                                <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-primary" />
+                                    Enviar notificación por correo
+                                </p>
+                                <input
+                                    type="email"
+                                    value={emailTo}
+                                    onChange={(e) => setEmailTo(e.target.value)}
+                                    placeholder="correo@destinatario.com"
+                                    className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-primary text-sm"
+                                />
+                                <button
+                                    onClick={handleSendEmail}
+                                    disabled={sendingEmail || !emailTo}
+                                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                >
+                                    {sendingEmail ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    {sendingEmail ? 'Enviando...' : 'Enviar correo'}
+                                </button>
+                            </div>
+                        )}
+
+                        <button onClick={onClose}
+                            className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors">
+                            {emailSent ? 'Cerrar' : 'Omitir y cerrar'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

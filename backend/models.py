@@ -13,6 +13,12 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String, default="user") # admin, user, viewer
     is_active = Column(Boolean, default=True)
+    must_change_password = Column(Boolean, default=False)
+    # SMTP email config (per-user)
+    smtp_email = Column(String, nullable=True)
+    smtp_password_enc = Column(String, nullable=True)  # encrypted
+    smtp_server = Column(String, nullable=True)
+    smtp_port = Column(Integer, nullable=True, default=587)
 
 class DeviceStatus(str, enum.Enum):
     AVAILABLE = "available"
@@ -56,8 +62,13 @@ class Employee(Base):
     deleted_at = Column(DateTime, nullable=True)
     deleted_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
+    # Audit fields
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
+
     assignments = relationship("Assignment", back_populates="employee")
     terminations = relationship("Termination", back_populates="employee")
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
 
 class Device(Base):
     __tablename__ = "devices"
@@ -100,15 +111,19 @@ class Device(Base):
     
     # Sale relationship
     sale_id = Column(Integer, ForeignKey("sales.id"), nullable=True)
-    
-    # Current assignment (quick lookup, though history is in Assignment table)
-    # This is optional normalization, but useful for performance
-    # current_assignment_id = Column(Integer, ForeignKey("assignments.id"), nullable=True)
+
+    # Audit fields
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
+    updated_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    updated_at = Column(DateTime, nullable=True)
 
     assignments = relationship("Assignment", back_populates="device", foreign_keys="Assignment.device_id")
     maintenance_logs = relationship("MaintenanceLog", back_populates="device")
     sale = relationship("Sale", back_populates="sold_devices")
     decommissions = relationship("Decommission", back_populates="device")
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
+    updated_by = relationship("User", foreign_keys=[updated_by_user_id])
 
 class Assignment(Base):
     __tablename__ = "assignments"
@@ -121,6 +136,7 @@ class Assignment(Base):
     notes = Column(String, nullable=True)  # Notes when assigning
     assignment_type = Column(String, nullable=True, default="ASIGNACION")  # ASIGNACION or REEMPLAZO
     pdf_acta_path = Column(String, nullable=True)  # Path to assignment acta
+    assigned_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # IT user who did the assignment
     
     # Return/Termination fields
     return_observations = Column(String, nullable=True)  # Observations when equipment is returned
@@ -131,6 +147,7 @@ class Assignment(Base):
     device = relationship("Device", back_populates="assignments", foreign_keys=[device_id])
     employee = relationship("Employee", back_populates="assignments")
     termination = relationship("Termination", back_populates="returned_assignments")
+    assigned_by = relationship("User", foreign_keys=[assigned_by_user_id])
 
 class MaintenanceLog(Base):
     __tablename__ = "maintenance_logs"

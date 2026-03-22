@@ -101,6 +101,13 @@ def create_decommission(
         
         new_decommission.acta_path = pdf_path
         db.commit()
+
+        # Subir a Google Drive en background
+        try:
+            import google_drive_service
+            google_drive_service.upload_file_async(pdf_path, "bajas")
+        except Exception:
+            pass
     except Exception as e:
         print(f"Error generating Decommission PDF: {e}")
         # Don't fail the transaction, just log error. PDF can be regenerated manually if feature added.

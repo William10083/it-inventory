@@ -26,8 +26,11 @@ def get_devices(db: Session, skip: int = 0, limit: int = 100, search: str = None
         query = query.filter(search_filter)
     return query.offset(skip).limit(limit).all()
 
-def create_device(db: Session, device: schemas.DeviceCreate):
+def create_device(db: Session, device: schemas.DeviceCreate, user_id: int = None):
     db_device = models.Device(**device.dict())
+    if user_id:
+        db_device.created_by_user_id = user_id
+        db_device.created_at = datetime.datetime.utcnow()
     db.add(db_device)
     db.commit()
     db.refresh(db_device)
@@ -57,8 +60,11 @@ def get_employees(db: Session, skip: int = 0, limit: int = 100, search: str = No
     
     return query.offset(skip).limit(limit).all()
 
-def create_employee(db: Session, employee: schemas.EmployeeCreate):
+def create_employee(db: Session, employee: schemas.EmployeeCreate, user_id: int = None):
     db_employee = models.Employee(**employee.dict())
+    if user_id:
+        db_employee.created_by_user_id = user_id
+        db_employee.created_at = datetime.datetime.utcnow()
     db.add(db_employee)
     db.commit()
     db.refresh(db_employee)
@@ -81,14 +87,16 @@ def update_employee(db: Session, employee_id: int, employee_update: schemas.Empl
     return db_employee
 
 # Assignment Logic
-def assign_device(db: Session, assignment: schemas.AssignmentCreate):
+def assign_device(db: Session, assignment: schemas.AssignmentCreate, user_id: int = None):
     # 1. Check if device is available
     device = get_device(db, assignment.device_id)
     if not device:
         return None # In API handle raise HTTPException
-    
+
     # 2. Create Assignment Record
     db_assignment = models.Assignment(**assignment.dict())
+    if user_id:
+        db_assignment.assigned_by_user_id = user_id
     db.add(db_assignment)
     db.commit()
     db.refresh(db_assignment)

@@ -47,6 +47,25 @@ class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     dni: Optional[str] = None
 
+class UserCreate(BaseModel):
+    username: str
+    full_name: str
+    temporary_password: str
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class SmtpConfigUpdate(BaseModel):
+    smtp_email: str
+    smtp_password: str          # plain, encrypted server-side
+
+class SendEmailRequest(BaseModel):
+    to_email: str
+    cc_email: Optional[str] = None
+    subject: str
+    body_html: str
+
 
 class DeviceBase(BaseModel):
     serial_number: Optional[str] = None

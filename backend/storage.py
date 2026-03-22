@@ -64,6 +64,15 @@ def upload_file(file_bytes: bytes, storage_path: str, content_type: str = "appli
         logger.error(f"Supabase Storage upload error {resp.status_code}: {resp.text}")
         raise RuntimeError(f"Error subiendo a Supabase Storage: {resp.status_code} {resp.text}")
 
+    # Mirror a Google Drive en background (no bloquea si falla)
+    try:
+        import google_drive_service
+        filename = storage_path.split("/")[-1]
+        drive_subfolder = google_drive_service.supabase_path_to_drive_subfolder(storage_path)
+        google_drive_service.upload_bytes_async(file_bytes, filename, drive_subfolder, content_type)
+    except Exception as _e:
+        logger.warning(f"Drive mirror skipped: {_e}")
+
     return storage_path
 
 

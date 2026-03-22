@@ -1,8 +1,9 @@
-import React, { Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ForcePasswordChange from './components/ForcePasswordChange';
 
 // Eager load only critical components
 import LoginPage from './pages/LoginPage';
@@ -23,24 +24,37 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Intercepts navigation when user must change password
+const AppRoutes = () => {
+  const { user } = useAuth();
+
+  if (user?.must_change_password) {
+    return <ForcePasswordChange />;
+  }
+
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/templates" element={<TemplateManagerPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/decommission" element={<DecommissionPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/templates" element={<TemplateManagerPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/decommission" element={<DecommissionPage />} />
-              </Route>
-            </Routes>
-          </Suspense>
+          <AppRoutes />
         </Router>
       </NotificationProvider>
     </AuthProvider>

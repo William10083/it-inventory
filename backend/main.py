@@ -315,7 +315,12 @@ async def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     access_token = auth.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer", "username": user.username}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username,
+        "must_change_password": bool(user.must_change_password)
+    }
 
 @app.get("/users/me")
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_active_user)):
@@ -326,7 +331,8 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
         "full_name": current_user.full_name or "",
         "dni": current_user.dni or "",
         "role": current_user.role,
-        "is_active": current_user.is_active
+        "is_active": current_user.is_active,
+        "must_change_password": bool(current_user.must_change_password)
     }
 
 @app.put("/users/me")
@@ -348,5 +354,144 @@ async def update_current_user_profile(
         "full_name": current_user.full_name or "",
         "dni": current_user.dni or "",
         "role": current_user.role,
-        "is_active": current_user.is_active
+        "is_active": current_user.is_active,
+        "must_change_password": bool(current_user.must_change_password)
     }
+
+@app.post("/users/change-password")
+async def change_password(
+    request: schemas.ChangePasswordRequest,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Change current user's password"""
+    if not auth.verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Contraseña actual incorrecta")
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 6 caracteres")
+    current_user.hashed_password = auth.get_password_hash(request.new_password)
+    current_user.must_change_password = False
+    db.commit()
+    return {"message": "Contraseña cambiada exitosamente"}
+
+@app.get("/users")
+async def list_users(
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """List all users (admin only)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    users = db.query(models.User).order_by(models.User.id).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "full_name": u.full_name or "",
+            "dni": u.dni or "",
+            "role": u.role,
+            "is_active": u.is_active,
+            "must_change_password": bool(u.must_change_password)
+        }
+        for u in users
+    ]
+
+@app.post("/users")
+async def create_user(
+    user_data: schemas.UserCreate,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new IT user with a temporary password (admin only)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    existing = db.query(models.User).filter(models.User.username == user_data.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
+    if len(user_data.temporary_password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña temporal debe tener al menos 6 caracteres")
+    new_user = models.User(
+        username=user_data.username,
+        full_name=user_data.full_name,
+        hashed_password=auth.get_password_hash(user_data.temporary_password),
+        role="user",
+        is_active=True,
+        must_change_password=True
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {
+        "id": new_user.id,
+        "username": new_user.username,
+        "full_name": new_user.full_name or "",
+        "role": new_user.role,
+        "is_active": new_user.is_active,
+        "must_change_password": True
+    }
+
+@app.get("/users/me/email-config")
+async def get_email_config(current_user: models.User = Depends(auth.get_current_active_user)):
+    """Get current user's SMTP configuration (password is never returned)"""
+    return {
+        "smtp_email": current_user.smtp_email or "",
+        "smtp_server": current_user.smtp_server or "",
+        "smtp_port": current_user.smtp_port or 587,
+        "configured": bool(current_user.smtp_email and current_user.smtp_password_enc)
+    }
+
+@app.put("/users/me/email-config")
+async def update_email_config(
+    config: schemas.SmtpConfigUpdate,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Save SMTP configuration for the current user"""
+    import email_service
+    current_user.smtp_email = config.smtp_email
+    current_user.smtp_password_enc = email_service.encrypt_password(config.smtp_password)
+    db.commit()
+    return {"message": "Configuración de correo guardada"}
+
+@app.post("/send-email")
+async def send_email_endpoint(
+    req: schemas.SendEmailRequest,
+    current_user: models.User = Depends(auth.get_current_active_user),
+):
+    """Send an email using the current user's SMTP configuration"""
+    import email_service
+    if not current_user.smtp_email or not current_user.smtp_password_enc:
+        raise HTTPException(
+            status_code=400,
+            detail="No tienes configurado el correo. Ve a Configuración → Correo."
+        )
+    try:
+        email_service.send_email(
+            smtp_email=current_user.smtp_email,
+            smtp_password_enc=current_user.smtp_password_enc,
+            to_email=req.to_email,
+            subject=req.subject,
+            body_html=req.body_html,
+            cc_email=req.cc_email,
+        )
+        return {"message": "Correo enviado exitosamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al enviar correo: {str(e)}")
+
+@app.put("/users/{user_id}/toggle-active")
+async def toggle_user_active(
+    user_id: int,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Enable or disable a user account (admin only)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="No puedes desactivar tu propia cuenta")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    user.is_active = not user.is_active
+    db.commit()
+    return {"id": user.id, "username": user.username, "is_active": user.is_active}

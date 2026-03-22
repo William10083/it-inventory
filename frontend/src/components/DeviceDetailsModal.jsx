@@ -668,7 +668,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         {device.assignments && device.assignments.length > 0 ? (
                                             device.assignments.map((assignment) => (
                                                 <tr key={assignment.id} className="hover:bg-slate-800/50">
-                                                    <td className="px-4 py-3 text-white font-medium">{assignment.employee.full_name}</td>
+                                                    <td className="px-4 py-3 text-white font-medium">{assignment.employee?.full_name}</td>
                                                     <td className="px-4 py-3">{formatDate(assignment.assigned_date)}</td>
                                                     <td className="px-4 py-3">{formatDate(assignment.returned_date) || "Active"}</td>
                                                     <td className="px-4 py-3">

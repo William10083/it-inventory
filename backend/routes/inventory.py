@@ -18,7 +18,7 @@ def create_device(device: schemas.DeviceCreate, db: Session = Depends(database.g
     if db_device:
         raise HTTPException(status_code=400, detail="Serial number already registered")
     
-    new_device = crud.create_device(db=db, device=device)
+    new_device = crud.create_device(db=db, device=device, user_id=current_user.id)
 
     # Audit Log with snapshot
     try:
@@ -226,12 +226,78 @@ def get_device_filter_options(db: Session = Depends(database.get_db)):
     return {"types": types, "statuses": statuses, "locations": locations, "brands": brands}
 
 
-@router.get("/devices/{device_id}", response_model=schemas.DeviceDetail)
+@router.get("/devices/{device_id}")
 def read_device(device_id: int, db: Session = Depends(database.get_db)):
-    db_device = crud.get_device(db, device_id=device_id)
+    from sqlalchemy.orm import joinedload as jl
+    db_device = (
+        db.query(models.Device)
+        .options(
+            jl(models.Device.assignments).joinedload(models.Assignment.employee),
+            jl(models.Device.assignments).joinedload(models.Assignment.assigned_by),
+            jl(models.Device.created_by),
+            jl(models.Device.updated_by),
+        )
+        .filter(models.Device.id == device_id)
+        .first()
+    )
     if db_device is None:
         raise HTTPException(status_code=404, detail="Device not found")
-    return db_device
+
+    # Build assignment history with assigned_by info
+    assignments_data = []
+    for a in db_device.assignments:
+        assignments_data.append({
+            "id": a.id,
+            "assigned_date": a.assigned_date,
+            "returned_date": a.returned_date,
+            "notes": a.notes,
+            "pdf_acta_path": a.pdf_acta_path,
+            "assignment_type": a.assignment_type,
+            "assigned_by_name": (a.assigned_by.full_name or a.assigned_by.username) if a.assigned_by else None,
+            "employee": {
+                "id": a.employee.id,
+                "full_name": a.employee.full_name,
+                "email": a.employee.email,
+                "department": a.employee.department,
+                "dni": a.employee.dni,
+                "company": a.employee.company,
+                "position": a.employee.position,
+                "location": a.employee.location,
+                "expected_laptop_count": a.employee.expected_laptop_count,
+                "is_active": a.employee.is_active,
+            } if a.employee else None
+        })
+
+    return {
+        "id": db_device.id,
+        "serial_number": db_device.serial_number,
+        "barcode": db_device.barcode,
+        "device_type": db_device.device_type,
+        "brand": db_device.brand,
+        "model": db_device.model,
+        "hostname": db_device.hostname,
+        "inventory_code": db_device.inventory_code,
+        "specifications": db_device.specifications,
+        "purchase_date": db_device.purchase_date,
+        "location": db_device.location,
+        "imei": db_device.imei,
+        "phone_number": db_device.phone_number,
+        "carrier": db_device.carrier,
+        "mobile_charger_brand": db_device.mobile_charger_brand,
+        "mobile_charger_model": db_device.mobile_charger_model,
+        "mobile_charger_serial": db_device.mobile_charger_serial,
+        "laptop_charger_brand": db_device.laptop_charger_brand,
+        "laptop_charger_model": db_device.laptop_charger_model,
+        "laptop_charger_serial": db_device.laptop_charger_serial,
+        "delivery_type": db_device.delivery_type,
+        "status": db_device.status,
+        "created_by_name": (db_device.created_by.full_name or db_device.created_by.username) if db_device.created_by else None,
+        "created_at": db_device.created_at,
+        "updated_by_name": (db_device.updated_by.full_name or db_device.updated_by.username) if db_device.updated_by else None,
+        "updated_at": db_device.updated_at,
+        "current_assignment_id": None,
+        "assignments": assignments_data,
+    }
 
 @router.get("/devices/{device_id}/qr")
 def generate_device_qr(device_id: int, db: Session = Depends(database.get_db)):
@@ -326,6 +392,9 @@ def update_device(device_id: int, device_update: schemas.DeviceUpdate, db: Sessi
     if device_update.mobile_charger_serial is not None:
         db_device.mobile_charger_serial = device_update.mobile_charger_serial
 
+    import datetime as _dt
+    db_device.updated_by_user_id = current_user.id
+    db_device.updated_at = _dt.datetime.utcnow()
     db.commit()
     db.refresh(db_device)
 
@@ -352,11 +421,11 @@ def update_device(device_id: int, device_update: schemas.DeviceUpdate, db: Sessi
     return db_device
 
 @router.post("/employees/", response_model=schemas.Employee)
-def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(database.get_db)):
+def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
     db_employee = crud.get_employee_by_email(db, email=employee.email)
     if db_employee:
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_emp = crud.create_employee(db=db, employee=employee)
+    new_emp = crud.create_employee(db=db, employee=employee, user_id=current_user.id)
     cache.invalidate_all()
     return new_emp
 

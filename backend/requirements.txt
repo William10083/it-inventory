@@ -17,5 +17,4 @@ argon2-cffi
 pandas
 opencv-python-headless
 docx2pdf
-ultralytics
 python-dotenv

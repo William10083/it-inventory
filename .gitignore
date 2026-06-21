@@ -8,9 +8,16 @@ venv_new/
 credentials.txt
 
 # Virtual Env (Specific)
-Lib/
-Scripts/
-Include/
+backend/venv/
+backend/venv_new/
+backend/new_env/
+new_env/
+backend/Lib/
+backend/Include/
+backend/Scripts/*.exe
+backend/Scripts/pywin32_postinstall.py
+backend/Scripts/pywin32_testall.py
+*.egg-info/
 
 # Node
 node_modules/

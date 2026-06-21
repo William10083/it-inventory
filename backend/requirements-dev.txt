@@ -1,3 +1,7 @@
 -r requirements.txt
 pytest>=8.0,<9.0
 httpx>=0.27
+# beautifulsoup4 is a real production dependency missing from requirements.txt
+# (imported transitively by main.py via routes/email_alerts.py -> services/hr_parser.py).
+# Pinned here so `pytest` can import the app at all; fixing requirements.txt is out of scope.
+beautifulsoup4>=4.12

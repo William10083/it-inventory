@@ -1,8 +1,38 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Warm Sand & Indigo — light mode (default) */
+  --color-bg: #FAF7F2;
+  --color-surface: #FFFFFF;
+  --color-accent: #4F46E5;
+
+  /* Device-type hue tokens — mode-invariant (same hue light/dark) */
+  --color-device-laptop: #3b82f6;
+  --color-device-monitor: #06b6d4;
+  --color-device-kit: #a855f7;
+  --color-device-backpack: #eab308;
+  --color-device-headphones: #ec4899;
+  --color-device-mobile: #22c55e;
+
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.dark {
+  --color-bg: #1A1814;
+  --color-surface: #252019;
+  --color-accent: #4F46E5;
+}
+
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-200 antialiased;
+    @apply bg-bg text-slate-900 antialiased font-sans transition-colors duration-200;
+  }
+
+  .dark body {
+    @apply text-slate-200;
   }
 }
 
@@ -12,7 +42,7 @@
 }
 
 .glass-card {
-  @apply bg-slate-800/80 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl;
+  @apply bg-slate-900 border border-slate-700 rounded-md shadow-sm;
 }
 
 /* Notification animations */

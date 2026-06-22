@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ForcePasswordChange from './components/ForcePasswordChange';
 
@@ -13,6 +14,9 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TemplateManagerPage = lazy(() => import('./pages/TemplateManagerPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const DecommissionPage = lazy(() => import('./pages/DecommissionPage'));
+const HRAlertsPage = lazy(() => import('./pages/HRAlertsPage'));
+const IngressosPage = lazy(() => import('./pages/IngressosPage'));
+const LanchasPage   = lazy(() => import('./pages/LanchasPage'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -43,6 +47,9 @@ const AppRoutes = () => {
           <Route path="/templates" element={<TemplateManagerPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/decommission" element={<DecommissionPage />} />
+          <Route path="/hr-alerts" element={<HRAlertsPage />} />
+          <Route path="/ingresos" element={<IngressosPage />} />
+          <Route path="/lanchas" element={<LanchasPage />} />
         </Route>
       </Routes>
     </Suspense>
@@ -51,13 +58,15 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </NotificationProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

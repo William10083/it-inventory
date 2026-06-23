@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, FileText, Download, Upload, Laptop, Smartphone } from 'lucide-react';
+import { X, FileText, Download, Upload, Laptop, Smartphone, Mail } from 'lucide-react';
 import PdfUploader from './PdfUploader';
 import axios from 'axios';
 
@@ -12,6 +12,7 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
     const [hasMobileDevices, setHasMobileDevices] = useState(false);
     const [computerAssignmentId, setComputerAssignmentId] = useState(null);
     const [mobileAssignmentId, setMobileAssignmentId] = useState(null);
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
 
     const fetchActaInfo = useCallback(async () => {
         if (!assignment || !assignment.employee) {
@@ -50,47 +51,87 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
 
     if (!isOpen || !assignment) return null;
 
-    const downloadGeneratedActa = () => {
+    const downloadGeneratedActa = async () => {
         // Get assignment ID - handle different data structures
-        const assignmentId = assignment?.id || assignment?.assignment_id;
+        let assignmentId = assignment?.id || assignment?.assignment_id;
 
         if (!assignmentId) {
-            console.error('No assignment ID found:', assignment);
-            // Fallback: use employee ID to get first assignment
-            const employeeId = assignment?.employee?.id || assignment?.employee_id;
-            if (employeeId) {
-                // Use computer or mobile assignment ID from acta-info
-                const fallbackId = computerAssignmentId || mobileAssignmentId;
-                if (fallbackId) {
-                    // Force download instead of opening in browser
-                    window.location.href = `${API_URL}/assignments/${fallbackId}/acta`;
-                    return;
-                }
+            const fallbackId = computerAssignmentId || mobileAssignmentId;
+            if (!fallbackId) {
+                alert('No se pudo determinar el ID de asignación');
+                return;
             }
-            alert('No se pudo determinar el ID de asignación');
+            assignmentId = fallbackId;
+        }
+
+        try {
+            const response = await axios.get(`${API_URL}/assignments/${assignmentId}/acta`, {
+                responseType: 'blob',
+            });
+            
+            // Determinar la extensión basándose en el tipo MIME devuelto por el servidor
+            const contentType = response.headers['content-type'] || response.data.type;
+            const isZip = contentType === 'application/zip' || contentType === 'application/x-zip-compressed';
+            const extension = isZip ? '.zip' : '.docx';
+            
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            const employeeName = assignment?.employee?.full_name || 'empleado';
+            link.setAttribute('download', `ACTA DE ENTREGA - ${employeeName.toUpperCase()}${extension}`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error descargando acta:', error);
+            alert('Error al descargar el acta');
+        }
+    };
+
+    const handleSendEmail = async () => {
+        let assignmentId = assignment?.id || assignment?.assignment_id;
+        if (!assignmentId) {
+            const fallbackId = computerAssignmentId || mobileAssignmentId;
+            if (!fallbackId) {
+                alert('No se pudo determinar el ID de asignación');
+                return;
+            }
+            assignmentId = fallbackId;
+        }
+
+        if (!window.confirm(`¿Estás seguro que deseas enviar el acta por correo a ${assignment?.employee?.full_name || 'este usuario'}?\n\nSi subiste el Acta Firmada en PDF, se le adjuntará esa versión. En caso contrario, recibirá el documento autogenerado original.`)) {
             return;
         }
 
-        // Force download instead of opening in browser
-        window.location.href = `${API_URL}/assignments/${assignmentId}/acta`;
+        setIsSendingEmail(true);
+        try {
+            const { data } = await axios.post(`${API_URL}/assignments/${assignmentId}/send-email`);
+            alert(data.message || 'Correo enviado exitosamente al empleado');
+        } catch (error) {
+            console.error('Error enviando correo:', error);
+            alert(error.response?.data?.detail || 'Error al enviar el correo');
+        } finally {
+            setIsSendingEmail(false);
+        }
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-slate-800 rounded-xl w-full max-w-4xl shadow-2xl border border-slate-700 overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-xl w-full max-w-4xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-700 bg-slate-800 sticky top-0 z-10">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-surface sticky top-0 z-10">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                                <FileText className="w-6 h-6 text-blue-400" />
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                 Gestión de Actas
                             </h2>
-                            <p className="text-slate-400 mt-1">
+                            <p className="text-slate-500 dark:text-slate-400 mt-1">
                                 {assignment.employee?.full_name || 'Empleado'}
                             </p>
                         </div>
-                        <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                        <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
@@ -99,30 +140,40 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                 {/* Content */}
                 <div className="p-6 space-y-6">
                     {/* Download Generated Acta */}
-                    <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                        <h3 className="text-sm font-bold text-slate-300 uppercase mb-3">
+                    <div className="bg-bg/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase mb-3">
                             Acta Generada Automáticamente
                         </h3>
-                        <p className="text-xs text-slate-400 mb-3">
-                            Descarga el acta generada por el sistema para imprimir y firmar
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                            Descarga el acta generada por el sistema para imprimir y firmar, o envíala por correo.
                         </p>
-                        <button
-                            onClick={downloadGeneratedActa}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            <Download className="w-4 h-4" />
-                            Descargar Acta para Firmar
-                        </button>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <button
+                                onClick={downloadGeneratedActa}
+                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                <Download className="w-4 h-4" />
+                                Descargar Acta para Firmar
+                            </button>
+                            <button
+                                onClick={handleSendEmail}
+                                disabled={isSendingEmail}
+                                className={`flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isSendingEmail ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                <Mail className="w-4 h-4" />
+                                {isSendingEmail ? 'Enviando Correo...' : 'Enviar Correo al Usuario'}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Computer Devices Acta */}
                     {hasComputerDevices && computerAssignmentId && (
-                        <div className="bg-slate-900/50 p-4 rounded-lg border border-blue-500/30">
-                            <h3 className="text-sm font-bold text-blue-300 uppercase mb-3 flex items-center gap-2">
+                        <div className="bg-bg/50 p-4 rounded-lg border border-blue-500/30">
+                            <h3 className="text-sm font-bold text-blue-600 dark:text-blue-300 uppercase mb-3 flex items-center gap-2">
                                 <Laptop className="w-4 h-4" />
                                 Acta de Asignación - Equipo de Cómputo
                             </h3>
-                            <p className="text-xs text-slate-400 mb-4">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
                                 Acta firmada para equipos de cómputo (laptop, monitor, teclado, mouse, etc.)
                             </p>
                             <PdfUploader
@@ -139,12 +190,12 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
 
                     {/* Mobile Devices Acta */}
                     {hasMobileDevices && mobileAssignmentId && (
-                        <div className="bg-slate-900/50 p-4 rounded-lg border border-green-500/30">
-                            <h3 className="text-sm font-bold text-green-300 uppercase mb-3 flex items-center gap-2">
+                        <div className="bg-bg/50 p-4 rounded-lg border border-green-500/30">
+                            <h3 className="text-sm font-bold text-green-600 dark:text-green-300 uppercase mb-3 flex items-center gap-2">
                                 <Smartphone className="w-4 h-4" />
                                 Acta de Asignación - Celular
                             </h3>
-                            <p className="text-xs text-slate-400 mb-4">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
                                 Acta firmada para dispositivos móviles (celular, chip, cargador)
                             </p>
                             <PdfUploader
@@ -162,10 +213,10 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                     {/* Info */}
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                         <div className="flex gap-3">
-                            <FileText className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm text-blue-200">
+                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-blue-700 dark:text-blue-200">
                                 <p className="font-bold mb-1">Proceso:</p>
-                                <ol className="list-decimal list-inside space-y-1 text-blue-300">
+                                <ol className="list-decimal list-inside space-y-1 text-blue-600 dark:text-blue-300">
                                     <li>Descarga el acta generada automáticamente</li>
                                     <li>Imprime y haz firmar al empleado</li>
                                     <li>Escanea el acta firmada como PDF</li>
@@ -177,10 +228,10 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-slate-900/50 border-t border-slate-700 flex justify-end sticky bottom-0">
+                <div className="p-4 bg-bg/50 border-t border-slate-200 dark:border-slate-700 flex justify-end sticky bottom-0">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors"
+                        className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
                     >
                         Cerrar
                     </button>

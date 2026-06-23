@@ -73,8 +73,8 @@ const ExcelFilter = ({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${selectedValues.length > 0 && selectedValues.length < uniqueValues.length
-                        ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                        ? 'bg-accent/20 text-accent hover:bg-accent/30'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                 title={`Filtrar ${column}`}
             >
@@ -86,9 +86,9 @@ const ExcelFilter = ({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-64 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-96 flex flex-col">
+                <div className="absolute top-full left-0 mt-1 w-64 bg-surface border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl z-50 max-h-96 flex flex-col">
                     {/* Header con búsqueda */}
-                    <div className="p-2 border-b border-slate-700">
+                    <div className="p-2 border-b border-slate-200 dark:border-slate-700">
                         <div className="relative">
                             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
@@ -96,13 +96,13 @@ const ExcelFilter = ({
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder={placeholder}
-                                className="w-full pl-8 pr-8 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary"
+                                className="w-full pl-8 pr-8 py-1.5 bg-bg border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-accent"
                                 onClick={(e) => e.stopPropagation()}
                             />
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 dark:hover:text-white"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -111,8 +111,8 @@ const ExcelFilter = ({
                     </div>
 
                     {/* Seleccionar/Deseleccionar todos */}
-                    <div className="p-2 border-b border-slate-700">
-                        <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 px-2 py-1.5 rounded">
+                    <div className="p-2 border-b border-slate-200 dark:border-slate-700">
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded">
                             <input
                                 type="checkbox"
                                 checked={allSelected}
@@ -120,9 +120,9 @@ const ExcelFilter = ({
                                     if (el) el.indeterminate = someSelected;
                                 }}
                                 onChange={toggleAll}
-                                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary focus:ring-offset-0"
+                                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-bg text-accent focus:ring-accent focus:ring-offset-0"
                             />
-                            <span className="text-sm text-slate-300 font-medium">
+                            <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                                 {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
                             </span>
                         </label>
@@ -139,15 +139,15 @@ const ExcelFilter = ({
                                 {filteredValues.map((value) => (
                                     <label
                                         key={value}
-                                        className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors"
+                                        className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors"
                                     >
                                         <input
                                             type="checkbox"
                                             checked={selectedValues.includes(value)}
                                             onChange={() => toggleValue(value)}
-                                            className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary focus:ring-offset-0"
+                                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-bg text-accent focus:ring-accent focus:ring-offset-0"
                                         />
-                                        <span className="text-sm text-slate-300 truncate flex-1">
+                                        <span className="text-sm text-slate-600 dark:text-slate-300 truncate flex-1">
                                             {value}
                                         </span>
                                     </label>
@@ -157,7 +157,7 @@ const ExcelFilter = ({
                     </div>
 
                     {/* Footer con contador */}
-                    <div className="p-2 border-t border-slate-700 text-xs text-slate-500">
+                    <div className="p-2 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500">
                         {selectedValues.length} de {uniqueValues.length} seleccionados
                     </div>
                 </div>

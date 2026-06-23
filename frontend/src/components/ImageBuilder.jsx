@@ -296,12 +296,12 @@ const ImageBuilder = () => {
 
     const getCategoryIcon = (category) => {
         switch (category.toLowerCase()) {
-            case 'browsers': return <Monitor className="w-5 h-5 text-blue-400" />;
-            case 'development': return <Code className="w-5 h-5 text-green-400" />;
-            case 'security': return <Shield className="w-5 h-5 text-red-400" />;
-            case 'utilities': return <Settings className="w-5 h-5 text-gray-400" />;
-            case 'custom software': return <Upload className="w-5 h-5 text-orange-400" />;
-            default: return <Box className="w-5 h-5 text-purple-400" />;
+            case 'browsers': return <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+            case 'development': return <Code className="w-5 h-5 text-green-600 dark:text-green-400" />;
+            case 'security': return <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />;
+            case 'utilities': return <Settings className="w-5 h-5 text-slate-500 dark:text-gray-400" />;
+            case 'custom software': return <Upload className="w-5 h-5 text-orange-600 dark:text-orange-400" />;
+            default: return <Box className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
         }
     };
 
@@ -361,8 +361,7 @@ const ImageBuilder = () => {
                 <img
                     src={iconUrl}
                     alt=""
-                    className="w-6 h-6"
-                    style={{ filter: 'brightness(0) invert(1)' }}
+                    className="w-6 h-6 brightness-0 invert dark:invert-0 dark:brightness-100"
                     onError={(e) => {
                         // Fallback to emoji if SVG fails to load
                         if (emoji) {
@@ -375,20 +374,20 @@ const ImageBuilder = () => {
             return <span className="text-2xl">{emoji}</span>;
         }
 
-        return <Box className="w-6 h-6 text-slate-400" />;
+        return <Box className="w-6 h-6 text-slate-500 dark:text-slate-400" />;
     };
 
     if (loading) {
-        return <div className="text-white text-center py-10">Loading catalog...</div>;
+        return <div className="text-slate-900 dark:text-white text-center py-10">Loading catalog...</div>;
     }
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+            <div className="bg-surface/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white mb-1">Select Software</h3>
-                        <p className="text-slate-400 text-sm">Choose applications or load a department profile.</p>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Select Software</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Choose applications or load a department profile.</p>
                     </div>
 
                     {/* Profile Selector */}
@@ -399,7 +398,7 @@ const ImageBuilder = () => {
                                 const profile = profiles.find(p => p.id === parseInt(e.target.value));
                                 if (profile) loadProfile(profile);
                             }}
-                            className="bg-slate-700 border border-slate-600 text-white px-3 py-2 rounded-lg outline-none focus:border-blue-500"
+                            className="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white px-3 py-2 rounded-lg outline-none focus:border-blue-500"
                         >
                             <option value="">Seleccionar Perfil...</option>
                             {profiles.map(profile => (
@@ -418,7 +417,7 @@ const ImageBuilder = () => {
 
                         <button
                             onClick={() => setIsProfileModalOpen(true)}
-                            className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                            className="bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 text-slate-900 dark:text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                         >
                             <Briefcase className="w-4 h-4" /> Gestionar
                         </button>
@@ -431,7 +430,7 @@ const ImageBuilder = () => {
                         </button>
 
                         <div className="text-right">
-                            <span className="text-2xl font-bold text-purple-400">{selectedApps.length}</span>
+                            <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{selectedApps.length}</span>
                             <span className="text-slate-500 text-sm block">Selected</span>
                         </div>
                     </div>
@@ -441,7 +440,7 @@ const ImageBuilder = () => {
             <div className="grid grid-cols-1 gap-6">
                 {Object.entries(catalog).map(([category, apps]) => (
                     <div key={category} className="space-y-3">
-                        <h4 className="flex items-center gap-2 text-white font-semibold border-b border-slate-700 pb-2">
+                        <h4 className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold border-b border-slate-200 dark:border-slate-700 pb-2">
                             {getCategoryIcon(category)}
                             {category}
                         </h4>
@@ -456,24 +455,24 @@ const ImageBuilder = () => {
                                             cursor-pointer p-3 rounded-lg border transition-all flex items-start gap-3 relative overflow-hidden
                                             ${isSelected
                                                 ? 'bg-purple-600/20 border-purple-500'
-                                                : 'bg-slate-800 border-slate-700 hover:border-slate-500'
+                                                : 'bg-surface border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500'
                                             }
                                         `}
                                     >
                                         <div onClick={() => toggleApp(app.id)} className="flex-1 flex items-start gap-3">
-                                            <div className={`p-2 rounded-lg ${isSelected ? 'bg-purple-500' : 'bg-slate-700'} flex items-center justify-center`}>
-                                                {isCustom ? <Box className="w-5 h-5 text-white" /> : getSoftwareIcon(app.id)}
+                                            <div className={`p-2 rounded-lg ${isSelected ? 'bg-purple-500' : 'bg-slate-200 dark:bg-slate-700'} flex items-center justify-center`}>
+                                                {isCustom ? <Box className="w-5 h-5 text-slate-900 dark:text-white" /> : getSoftwareIcon(app.id)}
                                             </div>
                                             <div className="flex-1">
-                                                <h5 className="font-medium text-white text-sm flex items-center gap-2">
+                                                <h5 className="font-medium text-slate-900 dark:text-white text-sm flex items-center gap-2">
                                                     {app.name}
-                                                    {isCustom && <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded">CUSTOM</span>}
+                                                    {isCustom && <span className="px-2 py-0.5 bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs rounded">CUSTOM</span>}
                                                 </h5>
-                                                <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{app.description}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{app.description}</p>
                                             </div>
                                         </div>
                                         {isSelected && (
-                                            <div className="absolute top-2 right-2 text-purple-400">
+                                            <div className="absolute top-2 right-2 text-purple-600 dark:text-purple-400">
                                                 <Check className="w-4 h-4" />
                                             </div>
                                         )}
@@ -484,7 +483,7 @@ const ImageBuilder = () => {
                                                         e.stopPropagation();
                                                         openEditModal(app);
                                                     }}
-                                                    className="p-1 hover:bg-blue-500/20 rounded text-blue-400 hover:text-blue-300 transition-colors"
+                                                    className="p-1 hover:bg-blue-500/20 rounded text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
@@ -493,7 +492,7 @@ const ImageBuilder = () => {
                                                         e.stopPropagation();
                                                         handleDelete(app.custom_id);
                                                     }}
-                                                    className="p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-colors"
+                                                    className="p-1 hover:bg-red-500/20 rounded text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -514,7 +513,7 @@ const ImageBuilder = () => {
                     className={`
                         flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95
                         ${selectedApps.length === 0
-                            ? 'bg-slate-600 cursor-not-allowed opacity-50'
+                            ? 'bg-slate-400 dark:bg-slate-600 cursor-not-allowed opacity-50'
                             : generating
                                 ? 'bg-purple-700 cursor-wait'
                                 : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'
@@ -535,37 +534,37 @@ const ImageBuilder = () => {
             {/* Edit Custom Software Modal */}
             {isEditModalOpen && editingSoftware && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
+                    <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-white">Editar Software</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-white">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Editar Software</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleUpdate} className="space-y-4">
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Nombre del Software</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Nombre del Software</label>
                                 <input
                                     value={editForm.name}
                                     onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Descripción</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Descripción</label>
                                 <input
                                     value={editForm.description}
                                     onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Argumentos de Instalación Silenciosa</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Argumentos de Instalación Silenciosa</label>
                                 <select
                                     value={editForm.install_args}
                                     onChange={e => setEditForm({ ...editForm, install_args: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                 >
                                     <option value="/S">/S (NSIS installers)</option>
                                     <option value="/VERYSILENT">/VERYSILENT (Inno Setup)</option>
@@ -578,7 +577,7 @@ const ImageBuilder = () => {
                                 </select>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancelar</button>
+                                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancelar</button>
                                 <button type="submit" disabled={updating} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50">
                                     {updating ? 'Actualizando...' : 'Actualizar'}
                                 </button>
@@ -591,49 +590,49 @@ const ImageBuilder = () => {
             {/* Save Profile Modal */}
             {isSaveProfileModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
+                    <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-white">Guardar Perfil</h3>
-                            <button onClick={() => setIsSaveProfileModalOpen(false)} className="text-slate-400 hover:text-white">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Guardar Perfil</h3>
+                            <button onClick={() => setIsSaveProfileModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSaveProfile} className="space-y-4">
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Nombre del Perfil</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Nombre del Perfil</label>
                                 <input
                                     value={profileForm.name}
                                     onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                     placeholder="ej: Desarrollo Frontend"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Departamento</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Departamento</label>
                                 <input
                                     value={profileForm.department}
                                     onChange={e => setProfileForm({ ...profileForm, department: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                     placeholder="ej: Desarrollo, Ventas, Diseño"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Descripción (opcional)</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Descripción (opcional)</label>
                                 <textarea
                                     value={profileForm.description}
                                     onChange={e => setProfileForm({ ...profileForm, description: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-blue-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-blue-500"
                                     rows="3"
                                     placeholder="Descripción del perfil"
                                 />
                             </div>
-                            <div className="bg-slate-800 p-3 rounded">
-                                <p className="text-xs text-slate-400">Software seleccionado: <span className="text-white font-bold">{selectedApps.length}</span></p>
+                            <div className="bg-bg p-3 rounded">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Software seleccionado: <span className="text-slate-900 dark:text-white font-bold">{selectedApps.length}</span></p>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setIsSaveProfileModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancelar</button>
+                                <button type="button" onClick={() => setIsSaveProfileModalOpen(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancelar</button>
                                 <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium">
                                     Guardar
                                 </button>
@@ -646,22 +645,22 @@ const ImageBuilder = () => {
             {/* Profile Management Modal */}
             {isProfileModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+                    <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-white">Gestionar Perfiles</h3>
-                            <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-white">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Gestionar Perfiles</h3>
+                            <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="space-y-3">
                             {profiles.length === 0 ? (
-                                <p className="text-slate-400 text-center py-8">No hay perfiles guardados</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-center py-8">No hay perfiles guardados</p>
                             ) : (
                                 profiles.map(profile => (
-                                    <div key={profile.id} className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-start">
+                                    <div key={profile.id} className="bg-bg p-4 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-between items-start">
                                         <div className="flex-1">
-                                            <h4 className="text-white font-semibold">{profile.name}</h4>
-                                            <p className="text-sm text-slate-400">{profile.department}</p>
+                                            <h4 className="text-slate-900 dark:text-white font-semibold">{profile.name}</h4>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">{profile.department}</p>
                                             {profile.description && <p className="text-xs text-slate-500 mt-1">{profile.description}</p>}
                                             <p className="text-xs text-slate-500 mt-2">
                                                 {JSON.parse(profile.software_ids).length} aplicaciones
@@ -695,50 +694,50 @@ const ImageBuilder = () => {
             {/* Upload Custom Software Modal */}
             {isUploadModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
+                    <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-white">Upload Custom Software</h3>
-                            <button onClick={() => setIsUploadModalOpen(false)} className="text-slate-400 hover:text-white">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Upload Custom Software</h3>
+                            <button onClick={() => setIsUploadModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleUpload} className="space-y-4">
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Installer File (.exe or .msi)</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Installer File (.exe or .msi)</label>
                                 <input
                                     type="file"
                                     accept=".exe,.msi"
                                     onChange={handleFileSelect}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-orange-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-orange-500"
                                     required
                                 />
-                                {selectedFile && <p className="text-xs text-green-400 mt-1">Selected: {selectedFile.name}</p>}
+                                {selectedFile && <p className="text-xs text-green-600 dark:text-green-400 mt-1">Selected: {selectedFile.name}</p>}
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Software Name</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Software Name</label>
                                 <input
                                     value={uploadForm.name}
                                     onChange={e => setUploadForm({ ...uploadForm, name: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-orange-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-orange-500"
                                     placeholder="e.g., Adobe Photoshop 2024"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Description</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Description</label>
                                 <input
                                     value={uploadForm.description}
                                     onChange={e => setUploadForm({ ...uploadForm, description: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-orange-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-orange-500"
                                     placeholder="Brief description"
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm block mb-1">Silent Install Arguments</label>
+                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Silent Install Arguments</label>
                                 <select
                                     value={uploadForm.install_args}
                                     onChange={e => setUploadForm({ ...uploadForm, install_args: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white outline-none focus:border-orange-500"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-orange-500"
                                 >
                                     <option value="/S">/S (NSIS installers)</option>
                                     <option value="/VERYSILENT">/VERYSILENT (Inno Setup)</option>
@@ -752,7 +751,7 @@ const ImageBuilder = () => {
                                 <p className="text-xs text-slate-500 mt-1">Selecciona el argumento correcto según el tipo de instalador</p>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setIsUploadModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancel</button>
+                                <button type="button" onClick={() => setIsUploadModalOpen(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancel</button>
                                 <button type="submit" disabled={uploading} className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-medium disabled:opacity-50">
                                     {uploading ? 'Uploading...' : 'Upload'}
                                 </button>

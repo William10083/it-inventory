@@ -20,15 +20,23 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     const [customChargerBrand, setCustomChargerBrand] = useState('HP');
     const [customChargerModel, setCustomChargerModel] = useState('');
 
+    // Mobile accessories
+    const [mobileAccessories, setMobileAccessories] = useState({
+        'Cable USB': false, 'Case': false, 'Auriculares': false, 'Adaptador Auriculares': false,
+    });
+
     // Post-assignment email
     const [assignmentDone, setAssignmentDone] = useState(false);
     const [lastAssignedEmployee, setLastAssignedEmployee] = useState(null);
+    const [assignedDevices, setAssignedDevices] = useState([]); // snapshot before onSuccess clears prop
+    const [createdAssignmentId, setCreatedAssignmentId] = useState(null);
     const [emailTo, setEmailTo] = useState('');
     const [sendingEmail, setSendingEmail] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
 
-    // Check if assigning a laptop
+    // Check device types
     const hasLaptop = devices.some(d => d.device_type === 'laptop');
+    const hasMobile = devices.some(d => d.device_type === 'celular');
 
     // Reset state when opening
     useEffect(() => {
@@ -43,10 +51,22 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
             setCustomChargerModel('');
             setAssignmentDone(false);
             setLastAssignedEmployee(null);
+            setAssignedDevices([]);
+            setCreatedAssignmentId(null);
             setEmailTo('');
             setEmailSent(false);
+            // Pre-fill mobile accessories from device specs
+            const phone = devices.find(d => d.device_type === 'celular');
+            let specs = {};
+            try { if (phone?.specifications) specs = JSON.parse(phone.specifications); } catch {}
+            setMobileAccessories({
+                'Cable USB': !!specs['Cable USB'],
+                'Case': !!specs['Case'],
+                'Auriculares': !!specs['Auriculares'],
+                'Adaptador Auriculares': !!specs['Adaptador Auriculares'],
+            });
         }
-    }, [isOpen, hasLaptop]);
+    }, [isOpen]);
 
     // Search employees debounce
     useEffect(() => {
@@ -69,32 +89,29 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
 
     if (!isOpen) return null;
 
+    // Descarga el acta Y envía el correo con adjunto automáticamente (backend _send_email_async)
     const handleSendEmail = async () => {
-        if (!emailTo) return;
+        if (!createdAssignmentId) return;
         setSendingEmail(true);
         try {
-            const deviceList = devices.map(d => `• ${d.device_type.toUpperCase()} — ${d.brand} ${d.model} (S/N: ${d.serial_number || '-'})`).join('<br/>');
-            const body = `
-                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
-                    <h2 style="color:#1d4ed8">Asignación de Equipos TI</h2>
-                    <p>Estimado/a <strong>${lastAssignedEmployee?.full_name}</strong>,</p>
-                    <p>Le informamos que se le han asignado los siguientes equipos:</p>
-                    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:16px 0">
-                        ${deviceList}
-                    </div>
-                    <p>Por favor, confirme la recepción de los equipos firmando el acta correspondiente.</p>
-                    <p style="color:#6b7280;font-size:12px;margin-top:24px">Este correo fue generado automáticamente por el sistema IT Inventory.</p>
-                </div>
-            `;
-            await axios.post(`${API_URL}/send-email`, {
-                to_email: emailTo,
-                subject: `Asignación de equipos TI — ${lastAssignedEmployee?.full_name}`,
-                body_html: body
+            const res = await axios.get(`${API_URL}/assignments/${createdAssignmentId}/acta`, {
+                responseType: 'blob',
             });
+            // Descargar el archivo para el técnico TI
+            const contentDisposition = res.headers['content-disposition'] || '';
+            const match = contentDisposition.match(/filename="?([^"]+)"?/);
+            const filename = match?.[1] || `Acta_${lastAssignedEmployee?.full_name || 'empleado'}.docx`;
+            const url = URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+
             setEmailSent(true);
-            showNotification('Correo enviado exitosamente', 'success');
+            showNotification('Acta descargada y correo enviado al empleado', 'success');
         } catch (err) {
-            const msg = err.response?.data?.detail || 'Error al enviar correo';
+            const msg = err.response?.data?.detail || 'Error al generar el acta';
             showNotification(msg, 'error');
         } finally {
             setSendingEmail(false);
@@ -153,14 +170,32 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                 };
             }
 
+            // Build mobile accessories payload (only checked ones)
+            const mobileAccPayload = hasMobile
+                ? Object.fromEntries(
+                    Object.entries(mobileAccessories)
+                        .filter(([, v]) => v)
+                        .map(([k]) => [k, k === 'Cable USB' ? 'Tipo C' : 'Incluido'])
+                  )
+                : null;
+
+            // Snapshot devices BEFORE onSuccess() refreshes the parent (which clears the prop)
+            setAssignedDevices([...devices]);
+
             // Use batch endpoint
-            await axios.post(`${API_URL}/assignments/batch`, {
+            const batchRes = await axios.post(`${API_URL}/assignments/batch`, {
                 device_ids: deviceIds,
                 employee_id: selectedEmployee.id,
                 notes: notes,
                 charger_info: chargerInfo,
-                assignment_type: assignmentType
+                assignment_type: assignmentType,
+                mobile_accessories: mobileAccPayload
             });
+
+            // Save first assignment ID (used to generate acta + send email with attachment)
+            if (batchRes.data?.length > 0) {
+                setCreatedAssignmentId(batchRes.data[0].id);
+            }
 
             onSuccess();
             // Show post-assignment email option instead of closing immediately
@@ -186,47 +221,48 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     if (assignmentDone) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                <div className="bg-slate-800 rounded-xl w-full max-w-md shadow-2xl border border-slate-700 overflow-hidden">
+                <div className="bg-surface rounded-xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                     <div className="p-6 text-center">
                         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/20 mb-4">
-                            <CheckCircle className="w-8 h-8 text-green-400" />
+                            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-1">¡Asignación completada!</h3>
-                        <p className="text-slate-400 text-sm mb-6">
-                            {devices.length} equipo{devices.length > 1 ? 's' : ''} asignado{devices.length > 1 ? 's' : ''} a <span className="text-white font-medium">{lastAssignedEmployee?.full_name}</span>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">¡Asignación completada!</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+                            {devices.length} equipo{devices.length > 1 ? 's' : ''} asignado{devices.length > 1 ? 's' : ''} a <span className="text-slate-900 dark:text-white font-medium">{lastAssignedEmployee?.full_name}</span>
                         </p>
 
                         {emailSent ? (
-                            <div className="flex items-center justify-center gap-2 text-green-400 text-sm mb-6">
+                            <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 text-sm mb-6">
                                 <CheckCircle className="w-4 h-4" />
-                                Correo enviado a {emailTo}
+                                Acta descargada · Correo enviado a {emailTo}
                             </div>
                         ) : (
-                            <div className="bg-slate-700/50 rounded-lg p-4 mb-6 text-left space-y-3">
-                                <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                    <Mail className="w-4 h-4 text-primary" />
-                                    Enviar notificación por correo
+                            <div className="bg-slate-100 dark:bg-slate-700/50 rounded-lg p-4 mb-6 text-left space-y-3">
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-accent" />
+                                    Generar acta y notificar al empleado
                                 </p>
-                                <input
-                                    type="email"
-                                    value={emailTo}
-                                    onChange={(e) => setEmailTo(e.target.value)}
-                                    placeholder="correo@destinatario.com"
-                                    className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-primary text-sm"
-                                />
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Se descargará el acta de entrega y se enviará automáticamente al correo del empleado con el acta adjunta.
+                                </p>
+                                {emailTo && (
+                                    <p className="text-xs text-blue-600 dark:text-blue-300 font-mono bg-surface rounded px-2 py-1">
+                                        → {emailTo}
+                                    </p>
+                                )}
                                 <button
                                     onClick={handleSendEmail}
-                                    disabled={sendingEmail || !emailTo}
-                                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                    disabled={sendingEmail || !createdAssignmentId}
+                                    className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                 >
                                     {sendingEmail ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                    {sendingEmail ? 'Enviando...' : 'Enviar correo'}
+                                    {sendingEmail ? 'Generando acta...' : 'Descargar Acta y Enviar Correo'}
                                 </button>
                             </div>
                         )}
 
                         <button onClick={onClose}
-                            className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors">
+                            className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             {emailSent ? 'Cerrar' : 'Omitir y cerrar'}
                         </button>
                     </div>
@@ -236,13 +272,13 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-slate-800 rounded-xl w-full max-w-lg shadow-2xl border border-slate-700 overflow-hidden animation-fade-in relative">
-                <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
-                    <h2 className="text-xl font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-8 py-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface rounded-xl w-full max-w-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-y-auto max-h-[92vh] animation-fade-in relative">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-bg/50">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                         Assign {devices.length} Device{devices.length > 1 ? 's' : ''}
                     </h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -250,23 +286,23 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                 <div className="p-6 space-y-4">
                     {/* Device List Summary */}
                     <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20 max-h-32 overflow-y-auto">
-                        <div className="text-xs text-blue-300 uppercase font-semibold mb-2">Selected Equipment</div>
+                        <div className="text-xs text-blue-600 dark:text-blue-300 uppercase font-semibold mb-2">Selected Equipment</div>
                         {devices.map(d => (
-                            <div key={d.id} className="flex justify-between text-sm text-white border-b border-blue-500/10 last:border-0 py-1">
+                            <div key={d.id} className="flex justify-between text-sm text-slate-900 dark:text-white border-b border-blue-500/10 last:border-0 py-1">
                                 <span>{d.model}</span>
-                                <span className="font-mono text-blue-200">{d.serial_number}</span>
+                                <span className="font-mono text-blue-700 dark:text-blue-200">{d.serial_number}</span>
                             </div>
                         ))}
                     </div>
 
                     {/* Employee Search */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Assign To (Employee)</label>
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Assign To (Employee)</label>
                         <div className="relative">
                             <User className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
                             <input
                                 type="text"
-                                className={`w-full bg-slate-900 border ${selectedEmployee ? 'border-green-500' : 'border-slate-600'} rounded-lg py-2.5 pl-10 pr-4 text-white focus:ring-2 focus:ring-primary outline-none`}
+                                className={`w-full bg-bg border ${selectedEmployee ? 'border-green-500' : 'border-slate-300 dark:border-slate-600'} rounded-lg py-2.5 pl-10 pr-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none`}
                                 placeholder="Search Name or Email..."
                                 value={employeeId}
                                 onChange={(e) => {
@@ -280,22 +316,22 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
 
                         {/* Search Results Dropdown */}
                         {employees.length > 0 && !selectedEmployee && (
-                            <div className="absolute w-full max-w-[28rem] bg-slate-800 border border-slate-600 rounded-lg mt-1 shadow-xl z-10 max-h-48 overflow-y-auto">
+                            <div className="absolute w-full max-w-[28rem] bg-surface border border-slate-300 dark:border-slate-600 rounded-lg mt-1 shadow-xl z-10 max-h-48 overflow-y-auto">
                                 {employees.map(emp => (
                                     <button
                                         key={emp.id}
-                                        className="w-full text-left px-4 py-2 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
+                                        className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 last:border-0"
                                         onClick={() => selectEmployee(emp)}
                                     >
                                         <div className="font-bold">{emp.full_name}</div>
-                                        <div className="text-xs text-slate-400">{emp.email} • {emp.department}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400">{emp.email} • {emp.department}</div>
                                     </button>
                                 ))}
                             </div>
                         )}
 
                         {selectedEmployee && (
-                            <div className="mt-2 text-sm text-green-400 flex items-center gap-2">
+                            <div className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                 Selected: {selectedEmployee.full_name} ({selectedEmployee.department})
                             </div>
@@ -305,14 +341,14 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                     {/* Charger Selection (only for laptops) */}
                     {hasLaptop && (
                         <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-500/20">
-                            <label className="block text-sm font-medium text-yellow-300 mb-3">
+                            <label className="block text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-3">
                                 Laptop Charger
                             </label>
 
                             {/* Charger Options */}
                             <div className="space-y-3">
                                 {/* Default Charger Option */}
-                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'default' ? 'bg-green-500/20 border border-green-500/50' : 'bg-slate-800/50 border border-slate-600/50 hover:bg-slate-700/50'}`}>
+                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'default' ? 'bg-green-500/20 border border-green-500/50' : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-600/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'}`}>
                                     <input
                                         type="radio"
                                         name="chargerOption"
@@ -322,13 +358,13 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                         className="w-4 h-4 text-green-500"
                                     />
                                     <div>
-                                        <span className="text-white font-medium">Cargador por defecto</span>
-                                        <span className="text-sm text-green-400 ml-2">(HP TPN-DA15)</span>
+                                        <span className="text-slate-900 dark:text-white font-medium">Cargador por defecto</span>
+                                        <span className="text-sm text-green-600 dark:text-green-400 ml-2">(HP TPN-DA15)</span>
                                     </div>
                                 </label>
 
                                 {/* Custom Charger Option */}
-                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'custom' ? 'bg-blue-500/20 border border-blue-500/50' : 'bg-slate-800/50 border border-slate-600/50 hover:bg-slate-700/50'}`}>
+                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'custom' ? 'bg-blue-500/20 border border-blue-500/50' : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-600/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'}`}>
                                     <input
                                         type="radio"
                                         name="chargerOption"
@@ -337,27 +373,27 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                         onChange={() => setChargerOption('custom')}
                                         className="w-4 h-4 text-blue-500"
                                     />
-                                    <span className="text-white font-medium">Cargador personalizado</span>
+                                    <span className="text-slate-900 dark:text-white font-medium">Cargador personalizado</span>
                                 </label>
 
                                 {/* Custom Charger Fields */}
                                 {chargerOption === 'custom' && (
                                     <div className="ml-7 grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs text-slate-400 mb-1">Marca</label>
+                                            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Marca</label>
                                             <input
                                                 type="text"
-                                                className="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg py-2 px-3 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                                 placeholder="HP"
                                                 value={customChargerBrand}
                                                 onChange={(e) => setCustomChargerBrand(e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-slate-400 mb-1">Modelo *</label>
+                                            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Modelo *</label>
                                             <input
                                                 type="text"
-                                                className="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg py-2 px-3 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                                 placeholder="Modelo del cargador"
                                                 value={customChargerModel}
                                                 onChange={(e) => setCustomChargerModel(e.target.value)}
@@ -367,7 +403,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                 )}
 
                                 {/* No Charger Option */}
-                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'none' ? 'bg-red-500/20 border border-red-500/50' : 'bg-slate-800/50 border border-slate-600/50 hover:bg-slate-700/50'}`}>
+                                <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${chargerOption === 'none' ? 'bg-red-500/20 border border-red-500/50' : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-600/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'}`}>
                                     <input
                                         type="radio"
                                         name="chargerOption"
@@ -376,27 +412,49 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                         onChange={() => setChargerOption('none')}
                                         className="w-4 h-4 text-red-500"
                                     />
-                                    <span className="text-white font-medium">Sin cargador</span>
+                                    <span className="text-slate-900 dark:text-white font-medium">Sin cargador</span>
                                 </label>
                             </div>
 
                             {chargerOption === 'none' && (
-                                <p className="text-xs text-yellow-400 mt-3">
+                                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-3">
                                     ⚠️ Se te avisará antes de asignar sin cargador
                                 </p>
                             )}
                         </div>
                     )}
 
+                    {/* Mobile Accessories (only for phones) */}
+                    {hasMobile && (
+                        <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
+                            <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-3">
+                                Accesorios del celular entregados
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.keys(mobileAccessories).map(acc => (
+                                    <label key={acc} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition-colors ${mobileAccessories[acc] ? 'bg-green-500/20 border-green-500/50 text-green-700 dark:text-green-300' : 'bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600/50 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={mobileAccessories[acc]}
+                                            onChange={() => setMobileAccessories(prev => ({ ...prev, [acc]: !prev[acc] }))}
+                                            className="w-4 h-4 accent-green-500"
+                                        />
+                                        <span className="text-sm font-medium">{acc}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Tipo de asignación */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Tipo de Asignación</label>
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Tipo de Asignación</label>
                         <div className="flex gap-3">
-                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'ASIGNACION' ? 'bg-blue-500/20 border-blue-500/60 text-blue-300' : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'}`}>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'ASIGNACION' ? 'bg-blue-500/20 border-blue-500/60 text-blue-700 dark:text-blue-300' : 'bg-bg border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                 <input type="radio" name="assignmentType" value="ASIGNACION" checked={assignmentType === 'ASIGNACION'} onChange={() => setAssignmentType('ASIGNACION')} className="hidden" />
                                 <span className="font-medium text-sm">Asignación</span>
                             </label>
-                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'REEMPLAZO' ? 'bg-orange-500/20 border-orange-500/60 text-orange-300' : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'}`}>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'REEMPLAZO' ? 'bg-orange-500/20 border-orange-500/60 text-orange-700 dark:text-orange-300' : 'bg-bg border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                 <input type="radio" name="assignmentType" value="REEMPLAZO" checked={assignmentType === 'REEMPLAZO'} onChange={() => setAssignmentType('REEMPLAZO')} className="hidden" />
                                 <span className="font-medium text-sm">Reemplazo</span>
                             </label>
@@ -404,9 +462,9 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Notes (Optional)</label>
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Notes (Optional)</label>
                         <textarea
-                            className="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-primary outline-none h-20 resize-none"
+                            className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg py-2 px-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none h-20 resize-none"
                             placeholder="Condition, extra accessories, etc."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
@@ -414,14 +472,14 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                     </div>
                 </div>
 
-                <div className="p-4 bg-slate-900/50 border-t border-slate-700 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">
+                <div className="p-4 bg-bg/50 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors">
                         Cancel
                     </button>
                     <button
                         onClick={handleAssign}
                         disabled={loading || !selectedEmployee}
-                        className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         <Save className="w-4 h-4" />
                         {loading ? 'Assigning...' : 'Confirm Assignment'}

@@ -14,17 +14,18 @@ const DeviceChip = ({ device, price, onPriceChange, onRemove }) => {
     const Icon = device.device_type === 'laptop' ? Laptop : Monitor;
     const deviceTypeLabel = device.device_type === 'laptop' ? 'LAPTOP' : 'MONITOR';
 
-    // Colores diferentes según el tipo
-    const badgeColor = device.device_type === 'laptop'
-        ? 'bg-blue-500/20 text-blue-400'  // Azul para laptops
-        : 'bg-green-500/20 text-green-400'; // Verde para monitores
+    // Device-type hue tokens are mode-invariant — same hue in light/dark, no dark: pairing needed.
+    const isLaptop = device.device_type === 'laptop';
+    const badgeColor = isLaptop
+        ? 'bg-device-laptop/20 text-device-laptop'
+        : 'bg-device-monitor/20 text-device-monitor';
 
     return (
-        <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 flex items-center gap-3 hover:border-slate-500 transition-colors">
+        <div className="bg-surface border border-slate-300 dark:border-slate-600 rounded-lg p-3 flex items-center gap-3 hover:border-slate-400 dark:hover:border-slate-500 transition-colors">
             {/* Icon and Type Badge */}
             <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <Icon className="w-5 h-5 text-blue-400" />
+                <div className={`p-2 rounded-lg ${isLaptop ? 'bg-device-laptop/20' : 'bg-device-monitor/20'}`}>
+                    <Icon className={`w-5 h-5 ${isLaptop ? 'text-device-laptop' : 'text-device-monitor'}`} />
                 </div>
                 <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${badgeColor}`}>
                     {deviceTypeLabel}
@@ -33,22 +34,22 @@ const DeviceChip = ({ device, price, onPriceChange, onRemove }) => {
 
             {/* Device Info */}
             <div className="flex-1 min-w-0">
-                <div className="font-medium text-white truncate">
+                <div className="font-medium text-slate-900 dark:text-white truncate">
                     {device.brand} {device.model}
                 </div>
-                <div className="text-xs text-slate-400 truncate">
+                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
                     SN: {device.serial_number} {device.hostname && `• ${device.hostname}`}
                 </div>
             </div>
 
             {/* Price Input */}
             <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-400">S/.</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">S/.</span>
                 <input
                     type="number"
                     value={price}
                     onChange={(e) => onPriceChange(parseInt(e.target.value) || 0)}
-                    className="w-20 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-20 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-accent outline-none"
                     min="0"
                 />
             </div>

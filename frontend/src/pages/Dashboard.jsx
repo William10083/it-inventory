@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
 import Navbar from '../components/Navbar';
 import ScannerInput from '../components/ScannerInput';
 import AssignmentModal from '../components/AssignmentModal';
@@ -10,13 +11,20 @@ import { Plus, Search, Download, Package, Users, Monitor, Smartphone, Box, Lapto
 import DeviceDetailsModal from '../components/DeviceDetailsModal';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import PowerBIDashboard from '../components/PowerBIDashboard';
-import SoftwareList from '../components/SoftwareList';
+import LicensesPage from '../pages/LicensesPage';
+import SoftwarePage from '../pages/SoftwarePage';
 import EmployeeRegistrationModal from '../components/EmployeeRegistrationModal';
 import TerminationModal from '../components/TerminationModal';
 import TerminationsPage from './TerminationsPage';
 import AuditLogsPage from './AuditLogsPage';
 import ActasStatusPage from './ActasStatusPage';
+import HRAlertsPage from './HRAlertsPage';
+import IngressosPage from './IngressosPage';
+import LanchasPage from './LanchasPage';
 import SalesPage from './SalesPage';
+import DevolucionesPage from './DevolucionesPage';
+import ActiveDirectoryPage from './ActiveDirectoryPage';
+import TonerRequestsPage from './TonerRequestsPage';
 import DecommissionPage from './DecommissionPage';
 import { useNotification } from '../context/NotificationContext';
 import AlertsPanel from '../components/AlertsPanel';
@@ -24,9 +32,68 @@ import Pagination from '../components/Pagination';
 import ExcelFilter from '../components/ExcelFilter';
 import AssignmentActaModal from '../components/AssignmentActaModal';
 import EmployeeCard from '../components/EmployeeCard';
+import EmptyState from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
+import NavTabs from '../components/NavTabs';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// Animates a numeric value counting up from 0 to `value` using GSAP.
+// Respects prefers-reduced-motion (renders the final value immediately when set).
+const CountUpNumber = ({ value }) => {
+    const [display, setDisplay] = useState(0);
+    const tweenRef = useRef(null);
+
+    useEffect(() => {
+        const targetValue = Number(value) || 0;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (tweenRef.current) {
+            tweenRef.current.kill();
+            tweenRef.current = null;
+        }
+
+        if (prefersReducedMotion) {
+            setDisplay(targetValue);
+            return;
+        }
+
+        const proxy = { val: 0 };
+        tweenRef.current = gsap.to(proxy, {
+            val: targetValue,
+            duration: 0.6,
+            ease: 'power2.out',
+            onUpdate: () => setDisplay(Math.round(proxy.val)),
+        });
+
+        return () => {
+            if (tweenRef.current) {
+                tweenRef.current.kill();
+                tweenRef.current = null;
+            }
+        };
+    }, [value]);
+
+    return <span className="tabular-nums">{display}</span>;
+};
+
+// Small illustrated accent mark for the Dashboard header — the one
+// deliberately visible "wow" moment of this PR (unlike PR0's invisible
+// foundation work). Pure CSS/SVG, no extra deps.
+const DashboardHeaderAccent = () => (
+    <div
+        aria-hidden="true"
+        className="hidden sm:flex w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 items-center justify-center flex-shrink-0"
+    >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" className="text-accent" />
+            <path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="text-accent" />
+            <circle cx="8" cy="9" r="1.3" fill="currentColor" className="text-device-laptop" />
+            <circle cx="12" cy="9" r="1.3" fill="currentColor" className="text-device-monitor" />
+            <circle cx="16" cy="9" r="1.3" fill="currentColor" className="text-device-mobile" />
+        </svg>
+    </div>
+);
 
 const Dashboard = () => {
     const { showNotification, showConfirm } = useNotification();
@@ -38,6 +105,7 @@ const Dashboard = () => {
     const [allDevices, setAllDevices] = useState([]); // All devices for filters (no pagination)
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
+    const filtersHasMounted = useRef(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +120,7 @@ const Dashboard = () => {
     const [alertsCount, setAlertsCount] = useState(0);
 
     // 2. UI State
-    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory', 'assignments', 'analytics', 'software', 'decommissions'
+    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory', 'assignments', 'analytics', 'licenses', 'decommissions'
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('type'); // 'type', 'brand', 'model', 'status', 'serial'
     const [sortOrder, setSortOrder] = useState('asc'); // 'asc' | 'desc'
@@ -94,8 +162,6 @@ const Dashboard = () => {
     const [assignmentsPage, setAssignmentsPage] = useState(1);
     const assignmentsPerPage = 12; // 12 empleados por página
 
-    // Dropdown menu state for grouped navbar
-    const [openDropdown, setOpenDropdown] = useState(null);
 
     // Fetch Data with Pagination
     const fetchData = useCallback(async (page = currentPage) => {
@@ -172,28 +238,19 @@ const Dashboard = () => {
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
-    // Reload data when filters or sorting change (Immediate)
+    // Reload data when filters or sorting change — skip the initial mount (search debounce already handles it)
     useEffect(() => {
+        if (!filtersHasMounted.current) { filtersHasMounted.current = true; return; }
         fetchData(1);
     }, [typeFilters, statusFilters, excelLocationFilters, brandFilters, locationFilter, sortConfig]);
 
     // Fetch analytics data on mount (for metrics cards)
+    // fetchAnalytics() omitido aquí — el useEffect de locationFilter ya lo llama en el mount
     useEffect(() => {
-        fetchAnalytics();
         fetchAlertsCount();
-        fetchAllDevices(); // Load all devices for filters
+        fetchAllDevices();
     }, []);
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (openDropdown && !event.target.closest('.relative')) {
-                setOpenDropdown(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [openDropdown]);
 
     const fetchAnalytics = async (location = null) => {
         try {
@@ -318,25 +375,8 @@ const Dashboard = () => {
             // Exclude chargers from inventory table (they are shown in mobile device details)
             if (d.device_type === 'charger') return false;
 
-            // 1. Basic Filters (Location, Search bar)
-            if (locationFilter !== 'all' && d.location !== locationFilter) return false;
-
-            // Global Search (Legacy)
-            if (lowerSearch) {
-                const matchBasic = d.serial_number?.toLowerCase().includes(lowerSearch) ||
-                    d.model?.toLowerCase().includes(lowerSearch) ||
-                    d.brand?.toLowerCase().includes(lowerSearch) ||
-                    d.hostname?.toLowerCase().includes(lowerSearch) ||
-                    d.inventory_code?.toLowerCase().includes(lowerSearch) ||  // Añadido código de inventario
-                    d.status?.toLowerCase().includes(lowerSearch) ||
-                    (deviceTypeNames[d.device_type] || '').toLowerCase().includes(lowerSearch);
-
-                const matchStatus = d.status?.toLowerCase().includes(lowerSearch);
-                const assignedTo = d.assignments?.find(a => !a.returned_date)?.employee?.full_name || '';
-                const matchEmployee = assignedTo.toLowerCase().includes(lowerSearch);
-
-                if (!matchBasic && !matchStatus && !matchEmployee) return false;
-            }
+            // Location filter is handled server-side — no local re-filter needed
+            // Search is handled server-side — no local re-filter needed
 
             // 2. Column Specific Filters (Excel-style)
             if (columnFilters.type && !(deviceTypeNames[d.device_type] || '').toLowerCase().includes(columnFilters.type.toLowerCase())) return false;
@@ -391,6 +431,7 @@ const Dashboard = () => {
                 e.dni?.includes(lowerSearch) ||
                 e.location?.toLowerCase().includes(lowerSearch) ||
                 e.department?.toLowerCase().includes(lowerSearch) ||
+                e.position?.toLowerCase().includes(lowerSearch) ||
                 e.email?.toLowerCase().includes(lowerSearch);
 
             // Match any of the employee's assigned devices
@@ -404,6 +445,10 @@ const Dashboard = () => {
                     device.model?.toLowerCase().includes(lowerSearch) ||
                     device.brand?.toLowerCase().includes(lowerSearch) ||
                     device.hostname?.toLowerCase().includes(lowerSearch) ||
+                    device.imei?.toLowerCase().includes(lowerSearch) ||
+                    device.chip_imei?.toLowerCase().includes(lowerSearch) ||
+                    device.phone_number?.toLowerCase().includes(lowerSearch) ||
+                    device.inventory_code?.toLowerCase().includes(lowerSearch) ||
                     (deviceTypeNames[device.device_type] || device.device_type || '').toLowerCase().includes(lowerSearch)
                 );
             });
@@ -423,34 +468,48 @@ const Dashboard = () => {
     // Helper to detect missing essential equipment for an employee
     const getMissingEquipment = (assets, employee) => {
         const missing = [];
-        const laptopCount = assets?.filter(a => a.device_type === 'laptop').length || 0;
+        const position   = (employee.position   || '').toLowerCase();
+        const department = (employee.department || '').toLowerCase();
+
+        // Roles sin equipo: marineros, patrones, choferes en departamento lanchas
+        const isLanchas      = department.includes('lancha');
+        const isMarinero     = position.includes('marinero') || position.includes('patrón') || position.includes('patron');
+        const isChofer       = position.includes('chofer') || position.includes('conductor');
+        const noEquipRole    = (isLanchas && isMarinero) || (isLanchas && isChofer);
+
+        // Si expected_laptop_count está explícitamente en 0, o es un rol sin equipo → sin alertas de laptop
+        const laptopExplicit = employee.expected_laptop_count !== null && employee.expected_laptop_count !== undefined;
+        const needsLaptop  = laptopExplicit ? employee.expected_laptop_count > 0 : !noEquipRole;
+        const needsCelular = (employee.expected_celular_count ?? 0) > 0;
         const expectedLaptops = employee.expected_laptop_count || 1;
 
-        const hasMonitor = assets?.some(a => a.device_type === 'monitor');
-        const hasKit = assets?.some(a => a.device_type === 'kit teclado/mouse');
-        // Check for standalone keyboard/mouse if kit is missing
-        const hasKeyboard = assets?.some(a => a.device_type === 'keyboard');
-        const hasMouse = assets?.some(a => a.device_type === 'mouse');
-        const hasInputDevices = hasKit || (hasKeyboard && hasMouse);
+        // Si no necesita ningún equipo → sin alertas
+        if (!needsLaptop && !needsCelular) return [];
 
-        const hasBackpack = assets?.some(a => a.device_type === 'mochila');
-        const hasHeadphones = assets?.some(a => a.device_type === 'auriculares');
+        if (needsLaptop) {
+            const laptopCount = assets?.filter(a => a.device_type === 'laptop').length || 0;
+            if (laptopCount < expectedLaptops) {
+                const missingCount = expectedLaptops - laptopCount;
+                missing.push({ type: 'laptop', label: missingCount > 1 ? `${missingCount} Laptops` : 'Laptop', color: 'blue' });
+            }
 
-        if (laptopCount < expectedLaptops) {
-            const missingCount = expectedLaptops - laptopCount;
-            const label = missingCount > 1 ? `${missingCount} Laptops` : 'Laptop';
-            missing.push({ type: 'laptop', label: label, color: 'blue' });
+            const hasMonitor     = assets?.some(a => a.device_type === 'monitor');
+            const hasKit         = assets?.some(a => a.device_type === 'kit teclado/mouse');
+            const hasKeyboard    = assets?.some(a => a.device_type === 'keyboard');
+            const hasMouse       = assets?.some(a => a.device_type === 'mouse');
+            const hasInputDevices= hasKit || (hasKeyboard && hasMouse);
+            const hasBackpack    = assets?.some(a => a.device_type === 'mochila');
+            const hasHeadphones  = assets?.some(a => a.device_type === 'auriculares');
+
+            if (!hasMonitor)      missing.push({ type: 'monitor',    label: 'Monitor',         color: 'cyan'   });
+            if (!hasInputDevices) missing.push({ type: 'kit',        label: 'Kit Teclado/Mouse',color: 'purple' });
+            if (!hasBackpack)     missing.push({ type: 'backpack',   label: 'Mochila',          color: 'yellow' });
+            if (!hasHeadphones)   missing.push({ type: 'headphones', label: 'Auriculares',      color: 'pink'   });
         }
 
-        // Logic for Specific Roles that don't need full kit
-        const position = (employee.position || '').toLowerCase();
-        const isLightRole = position.includes('chofer') || position.includes('conductor');
-
-        if (!isLightRole) {
-            if (!hasMonitor) missing.push({ type: 'monitor', label: 'Monitor', color: 'cyan' });
-            if (!hasInputDevices) missing.push({ type: 'kit', label: 'Kit Teclado/Mouse', color: 'purple' });
-            if (!hasBackpack) missing.push({ type: 'backpack', label: 'Mochila', color: 'yellow' });
-            if (!hasHeadphones) missing.push({ type: 'headphones', label: 'Auriculares', color: 'pink' });
+        if (needsCelular) {
+            const hasCelular = assets?.some(a => ['celular','mobile','smartphone'].includes((a.device_type || '').toLowerCase()));
+            if (!hasCelular) missing.push({ type: 'celular', label: 'Celular', color: 'green' });
         }
 
         return missing;
@@ -528,22 +587,60 @@ const Dashboard = () => {
         }
     };
 
-    // Unassign/Return device from employee
-    const handleUnassignDevice = async (e, device) => {
+    // Unassign/Return device from employee — genera acta de devolución automáticamente
+    const handleUnassignDevice = async (e, device, employee) => {
         e.stopPropagation();
 
+        const empName = employee?.full_name || 'este empleado';
+        const devDesc = `${device.brand || ''} ${device.model || ''}`.trim();
+        const serial  = device.serial_number ? ` (SN: ${device.serial_number})` : '';
+
         const confirmed = await showConfirm(
-            `¿Está seguro de quitar "${device.brand} ${device.model}" (${device.serial_number}) de este empleado?\n\nEl dispositivo quedará disponible para asignar a otro usuario.`
+            `¿Retirar "${devDesc}"${serial} de ${empName}?\n\n` +
+            `• El dispositivo quedará disponible en stock\n` +
+            `• Se generará y descargará el Acta de Devolución automáticamente`
         );
 
         if (!confirmed) return;
 
         try {
-            await axios.post(`${API_URL}/return/${device.id}`);
-            showNotification(`✓ Dispositivo "${device.model}" devuelto exitosamente`, 'success');
-            fetchData(); // Refresh data
+            const res = await axios.post(`${API_URL}/return/${device.id}`);
+            const assignmentId = res.data?.assignment_id;
+
+            showNotification(`✓ "${devDesc}" devuelto — generando acta...`, 'success');
+            fetchData();
+
+            // Descargar acta de devolución si existe assignment
+            if (assignmentId) {
+                try {
+                    const actaRes = await axios.get(
+                        `${API_URL}/assignments/${assignmentId}/acta?acta_type=return`,
+                        { responseType: 'blob' }
+                    );
+                    // Verificar que sea un docx válido (no un JSON de error)
+                    const contentType = actaRes.headers['content-type'] || '';
+                    if (contentType.includes('json') || actaRes.data.size < 1000) {
+                        // Es un error JSON, no un docx
+                        const text = await actaRes.data.text();
+                        console.error('Error generando acta:', text);
+                        showNotification('Equipo devuelto. El acta no pudo generarse automáticamente.', 'warning');
+                    } else {
+                        const url = URL.createObjectURL(new Blob([actaRes.data], {
+                            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                        }));
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Acta_Devolucion_${empName.replace(/ /g,'_')}_${devDesc.replace(/ /g,'_')}.docx`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        showNotification('✓ Acta de devolución descargada', 'success');
+                    }
+                } catch (err) {
+                    console.error('Error descargando acta:', err);
+                    showNotification('Equipo devuelto. El acta no pudo generarse automáticamente.', 'warning');
+                }
+            }
         } catch (err) {
-            console.error('Error returning device:', err);
             showNotification('Error al devolver el dispositivo: ' + (err.response?.data?.detail || err.message), 'error');
         }
     };
@@ -590,7 +687,7 @@ const Dashboard = () => {
 
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-200 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-accent/30">
             <Navbar onAlertClick={() => setIsAlertsOpen(true)} notificationCount={alertsCount} />
 
             <AlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
@@ -598,16 +695,19 @@ const Dashboard = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard de Inventario</h1>
-                        <p className="text-slate-400 mt-1">Gestiona dispositivos, asignaciones y empleados</p>
+                    <div className="flex items-center gap-4">
+                        <DashboardHeaderAccent />
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard de Inventario</h1>
+                            <p className="text-slate-500 dark:text-slate-400 mt-1">Gestiona dispositivos, asignaciones y empleados</p>
+                        </div>
                     </div>
                     <div className="flex gap-3 items-center flex-wrap">
                         {/* Global Location Filter */}
                         <select
                             value={locationFilter}
-                            onChange={(e) => setLocationFilter(e.target.value)}
-                            className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-primary min-w-[150px]"
+                            onChange={(e) => { setLocationFilter(e.target.value); setAssignmentsPage(1); }}
+                            className="bg-surface border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-accent min-w-[150px]"
                         >
                             <option value="all">Todas las Sedes</option>
                             <option value="Callao">Callao</option>
@@ -631,7 +731,7 @@ const Dashboard = () => {
                         </button>
                         <button
                             onClick={() => setIsManualDeviceModalOpen(true)}
-                            className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium"
+                            className="bg-accent hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium"
                         >
                             <Plus className="w-5 h-5" /> Nuevo Equipo
                         </button>
@@ -639,186 +739,69 @@ const Dashboard = () => {
                 </div>
 
                 {/* Metrics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-purple-500">
-                        <div className="bg-purple-500/20 p-3 rounded-lg"><Box className="w-6 h-6 text-purple-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Kits</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedKits} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalKits}</span></p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-md mb-8 overflow-hidden">
+                    <div className="bg-surface p-4 border-l-4 border-device-kit">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Box className="w-4 h-4 text-device-kit" /> Kits
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedKits} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalKits}</span>
+                        </p>
                     </div>
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-yellow-500">
-                        <div className="bg-yellow-500/20 p-3 rounded-lg"><Briefcase className="w-6 h-6 text-yellow-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Mochilas</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedBackpacks} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalBackpacks}</span></p>
+                    <div className="bg-surface p-4 border-l-4 border-device-backpack">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Briefcase className="w-4 h-4 text-device-backpack" /> Mochilas
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedBackpacks} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalBackpacks}</span>
+                        </p>
                     </div>
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-pink-500">
-                        <div className="bg-pink-500/20 p-3 rounded-lg"><Headphones className="w-6 h-6 text-pink-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Auriculares</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedHeadphones} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalHeadphones}</span></p>
+                    <div className="bg-surface p-4 border-l-4 border-device-headphones">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Headphones className="w-4 h-4 text-device-headphones" /> Auriculares
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedHeadphones} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalHeadphones}</span>
+                        </p>
                     </div>
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-cyan-500">
-                        <div className="bg-cyan-500/20 p-3 rounded-lg"><Tv className="w-6 h-6 text-cyan-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Monitores</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedMonitors} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalMonitors}</span></p>
+                    <div className="bg-surface p-4 border-l-4 border-device-monitor">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Tv className="w-4 h-4 text-device-monitor" /> Monitores
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedMonitors} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalMonitors}</span>
+                        </p>
                     </div>
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-500">
-                        <div className="bg-blue-500/20 p-3 rounded-lg"><Monitor className="w-6 h-6 text-blue-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Laptops</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedLaptops} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalLaptops}</span></p>
+                    <div className="bg-surface p-4 border-l-4 border-device-laptop">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Monitor className="w-4 h-4 text-device-laptop" /> Laptops
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedLaptops} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalLaptops}</span>
+                        </p>
                     </div>
-                    <div className="glass-card p-4 flex items-center gap-4 border-l-4 border-green-500">
-                        <div className="bg-green-500/20 p-3 rounded-lg"><Smartphone className="w-6 h-6 text-green-400" /></div>
-                        <div>
-                            <p className="text-slate-400 text-sm">Celulares</p>
-                            <p className="text-2xl font-bold text-white">{metrics.assignedMobiles} <span className="text-sm text-slate-500 font-normal">/ {metrics.totalMobiles}</span></p>
+                    <div className="bg-surface p-4 border-l-4 border-device-mobile">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                            <Smartphone className="w-4 h-4 text-device-mobile" /> Celulares
                         </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                            <CountUpNumber value={metrics.assignedMobiles} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalMobiles}</span>
+                        </p>
                     </div>
                 </div>
 
                 {/* 2. Controls: Search & Tabs - Grouped Navigation */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="flex gap-2 w-full md:w-auto items-center">
-                        {/* Gestión Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setOpenDropdown(openDropdown === 'gestion' ? null : 'gestion')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 rounded ${['inventory', 'assignments', 'terminations'].includes(activeTab)
-                                    ? 'text-white bg-slate-700'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                Gestión
-                                <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === 'gestion' ? 'rotate-180' : ''}`} />
-                            </button>
-                            {openDropdown === 'gestion' && (
-                                <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                                    <button
-                                        onClick={() => { setActiveTab('inventory'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'inventory' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        📦 Inventario
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('assignments'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'assignments' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        👥 Asignaciones
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('terminations'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'terminations' ? 'text-white bg-red-500/20 border-l-2 border-red-500' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        🚪 Ceses
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('decommissions'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors rounded-b-lg border-t border-slate-700/50 ${activeTab === 'decommissions' ? 'text-white bg-red-500/20 border-l-2 border-red-500' : 'text-slate-400 hover:text-white hover:bg-slate-700 hover:bg-red-900/20'}`}
-                                    >
-                                        🛑 Bajas
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Documentos Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setOpenDropdown(openDropdown === 'documentos' ? null : 'documentos')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 rounded ${['actas', 'sales'].includes(activeTab)
-                                    ? 'text-white bg-slate-700'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                Documentos
-                                <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === 'documentos' ? 'rotate-180' : ''}`} />
-                            </button>
-                            {openDropdown === 'documentos' && (
-                                <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                                    <button
-                                        onClick={() => { setActiveTab('actas'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'actas' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        📄 Actas
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('sales'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors rounded-b-lg ${activeTab === 'sales' ? 'text-white bg-green-500/20 border-l-2 border-green-500' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        💰 Ventas
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Otros Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setOpenDropdown(openDropdown === 'otros' ? null : 'otros')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 rounded ${['analytics', 'powerbi', 'software', 'logs'].includes(activeTab)
-                                    ? 'text-white bg-slate-700'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                Otros
-                                <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === 'otros' ? 'rotate-180' : ''}`} />
-                            </button>
-                            {openDropdown === 'otros' && (
-                                <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                                    <button
-                                        onClick={() => { setActiveTab('analytics'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'analytics' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        📊 Analytics
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('powerbi'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'powerbi' ? 'text-white bg-blue-500/20 border-l-2 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        ⚡ Power BI
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('software'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${activeTab === 'software' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        💿 Software
-                                    </button>
-                                    <button
-                                        onClick={() => { setActiveTab('logs'); setOpenDropdown(null); }}
-                                        className={`w-full px-4 py-2 text-left text-sm transition-colors rounded-b-lg ${activeTab === 'logs' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        📋 Logs
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Buscar por Serie, Hostname, Nombre, DNI..."
-                            className="w-full bg-slate-900 border border-slate-600 rounded-md py-2 pl-10 pr-4 text-white focus:outline-none focus:border-primary"
+                            className="w-full bg-surface border border-slate-300 dark:border-slate-600 rounded-md py-2 pl-10 pr-4 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => { setSearchQuery(e.target.value); setAssignmentsPage(1); }}
                         />
                     </div>
                 </div>
@@ -832,9 +815,9 @@ const Dashboard = () => {
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
                             </div>
                         )}
-                        <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-                            <table className="w-full text-left text-sm text-slate-400">
-                                <thead className="bg-slate-800 text-slate-200">
+                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                            <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                     <tr>
                                         {/* Combined Header & Filter: Type */}
                                         <th className="px-4 py-3 align-top w-24">
@@ -845,7 +828,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Tipo</span>
                                                     {sortConfig.key === 'type' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -872,7 +855,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Modelo / Marca</span>
                                                     {sortConfig.key === 'model' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -899,7 +882,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Serie</span>
                                                     {sortConfig.key === 'serial' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -926,7 +909,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Hostname</span>
                                                     {sortConfig.key === 'hostname' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -953,7 +936,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Cod. Inventario</span>
                                                     {sortConfig.key === 'inventory_code' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -980,7 +963,7 @@ const Dashboard = () => {
                                                 >
                                                     <span className="font-semibold text-xs uppercase tracking-wider">Estado</span>
                                                     {sortConfig.key === 'status' ? (
-                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-primary" /> : <ChevronDown className="w-3 h-3 text-primary" />
+                                                        sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
                                                     ) : (
                                                         <div className="flex flex-col opacity-0 group-hover:opacity-30">
                                                             <ChevronUp className="w-2 h-2" />
@@ -1007,14 +990,14 @@ const Dashboard = () => {
                                             <tr
                                                 key={device.id}
                                                 onClick={() => toggleSelection(device)}
-                                                className={`hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/10' : ''}`}
+                                                className={`hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : ''}`}
                                             >
                                                 <td className="px-4 py-3">{getIcon(device.device_type)}</td>
-                                                <td className="px-4 py-3 text-white font-medium">
+                                                <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">
                                                     {device.model}
                                                     <div className="text-xs text-slate-500">{device.brand}</div>
                                                 </td>
-                                                <td className="px-4 py-3 font-mono">{device.serial_number}</td>
+                                                <td className="px-4 py-3 font-mono tabular-nums">{device.serial_number}</td>
                                                 <td className="px-4 py-3 font-mono">
                                                     {device.device_type === 'laptop' && device.hostname ? (
                                                         <div className="flex items-center gap-2">
@@ -1025,7 +1008,7 @@ const Dashboard = () => {
                                                         <span className="text-slate-600">-</span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 font-mono text-slate-300">
+                                                <td className="px-4 py-3 font-mono tabular-nums text-slate-300">
                                                     {device.inventory_code ? (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded select-none">INV</span>
@@ -1060,7 +1043,10 @@ const Dashboard = () => {
                                 </tbody>
                             </table>
                             {getFilteredDevices().length === 0 && (
-                                <div className="p-8 text-center text-slate-500">No se encontraron equipos.</div>
+                                <EmptyState
+                                    title="No se encontraron equipos"
+                                    description="Ajusta los filtros de búsqueda o registra un nuevo equipo."
+                                />
                             )}
                         </div>
 
@@ -1078,10 +1064,10 @@ const Dashboard = () => {
                 {activeTab === 'assignments' && (
                     <div className="space-y-6">
                         {/* Header with employee count and location filter */}
-                        <div className="flex items-center justify-between bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-700 flex-wrap gap-3">
+                        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 flex-wrap gap-3">
                             <div className="flex items-center gap-3">
-                                <Users className="w-5 h-5 text-blue-400" />
-                                <span className="text-white font-medium">Empleados con Asignaciones</span>
+                                <Users className="w-5 h-5 text-device-laptop" />
+                                <span className="text-slate-900 dark:text-white font-medium">Empleados con Asignaciones</span>
                             </div>
                             <div className="flex items-center gap-4">
                                 {/* Export to Excel Button */}
@@ -1103,8 +1089,8 @@ const Dashboard = () => {
                                     <Filter className="w-4 h-4 text-slate-400" />
                                     <select
                                         value={assignmentFilter}
-                                        onChange={(e) => setAssignmentFilter(e.target.value)}
-                                        className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+                                        onChange={(e) => { setAssignmentFilter(e.target.value); setAssignmentsPage(1); }}
+                                        className="bg-surface border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-slate-900 dark:text-white"
                                     >
                                         <option value="all">Todos</option>
                                         <option value="missing_headphones">Sin Auriculares</option>
@@ -1114,7 +1100,7 @@ const Dashboard = () => {
                                 {/* Location Filter removed - now global in header */}
                                 <div className="flex items-center gap-2">
                                 </div>
-                                <span className="text-2xl font-bold text-white">
+                                <span className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
                                     {employeesWithAssignments.length}
                                     <span className="text-sm text-slate-500 font-normal ml-1">/ {employees.filter(e => e.is_active).length} total</span>
                                 </span>
@@ -1141,7 +1127,7 @@ const Dashboard = () => {
                                         }}
                                         onUpdateLocation={handleUpdateEmployeeLocation}
                                         onViewDetails={handleViewDetails}
-                                        onUnassignDevice={handleUnassignDevice}
+                                        onUnassignDevice={(e, device) => handleUnassignDevice(e, device, emp)}
                                         renderAssetCard={renderAssetCard}
                                     />
                                 );
@@ -1170,10 +1156,17 @@ const Dashboard = () => {
                 {activeTab === 'powerbi' && <PowerBIDashboard locationFilter={locationFilter} />}
                 {activeTab === 'actas' && <ActasStatusPage />}
                 {activeTab === 'sales' && <SalesPage />}
-                {activeTab === 'software' && <SoftwareList />}
+                {activeTab === 'devoluciones' && <DevolucionesPage />}
+                {activeTab === 'active_directory' && <ActiveDirectoryPage />}
+                {activeTab === 'toner_requests' && <TonerRequestsPage />}
+                {activeTab === 'licenses' && <LicensesPage />}
+                {activeTab === 'software' && <SoftwarePage />}
                 {activeTab === 'terminations' && <TerminationsPage />}
                 {activeTab === 'decommissions' && <DecommissionPage />}
                 {activeTab === 'logs' && <AuditLogsPage />}
+                {activeTab === 'hr_alerts' && <HRAlertsPage />}
+                {activeTab === 'ingresos' && <IngressosPage />}
+                {activeTab === 'lanchas' && <LanchasPage />}
 
             </div>
 
@@ -1224,7 +1217,7 @@ const Dashboard = () => {
         </div>
     );
     // Helper to render individual asset card
-    function renderAssetCard(asset, isGrouped = false, explicitLabel = null) {
+    function renderAssetCard(asset, isGrouped = false, explicitLabel = null, onViewDetailsOverride = null, onUnassignDeviceOverride = null) {
 
         // Determine label if not explicit
         let label = explicitLabel;
@@ -1277,7 +1270,7 @@ const Dashboard = () => {
         };
 
         return (
-            <div key={asset.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isGrouped ? 'bg-slate-800/50 border-slate-700 hover:border-slate-600' : 'bg-slate-900/50 border-slate-700/50 hover:border-primary/30'}`}>
+            <div key={asset.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isGrouped ? 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' : 'bg-surface/50 border-slate-200/50 dark:border-slate-700/50 hover:border-accent/30'}`}>
                 <div className="flex items-center gap-3 w-full min-w-0">
                     <div className={`p-2 rounded-lg flex-shrink-0 ${asset.device_type === 'laptop' ? 'bg-blue-500/20 text-blue-400' :
                         asset.device_type === 'charger' ? 'bg-yellow-500/20 text-yellow-500' :
@@ -1306,14 +1299,14 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                     <button
-                        onClick={(e) => handleViewDetails(e, asset)}
+                        onClick={(e) => (onViewDetailsOverride || handleViewDetails)(e, asset)}
                         className="p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
                         title="Ver detalles"
                     >
                         <Search className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={(e) => handleUnassignDevice(e, asset)}
+                        onClick={(e) => (onUnassignDeviceOverride || handleUnassignDevice)(e, asset)}
                         className="p-2 hover:bg-red-500/20 rounded-full text-slate-400 hover:text-red-400 transition-colors"
                         title="Quitar asignación"
                     >

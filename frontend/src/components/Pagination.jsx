@@ -37,12 +37,12 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
     if (totalPages <= 1) return null;
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-800/50 border-t border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
             {/* Info */}
-            <div className="text-sm text-slate-400">
-                Mostrando <span className="font-medium text-white">{startItem}</span> a{' '}
-                <span className="font-medium text-white">{endItem}</span> de{' '}
-                <span className="font-medium text-white">{totalItems}</span> resultados
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+                Mostrando <span className="font-medium text-slate-900 dark:text-white">{startItem}</span> a{' '}
+                <span className="font-medium text-slate-900 dark:text-white">{endItem}</span> de{' '}
+                <span className="font-medium text-slate-900 dark:text-white">{totalItems}</span> resultados
             </div>
 
             {/* Controls */}
@@ -51,7 +51,7 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
                 <button
                     onClick={() => onPageChange(1)}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Primera página"
                 >
                     <ChevronsLeft className="w-4 h-4" />
@@ -61,7 +61,7 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Página anterior"
                 >
                     <ChevronLeft className="w-4 h-4" />
@@ -79,8 +79,8 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
                                 key={page}
                                 onClick={() => onPageChange(page)}
                                 className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${currentPage === page
-                                        ? 'bg-primary border-primary text-white font-medium'
-                                        : 'border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                        ? 'bg-accent border-accent text-white font-medium'
+                                        : 'border-slate-200 dark:border-slate-700 bg-surface text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
                                 {page}
@@ -93,7 +93,7 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Página siguiente"
                 >
                     <ChevronRight className="w-4 h-4" />
@@ -103,7 +103,7 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
                 <button
                     onClick={() => onPageChange(totalPages)}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Última página"
                 >
                     <ChevronsRight className="w-4 h-4" />

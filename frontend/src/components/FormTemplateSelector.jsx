@@ -65,7 +65,7 @@ const FormTemplateSelector = ({ onSelect, type = "DECOMMISSION", onTemplateDelet
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
                 <BookTemplate className="w-4 h-4" />
                 Cargar Plantilla
@@ -78,7 +78,7 @@ const FormTemplateSelector = ({ onSelect, type = "DECOMMISSION", onTemplateDelet
                         className="fixed inset-0 z-10"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute top-full left-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-20 max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-2 w-72 bg-surface border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-20 max-h-60 overflow-y-auto">
                         {loading ? (
                             <div className="p-4 text-center text-slate-500 text-xs">Cargando...</div>
                         ) : templates.length === 0 ? (
@@ -90,12 +90,12 @@ const FormTemplateSelector = ({ onSelect, type = "DECOMMISSION", onTemplateDelet
                                         <button
                                             type="button"
                                             onClick={() => handleSelect(template)}
-                                            className="w-full text-left px-4 py-2 hover:bg-slate-700 transition-colors flex justify-between items-center"
+                                            className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex justify-between items-center"
                                         >
-                                            <span className="text-sm text-slate-300 truncate pr-2">{template.name}</span>
+                                            <span className="text-sm text-slate-600 dark:text-slate-300 truncate pr-2">{template.name}</span>
                                             <div
                                                 onClick={(e) => handleDelete(e, template.id)}
-                                                className="p-1 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded hover:bg-slate-600"
+                                                className="p-1 text-slate-500 hover:text-red-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded hover:bg-slate-200 dark:hover:bg-slate-600"
                                                 title="Eliminar plantilla"
                                             >
                                                 <Trash2 className="w-3 h-3" />

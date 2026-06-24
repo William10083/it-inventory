@@ -41,16 +41,16 @@ const SaveFormTemplateModal = ({ isOpen, onClose, formData, type = "DECOMMISSION
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-            <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center p-4 border-b border-slate-700">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Save className="w-5 h-5 text-blue-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Save className="w-5 h-5 text-blue-600 dark:text-blue-500" />
                         Guardar como Plantilla
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-slate-400 hover:text-white transition-colors"
+                        className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -59,7 +59,7 @@ const SaveFormTemplateModal = ({ isOpen, onClose, formData, type = "DECOMMISSION
                 <form onSubmit={handleSubmit} className="p-6">
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Nombre de la Plantilla
                             </label>
                             <input
@@ -68,7 +68,7 @@ const SaveFormTemplateModal = ({ isOpen, onClose, formData, type = "DECOMMISSION
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Ej: Robo Estándar, Obsolescencia 2024..."
-                                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none transition-all"
                             />
                             <p className="text-xs text-slate-500 mt-2">
                                 Se guardarán: Motivo, Observaciones y Motivo de Compra actuales.
@@ -80,14 +80,14 @@ const SaveFormTemplateModal = ({ isOpen, onClose, formData, type = "DECOMMISSION
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors"
+                            className="px-4 py-2 rounded-lg bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-medium transition-colors border border-slate-200 dark:border-slate-700"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-accent hover:opacity-90 text-white font-bold flex items-center gap-2 transition-opacity disabled:opacity-50"
                         >
                             {loading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             Guardar

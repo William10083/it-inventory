@@ -1052,22 +1052,22 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                         <div className="flex space-x-4 border-b border-slate-700 mb-4">
                             <button
                                 onClick={() => setActiveTab('history')}
-                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'history' ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'history' ? 'border-accent text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 Assignment History
                             </button>
                             <button
                                 onClick={() => setActiveTab('maintenance')}
-                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'maintenance' ? 'border-orange-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'maintenance' ? 'border-orange-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 Maintenance & Repairs
                             </button>
                         </div>
 
                         {activeTab === 'history' && (
-                            <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-                                <table className="w-full text-left text-sm text-slate-400">
-                                    <thead className="bg-slate-800 text-slate-200">
+                            <div className="bg-surface dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                                <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                         <tr>
                                             <th className="px-4 py-3 font-medium">Employee</th>
                                             <th className="px-4 py-3 font-medium">Date Assigned</th>
@@ -1075,11 +1075,11 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                             <th className="px-4 py-3 font-medium">Acta</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-700">
+                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                         {device.assignments && device.assignments.length > 0 ? (
                                             device.assignments.map((assignment) => (
-                                                <tr key={assignment.id} className="hover:bg-slate-800/50">
-                                                    <td className="px-4 py-3 text-white font-medium">{assignment.employee?.full_name}</td>
+                                                <tr key={assignment.id} className="hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                                                    <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">{assignment.employee?.full_name}</td>
                                                     <td className="px-4 py-3">{formatDate(assignment.assigned_date)}</td>
                                                     <td className="px-4 py-3">{formatDate(assignment.returned_date) || "Active"}</td>
                                                     <td className="px-4 py-3">
@@ -1092,7 +1092,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                                         assignment.assigned_date,
                                                                         ['mobile','chip','celular','smartphone','sim'].includes((device.device_type || '').toLowerCase())
                                                                     )}
-                                                                    className="text-blue-400 hover:underline flex items-center gap-1 text-xs whitespace-nowrap"
+                                                                    className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 text-xs whitespace-nowrap"
                                                                 >
                                                                     <FileText className="w-3 h-3" /> Ingreso
                                                                 </button>
@@ -1126,16 +1126,16 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleCreateTicket} className="bg-slate-800 border border-slate-700 p-4 rounded-lg space-y-3">
+                                    <form onSubmit={handleCreateTicket} className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg space-y-3">
                                         <div className="flex justify-between">
-                                            <h4 className="text-white font-bold">New Maintenance Ticket</h4>
-                                            <button type="button" onClick={() => setShowMaintenanceForm(false)} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+                                            <h4 className="text-slate-900 dark:text-white font-bold">New Maintenance Ticket</h4>
+                                            <button type="button" onClick={() => setShowMaintenanceForm(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"><X className="w-4 h-4" /></button>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-slate-400 uppercase">Description</label>
+                                            <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Description</label>
                                             <input
                                                 required
-                                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                                className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
                                                 value={newLog.description}
                                                 onChange={e => setNewLog({ ...newLog, description: e.target.value })}
                                                 placeholder="Broken screen, battery replacement..."
@@ -1143,19 +1143,19 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-xs text-slate-400 uppercase">Vendor</label>
+                                                <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Vendor</label>
                                                 <input
-                                                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                                    className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
                                                     value={newLog.vendor}
                                                     onChange={e => setNewLog({ ...newLog, vendor: e.target.value })}
                                                     placeholder="Official Store, Local..."
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-slate-400 uppercase">Cost ($)</label>
+                                                <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Cost ($)</label>
                                                 <input
                                                     type="number"
-                                                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                                    className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
                                                     value={newLog.cost}
                                                     onChange={e => setNewLog({ ...newLog, cost: parseInt(e.target.value) || 0 })}
                                                 />
@@ -1167,9 +1167,9 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     </form>
                                 )}
 
-                                <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-                                    <table className="w-full text-left text-sm text-slate-400">
-                                        <thead className="bg-slate-800 text-slate-200">
+                                <div className="bg-surface dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                                    <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                                        <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                             <tr>
                                                 <th className="px-4 py-3 font-medium">Date</th>
                                                 <th className="px-4 py-3 font-medium">Description</th>
@@ -1178,19 +1178,19 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 <th className="px-4 py-3 font-medium">Cost</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-700">
+                                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                             {maintenanceLogs.length > 0 ? (
                                                 maintenanceLogs.map((log) => (
-                                                    <tr key={log.id} className="hover:bg-slate-800/50">
+                                                    <tr key={log.id} className="hover:bg-slate-100 dark:hover:bg-slate-800/50">
                                                         <td className="px-4 py-3">{formatDate(log.date)}</td>
-                                                        <td className="px-4 py-3 text-white">{log.description}</td>
+                                                        <td className="px-4 py-3 text-slate-900 dark:text-white">{log.description}</td>
                                                         <td className="px-4 py-3">{log.vendor || "-"}</td>
                                                         <td className="px-4 py-3">
-                                                            <span className={`px-2 py-0.5 rounded text-xs uppercase font-bold ${log.status === 'open' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400'}`}>
+                                                            <span className={`px-2 py-0.5 rounded text-xs uppercase font-bold ${log.status === 'open' ? 'bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-green-500/20 text-green-700 dark:text-green-400'}`}>
                                                                 {log.status}
                                                             </span>
                                                         </td>
-                                                        <td className="px-4 py-3 text-white font-mono">${log.cost}</td>
+                                                        <td className="px-4 py-3 text-slate-900 dark:text-white font-mono">${log.cost}</td>
                                                     </tr>
                                                 ))
                                             ) : (

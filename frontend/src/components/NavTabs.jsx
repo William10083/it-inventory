@@ -58,10 +58,10 @@ const NavTabs = ({ activeTab, setActiveTab }) => {
                 </button>
                 {openDropdown === 'gestion' && (
                     <div className="absolute top-full left-0 mt-1 bg-surface dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                        <button onClick={() => selectTab('inventory')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'inventory' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('inventory')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'inventory' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <Package className="w-4 h-4" /> Inventario
                         </button>
-                        <button onClick={() => selectTab('assignments')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'assignments' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('assignments')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'assignments' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <Users className="w-4 h-4" /> Asignaciones
                         </button>
                         <button onClick={() => selectTab('terminations')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'terminations' ? 'text-white bg-red-500/20 border-l-2 border-red-500' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
@@ -97,7 +97,7 @@ const NavTabs = ({ activeTab, setActiveTab }) => {
                 </button>
                 {openDropdown === 'documentos' && (
                     <div className="absolute top-full left-0 mt-1 bg-surface dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                        <button onClick={() => selectTab('actas')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'actas' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('actas')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'actas' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <FileText className="w-4 h-4" /> Actas
                         </button>
                         <button onClick={() => selectTab('sales')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'sales' ? 'text-white bg-green-500/20 border-l-2 border-green-500' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
@@ -124,19 +124,19 @@ const NavTabs = ({ activeTab, setActiveTab }) => {
                 </button>
                 {openDropdown === 'otros' && (
                     <div className="absolute top-full left-0 mt-1 bg-surface dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 min-w-[180px]">
-                        <button onClick={() => selectTab('analytics')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'analytics' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('analytics')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'analytics' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <BarChart3 className="w-4 h-4" /> Analytics
                         </button>
                         <button onClick={() => selectTab('powerbi')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'powerbi' ? 'text-white bg-blue-500/20 border-l-2 border-blue-500' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <Zap className="w-4 h-4" /> Power BI
                         </button>
-                        <button onClick={() => selectTab('licenses')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'licenses' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('licenses')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'licenses' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <Key className="w-4 h-4" /> Licencias
                         </button>
-                        <button onClick={() => selectTab('software')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'software' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('software')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${activeTab === 'software' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <Disc className="w-4 h-4" /> Software
                         </button>
-                        <button onClick={() => selectTab('logs')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 border-t border-slate-200 dark:border-slate-700/50 ${activeTab === 'logs' ? 'text-white bg-primary/20 border-l-2 border-primary' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
+                        <button onClick={() => selectTab('logs')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 border-t border-slate-200 dark:border-slate-700/50 ${activeTab === 'logs' ? 'text-white bg-accent/20 border-l-2 border-accent' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>
                             <ClipboardList className="w-4 h-4" /> Logs
                         </button>
                         <button onClick={() => selectTab('active_directory')} className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 border-t border-slate-200 dark:border-slate-700/50 ${activeTab === 'active_directory' ? 'text-white bg-blue-500/20 border-l-2 border-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-700'}`}>

@@ -285,15 +285,15 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
                 {/* Header */}
-                <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between z-10">
+                <div className="sticky top-0 bg-surface border-b border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between z-10">
                     <div className="flex items-center gap-3">
-                        <DollarSign className="w-6 h-6 text-green-400" />
-                        <h2 className="text-xl font-bold text-white">Registrar Nueva Venta</h2>
+                        <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Registrar Nueva Venta</h2>
                     </div>
-                    <button onClick={handleClose} className="text-slate-400 hover:text-white">
+                    <button onClick={handleClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -305,30 +305,30 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Success Message */}
                         <div className="text-center py-6">
                             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/20 rounded-full mb-4">
-                                <CheckCircle className="w-12 h-12 text-green-400" />
+                                <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
                             </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                                 ¡Venta Registrada Exitosamente!
                             </h3>
-                            <p className="text-slate-400">
+                            <p className="text-slate-500 dark:text-slate-400">
                                 Venta #{createdSaleId}
                             </p>
 
                             {/* Sale Summary */}
                             {createdSaleData && (
-                                <div className="mt-6 bg-slate-900/50 border border-slate-700 rounded-lg p-4 max-w-md mx-auto">
+                                <div className="mt-6 bg-bg border border-slate-200 dark:border-slate-700 rounded-lg p-4 max-w-md mx-auto">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div className="text-left">
-                                            <p className="text-slate-400">Comprador</p>
-                                            <p className="text-white font-medium">{createdSaleData.buyer_name}</p>
+                                            <p className="text-slate-500 dark:text-slate-400">Comprador</p>
+                                            <p className="text-slate-900 dark:text-white font-medium">{createdSaleData.buyer_name}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-slate-400">Total</p>
-                                            <p className="text-white font-medium">S/. {createdSaleData.total}</p>
+                                            <p className="text-slate-500 dark:text-slate-400">Total</p>
+                                            <p className="text-slate-900 dark:text-white font-medium">S/. {createdSaleData.total}</p>
                                         </div>
                                         <div className="text-left col-span-2">
-                                            <p className="text-slate-400">Dispositivos</p>
-                                            <p className="text-white font-medium">{createdSaleData.deviceCount} dispositivo(s)</p>
+                                            <p className="text-slate-500 dark:text-slate-400">Dispositivos</p>
+                                            <p className="text-slate-900 dark:text-white font-medium">{createdSaleData.deviceCount} dispositivo(s)</p>
                                         </div>
                                     </div>
                                 </div>
@@ -337,8 +337,8 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {/* PDF Uploader */}
                         <div className="max-w-2xl mx-auto">
-                            <div className="bg-slate-900/30 border border-slate-700 rounded-lg p-6">
-                                <h4 className="text-lg font-semibold text-white mb-4">
+                            <div className="bg-bg border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+                                <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                                     Subir Acta Firmada (Opcional)
                                 </h4>
                                 <PdfUploader
@@ -363,7 +363,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                     onSuccess(); // Refresh sales list
                                     handleClose(); // Close modal
                                 }}
-                                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                                className="px-6 py-2 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
                             >
                                 Omitir por Ahora
                             </button>
@@ -374,12 +374,12 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                     <form onSubmit={handleSubmit} className="p-6 space-y-6">
                         {/* Buyer Information */}
                         <div>
-                            <h3 className="text-lg font-semibold text-white mb-4">Información del Comprador</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Información del Comprador</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Nombre Completo */}
                                 <div className="md:col-span-2 relative">
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         <User className="w-4 h-4 inline mr-1" />
                                         Nombre Completo *
                                     </label>
@@ -390,33 +390,33 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         onChange={(e) => handleFieldChange('name', e.target.value)}
                                         onFocus={() => setActiveField('name')}
                                         onBlur={() => setTimeout(() => setActiveField(null), 300)}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
 
                                     {/* Suggestions for name field */}
                                     {activeField === 'name' && showSuggestions && suggestions.length > 0 && (
-                                        <div className="absolute z-20 w-full mt-1 bg-slate-900 border border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                                        <div className="absolute z-20 w-full mt-1 bg-surface border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                                             {suggestions.map((person, idx) => (
                                                 <button
                                                     key={idx}
                                                     type="button"
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
-                                                    className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
+                                                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 last:border-0"
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="font-medium">
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-400'
-                                                            : 'bg-green-500/20 text-green-400'
+                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-400">
+                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -427,7 +427,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                                 {/* DNI */}
                                 <div className="relative">
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         <FileText className="w-4 h-4 inline mr-1" />
                                         DNI *
                                     </label>
@@ -438,33 +438,33 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         onChange={(e) => handleFieldChange('dni', e.target.value)}
                                         onFocus={() => setActiveField('dni')}
                                         onBlur={() => setTimeout(() => setActiveField(null), 300)}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
 
                                     {/* Suggestions for DNI field */}
                                     {activeField === 'dni' && showSuggestions && suggestions.length > 0 && (
-                                        <div className="absolute z-20 w-full mt-1 bg-slate-900 border border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                                        <div className="absolute z-20 w-full mt-1 bg-surface border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                                             {suggestions.map((person, idx) => (
                                                 <button
                                                     key={idx}
                                                     type="button"
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
-                                                    className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
+                                                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 last:border-0"
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="font-medium">
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-400'
-                                                            : 'bg-green-500/20 text-green-400'
+                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-400">
+                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -475,7 +475,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                                 {/* Email */}
                                 <div className="relative">
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         <Mail className="w-4 h-4 inline mr-1" />
                                         Email
                                     </label>
@@ -485,33 +485,33 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         onChange={(e) => handleFieldChange('email', e.target.value)}
                                         onFocus={() => setActiveField('email')}
                                         onBlur={() => setTimeout(() => setActiveField(null), 300)}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                         placeholder="Escribe para buscar..."
                                     />
 
                                     {/* Suggestions for email field */}
                                     {activeField === 'email' && showSuggestions && suggestions.length > 0 && (
-                                        <div className="absolute z-20 w-full mt-1 bg-slate-900 border border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                                        <div className="absolute z-20 w-full mt-1 bg-surface border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                                             {suggestions.map((person, idx) => (
                                                 <button
                                                     key={idx}
                                                     type="button"
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     onClick={() => selectPerson(person)}
-                                                    className="w-full text-left px-4 py-3 hover:bg-slate-700 text-white border-b border-slate-700 last:border-0"
+                                                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 last:border-0"
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="font-medium">
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-400'
-                                                            : 'bg-green-500/20 text-green-400'
+                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-400">
+                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -525,13 +525,13 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Devices Section */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                                     Dispositivos ({selectedDevicesData.length} seleccionados)
                                 </h3>
                                 <button
                                     type="button"
                                     onClick={() => setShowAddDeviceModal(true)}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition-colors"
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-accent hover:opacity-90 text-white rounded-lg text-sm transition-opacity"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Agregar Dispositivo
@@ -541,8 +541,8 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                             {/* Device Chips */}
                             <div className="space-y-3">
                                 {selectedDevicesData.length === 0 ? (
-                                    <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-8 text-center">
-                                        <p className="text-slate-400">
+                                    <div className="bg-bg border border-slate-200 dark:border-slate-700 rounded-lg p-8 text-center">
+                                        <p className="text-slate-500 dark:text-slate-400">
                                             No hay dispositivos seleccionados. Busca un empleado o agrega dispositivos manualmente.
                                         </p>
                                     </div>
@@ -562,10 +562,10 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {/* Sale Details */}
                         <div>
-                            <h3 className="text-lg font-semibold text-white mb-4">Detalles de la Venta</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Detalles de la Venta</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         <DollarSign className="w-4 h-4 inline mr-1" />
                                         Precio Total (S/.)
                                     </label>
@@ -573,19 +573,19 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         type="number"
                                         value={formData.sale_price}
                                         onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                         readOnly
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         <CreditCard className="w-4 h-4 inline mr-1" />
                                         Método de Pago
                                     </label>
                                     <select
                                         value={formData.payment_method}
                                         onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                     >
                                         <option value="Efectivo">Efectivo</option>
                                         <option value="Transferencia">Transferencia</option>
@@ -594,32 +594,32 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                     </select>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                         Notas
                                     </label>
                                     <textarea
                                         value={formData.notes}
                                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                         rows={3}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                                className="px-4 py-2 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? 'Registrando...' : 'Registrar Venta'}
                             </button>
@@ -629,34 +629,34 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Add Device Modal */}
                 {showAddDeviceModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-                            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-white">Agregar Dispositivo</h3>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+                            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Agregar Dispositivo</h3>
                                 <button
                                     onClick={() => {
                                         setShowAddDeviceModal(false);
                                         setDeviceSearch('');
                                     }}
-                                    className="text-slate-400 hover:text-white"
+                                    className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <div className="p-4 border-b border-slate-700">
+                            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
                                 <input
                                     type="text"
                                     placeholder="Buscar por marca, modelo o serial..."
                                     value={deviceSearch}
                                     onChange={(e) => setDeviceSearch(e.target.value)}
-                                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-accent outline-none"
                                 />
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4">
                                 {filteredAvailableDevices.length === 0 ? (
-                                    <div className="text-center py-8 text-slate-400">
+                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                                         No se encontraron dispositivos disponibles
                                     </div>
                                 ) : (
@@ -666,12 +666,12 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                 key={device.id}
                                                 type="button"
                                                 onClick={() => addDevice(device)}
-                                                className="w-full text-left p-3 bg-slate-900 hover:bg-slate-700 border border-slate-600 rounded-lg transition-colors"
+                                                className="w-full text-left p-3 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors"
                                             >
-                                                <div className="font-medium text-white">
+                                                <div className="font-medium text-slate-900 dark:text-white">
                                                     {device.brand} {device.model}
                                                 </div>
-                                                <div className="text-sm text-slate-400">
+                                                <div className="text-sm text-slate-500 dark:text-slate-400">
                                                     SN: {device.serial_number} {device.hostname && `• ${device.hostname}`}
                                                 </div>
                                                 <div className="text-xs text-slate-500 mt-1">

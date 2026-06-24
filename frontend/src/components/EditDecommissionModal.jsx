@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, Loader, Upload, Image as ImageIcon, FileText, AlertTriangle } from 'lucide-react';
+import { X, Save, Loader, Upload, Image as ImageIcon, FileText, AlertTriangle, List } from 'lucide-react';
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
 
@@ -11,6 +11,44 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
     const { showNotification } = useNotification();
     const deviceInputRef = useRef(null);
     const serialInputRef = useRef(null);
+    const obsRef = useRef(null);
+
+    const formatSelectionAsBullets = () => {
+        const el = obsRef.current;
+        if (!el) return;
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        if (start === end) return; // nada seleccionado
+
+        // Expandir selección a líneas completas
+        const text = observations;
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const lineEnd = text.indexOf('\n', end);
+        const blockEnd = lineEnd === -1 ? text.length : lineEnd;
+
+        const before = text.slice(0, lineStart);
+        const selected = text.slice(lineStart, blockEnd);
+        const after = text.slice(blockEnd);
+
+        const formatted = selected
+            .split('\n')
+            .map(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return '';
+                if (trimmed.startsWith('• ') || trimmed.startsWith('- ')) return line;
+                return '• ' + trimmed;
+            })
+            .join('\n');
+
+        const newValue = before + formatted + after;
+        setObservations(newValue);
+
+        // Restaurar selección
+        setTimeout(() => {
+            el.focus();
+            el.setSelectionRange(lineStart, lineStart + formatted.length);
+        }, 0);
+    };
 
     // Form State
     const [reason, setReason] = useState(decommission.reason || '');
@@ -56,8 +94,7 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
         };
     }, [deviceImagePreview, serialImagePreview]);
 
-    const handleImageSelect = (e, type) => {
-        const file = e.target.files[0];
+    const handleImageFile = (file, type) => {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
@@ -73,6 +110,24 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
         } else {
             setSerialImageFile(file);
             setSerialImagePreview(previewUrl);
+        }
+    };
+
+    const handleImageSelect = (e, type) => {
+        handleImageFile(e.target.files[0], type);
+    };
+
+    const handleImageDrop = (e, type) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleImageFile(e.dataTransfer.files?.[0], type);
+    };
+
+    const handleImagePaste = (e, type) => {
+        const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+        if (item) {
+            e.preventDefault();
+            handleImageFile(item.getAsFile(), type);
         }
     };
 
@@ -135,13 +190,13 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
-                <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 p-6 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-400" />
+            <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div className="sticky top-0 z-10 bg-surface/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 p-6 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         Editar Baja: {decommission.device?.brand} {decommission.device?.model}
                     </h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -150,12 +205,12 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Motivo de Baja *</label>
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Motivo de Baja *</label>
                             <select
                                 required
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                             >
                                 <option value="">Seleccionar motivo...</option>
                                 <option value="Obsolescencia Tecnológica">Obsolescencia Tecnológica</option>
@@ -169,46 +224,61 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Observaciones / Diagnóstico Técnico *</label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Observaciones / Diagnóstico Técnico *</label>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={formatSelectionAsBullets}
+                                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                                title="Selecciona las líneas que quieres convertir en viñetas y presiona este botón"
+                            >
+                                <List className="w-3 h-3" />
+                                • Viñeta a selección
+                            </button>
+                        </div>
                         <textarea
+                            ref={obsRef}
                             required
                             value={observations}
                             onChange={(e) => setObservations(e.target.value)}
-                            rows="4"
-                            className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                            rows="8"
+                            placeholder={"• Pantalla rota\n• Batería sin carga\n• Teclado dañado"}
+                            className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-y font-mono text-sm leading-relaxed"
                         ></textarea>
+                        <p className="text-xs text-slate-500">Selecciona las líneas que quieres convertir en viñetas (•) y pulsa el botón.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Año de Fabricación</label>
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Año de Fabricación</label>
                             <input
                                 type="number"
                                 min="1990"
                                 max={new Date().getFullYear()}
                                 value={fabricationYear}
                                 onChange={(e) => setFabricationYear(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Motivo de Compra</label>
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Motivo de Compra</label>
                             <input
                                 type="text"
                                 value={purchaseReason}
                                 onChange={(e) => setPurchaseReason(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                             />
                         </div>
                     </div>
 
                     {/* Image Upload Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                         {/* Device Image */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-blue-400" />
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 Foto del Equipo
                             </label>
                             <div className="relative group">
@@ -222,9 +292,13 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                 />
                                 <label
                                     htmlFor="edit-device-image-upload"
-                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${(deviceImagePreview || existingDevicePath)
-                                            ? 'border-blue-500 bg-slate-800'
-                                            : 'border-slate-600 bg-slate-800 hover:border-blue-500 hover:bg-slate-700'
+                                    tabIndex={0}
+                                    onDrop={(e) => handleImageDrop(e, 'device')}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onPaste={(e) => handleImagePaste(e, 'device')}
+                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors outline-none focus:border-blue-500 ${(deviceImagePreview || existingDevicePath)
+                                            ? 'border-blue-500 bg-bg'
+                                            : 'border-slate-300 dark:border-slate-600 bg-bg hover:border-blue-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     {(deviceImagePreview || existingDevicePath) ? (
@@ -240,8 +314,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                                            <p className="text-xs text-slate-400">Clic para subir imagen</p>
+                                            <Upload className="w-8 h-8 mb-2 text-slate-500 dark:text-slate-400" />
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Clic, arrastra o pega (Ctrl+V)</p>
                                         </div>
                                     )}
                                 </label>
@@ -250,8 +324,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
 
                         {/* Serial Image */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-green-400" />
+                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
                                 Foto de la Serie
                             </label>
                             <div className="relative group">
@@ -265,9 +339,13 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                 />
                                 <label
                                     htmlFor="edit-serial-image-upload"
-                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${(serialImagePreview || existingSerialPath)
-                                            ? 'border-green-500 bg-slate-800'
-                                            : 'border-slate-600 bg-slate-800 hover:border-green-500 hover:bg-slate-700'
+                                    tabIndex={0}
+                                    onDrop={(e) => handleImageDrop(e, 'serial')}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onPaste={(e) => handleImagePaste(e, 'serial')}
+                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors outline-none focus:border-green-500 ${(serialImagePreview || existingSerialPath)
+                                            ? 'border-green-500 bg-bg'
+                                            : 'border-slate-300 dark:border-slate-600 bg-bg hover:border-green-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     {(serialImagePreview || existingSerialPath) ? (
@@ -283,8 +361,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                                            <p className="text-xs text-slate-400">Clic para subir imagen</p>
+                                            <Upload className="w-8 h-8 mb-2 text-slate-500 dark:text-slate-400" />
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Clic, arrastra o pega (Ctrl+V)</p>
                                         </div>
                                     )}
                                 </label>
@@ -292,8 +370,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                         </div>
                     </div>
 
-                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 flex gap-3 text-blue-200 text-sm">
-                        <AlertTriangle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 flex gap-3 text-blue-700 dark:text-blue-200 text-sm">
+                        <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0 mt-0.5" />
                         <div>
                             <div className="font-bold mb-1">ℹ️ Actualización de Acta</div>
                             Al guardar los cambios, se regenerará automáticamente el documento PDF del acta con la nueva información.
@@ -304,7 +382,7 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors"
+                            className="px-6 py-3 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-medium transition-colors"
                         >
                             Cancelar
                         </button>

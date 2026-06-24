@@ -73,27 +73,27 @@ const AuditLogsPage = () => {
     };
 
     const getActionIcon = (action) => {
-        if (action.includes('CREATE')) return <CheckCircle className="w-4 h-4 text-green-400" />;
-        if (action.includes('UPDATE')) return <Clock className="w-4 h-4 text-yellow-400" />;
-        if (action.includes('DELETE')) return <XCircle className="w-4 h-4 text-red-400" />;
-        if (action.includes('REVERT')) return <RotateCcw className="w-4 h-4 text-blue-400" />;
-        return <FileText className="w-4 h-4 text-slate-400" />;
+        if (action.includes('CREATE')) return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />;
+        if (action.includes('UPDATE')) return <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />;
+        if (action.includes('DELETE')) return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />;
+        if (action.includes('REVERT')) return <RotateCcw className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+        return <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />;
     };
 
     const getActionColor = (action) => {
-        if (action.includes('CREATE')) return 'bg-green-500/10 text-green-400 border-green-500/30';
-        if (action.includes('UPDATE')) return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30';
-        if (action.includes('DELETE')) return 'bg-red-500/10 text-red-400 border-red-500/30';
-        if (action.includes('REVERT')) return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/30';
+        if (action.includes('CREATE')) return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30';
+        if (action.includes('UPDATE')) return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30';
+        if (action.includes('DELETE')) return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30';
+        if (action.includes('REVERT')) return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30';
+        return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30';
     };
 
     const getEntityIcon = (entityType) => {
         switch (entityType) {
-            case 'device': return <Package className="w-4 h-4 text-blue-400" />;
-            case 'employee': return <Users className="w-4 h-4 text-green-400" />;
-            case 'assignment': return <FileText className="w-4 h-4 text-purple-400" />;
-            default: return <FileText className="w-4 h-4 text-slate-400" />;
+            case 'device': return <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+            case 'employee': return <Users className="w-4 h-4 text-green-600 dark:text-green-400" />;
+            case 'assignment': return <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />;
+            default: return <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />;
         }
     };
 
@@ -114,27 +114,27 @@ const AuditLogsPage = () => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="bg-blue-500/20 p-3 rounded-lg">
-                        <History className="w-6 h-6 text-blue-400" />
+                        <History className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Registro de Auditoría</h2>
-                        <p className="text-slate-400 text-sm">Historial completo de acciones con capacidad de reversión</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Registro de Auditoría</h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Historial completo de acciones con capacidad de reversión</p>
                     </div>
                 </div>
-                <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                    <span className="text-slate-400 text-sm">Total de registros: </span>
-                    <span className="text-white font-bold">{logs.length}</span>
+                <div className="bg-surface px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span className="text-slate-500 dark:text-slate-400 text-sm">Total de registros: </span>
+                    <span className="text-slate-900 dark:text-white font-bold">{logs.length}</span>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="glass-card p-4 flex gap-4 flex-wrap">
+            <div className="bg-surface rounded-md shadow-sm p-4 flex gap-4 flex-wrap">
                 <div className="flex-1 min-w-[200px]">
-                    <label className="text-xs text-slate-400 mb-1 block">Filtrar por Acción</label>
+                    <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">Filtrar por Acción</label>
                     <select
                         value={filterAction}
                         onChange={(e) => setFilterAction(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-accent"
                     >
                         <option value="">Todas las acciones</option>
                         <option value="CREATE">Creaciones</option>
@@ -145,11 +145,11 @@ const AuditLogsPage = () => {
                     </select>
                 </div>
                 <div className="flex-1 min-w-[200px]">
-                    <label className="text-xs text-slate-400 mb-1 block">Filtrar por Entidad</label>
+                    <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">Filtrar por Entidad</label>
                     <select
                         value={filterEntity}
                         onChange={(e) => setFilterEntity(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-accent"
                     >
                         <option value="">Todas las entidades</option>
                         <option value="device">Dispositivos</option>
@@ -160,7 +160,7 @@ const AuditLogsPage = () => {
                 <div className="flex items-end">
                     <button
                         onClick={fetchLogs}
-                        className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                        className="bg-accent hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
                     >
                         Actualizar
                     </button>
@@ -168,15 +168,15 @@ const AuditLogsPage = () => {
             </div>
 
             {/* Logs Table */}
-            <div className="glass-card overflow-hidden">
+            <div className="bg-surface rounded-md shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-slate-400">Cargando...</div>
+                    <div className="p-8 text-center text-slate-500 dark:text-slate-400">Cargando...</div>
                 ) : logs.length === 0 ? (
                     <div className="p-8 text-center text-slate-500">No se encontraron registros de auditoría</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-800/50 text-slate-200 border-b border-slate-700">
+                            <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th className="px-4 py-3">Fecha/Hora</th>
                                     <th className="px-4 py-3">Usuario</th>
@@ -187,20 +187,20 @@ const AuditLogsPage = () => {
                                     <th className="px-4 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-700/50">
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
                                 {logs.map(log => (
                                     <React.Fragment key={log.id}>
-                                        <tr className="hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-4 py-3 text-slate-300 font-mono text-xs">
+                                        <tr className="hover:bg-slate-100 dark:hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-mono text-xs">
                                                 {formatDate(log.timestamp)}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white">
+                                                    <div className="w-6 h-6 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs text-slate-700 dark:text-white">
                                                         {log.user_username ? log.user_username.charAt(0).toUpperCase() : '?'}
                                                     </div>
                                                     <div>
-                                                        <div className="text-white text-sm">{log.user_username || 'Sistema'}</div>
+                                                        <div className="text-slate-900 dark:text-white text-sm">{log.user_username || 'Sistema'}</div>
                                                         {log.user_fullname && (
                                                             <div className="text-xs text-slate-500">{log.user_fullname}</div>
                                                         )}
@@ -214,27 +214,27 @@ const AuditLogsPage = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="flex items-center gap-1.5 text-slate-300">
+                                                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                                                     {getEntityIcon(log.entity_type)}
                                                     <span className="capitalize">{log.entity_type || '-'}</span>
                                                     {log.entity_id && <span className="text-slate-500">#{log.entity_id}</span>}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3 text-slate-400 max-w-md truncate">
+                                            <td className="px-4 py-3 text-slate-500 dark:text-slate-400 max-w-md truncate">
                                                 {log.details || '-'}
                                             </td>
                                             <td className="px-4 py-3">
                                                 {log.reverted_at ? (
-                                                    <span className="px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center gap-1 w-fit" title={`Revertido el ${new Date(log.reverted_at).toLocaleString('es-PE')}`}>
+                                                    <span className="px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1 w-fit" title={`Revertido el ${new Date(log.reverted_at).toLocaleString('es-PE')}`}>
                                                         <RotateCcw className="w-3 h-3" />
                                                         Revertido
                                                     </span>
                                                 ) : log.is_revertible ? (
-                                                    <span className="px-2 py-1 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/30" title="Revertible - menos de 7 días y tiene snapshot">
+                                                    <span className="px-2 py-1 rounded text-xs bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/30" title="Revertible - menos de 7 días y tiene snapshot">
                                                         Revertible
                                                     </span>
                                                 ) : (
-                                                    <span className="px-2 py-1 rounded text-xs bg-slate-500/10 text-slate-400 border border-slate-500/30" title="No revertible - más de 7 días, sin snapshot o acción permanente">
+                                                    <span className="px-2 py-1 rounded text-xs bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/30" title="No revertible - más de 7 días, sin snapshot o acción permanente">
                                                         No revertible
                                                     </span>
                                                 )}
@@ -243,7 +243,7 @@ const AuditLogsPage = () => {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => viewDetails(log.id)}
-                                                        className="text-slate-400 hover:text-white transition-colors p-1"
+                                                        className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1"
                                                         title="Ver detalles"
                                                     >
                                                         <Eye className="w-4 h-4" />
@@ -251,7 +251,7 @@ const AuditLogsPage = () => {
                                                     {log.is_revertible && !log.reverted_at && (
                                                         <button
                                                             onClick={() => handleRevert(log.id)}
-                                                            className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors p-1"
                                                             title="Revertir acción"
                                                         >
                                                             <RotateCcw className="w-4 h-4" />
@@ -262,35 +262,35 @@ const AuditLogsPage = () => {
                                         </tr>
                                         {/* Expanded details row */}
                                         {expandedLog === log.id && log.detailsData && (
-                                            <tr className="bg-slate-800/50">
+                                            <tr className="bg-slate-100 dark:bg-slate-800/50">
                                                 <td colSpan="7" className="px-4 py-4">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {log.detailsData.snapshot_before && (
-                                                            <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
-                                                                <h4 className="text-xs font-bold text-amber-400 mb-2 flex items-center gap-1">
+                                                            <div className="bg-bg p-3 rounded border border-slate-200 dark:border-slate-700">
+                                                                <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1">
                                                                     <AlertCircle className="w-3 h-3" />
                                                                     ANTES DEL CAMBIO
                                                                 </h4>
-                                                                <pre className="text-xs text-slate-300 overflow-auto max-h-48">
+                                                                <pre className="text-xs text-slate-600 dark:text-slate-300 overflow-auto max-h-48">
                                                                     {JSON.stringify(log.detailsData.snapshot_before, null, 2)}
                                                                 </pre>
                                                             </div>
                                                         )}
                                                         {log.detailsData.snapshot_after && (
-                                                            <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
-                                                                <h4 className="text-xs font-bold text-green-400 mb-2 flex items-center gap-1">
+                                                            <div className="bg-bg p-3 rounded border border-slate-200 dark:border-slate-700">
+                                                                <h4 className="text-xs font-bold text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
                                                                     <CheckCircle className="w-3 h-3" />
                                                                     DESPUÉS DEL CAMBIO
                                                                 </h4>
-                                                                <pre className="text-xs text-slate-300 overflow-auto max-h-48">
+                                                                <pre className="text-xs text-slate-600 dark:text-slate-300 overflow-auto max-h-48">
                                                                     {JSON.stringify(log.detailsData.snapshot_after, null, 2)}
                                                                 </pre>
                                                             </div>
                                                         )}
                                                     </div>
                                                     {log.detailsData.reverted_by_username && (
-                                                        <div className="mt-2 text-xs text-slate-400">
-                                                            Revertido por: <span className="text-white">{log.detailsData.reverted_by_username}</span> el {formatDate(log.detailsData.reverted_at)}
+                                                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                                            Revertido por: <span className="text-slate-900 dark:text-white">{log.detailsData.reverted_by_username}</span> el {formatDate(log.detailsData.reverted_at)}
                                                         </div>
                                                     )}
                                                 </td>

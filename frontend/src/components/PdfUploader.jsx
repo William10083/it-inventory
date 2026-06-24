@@ -3,6 +3,7 @@ import { Upload, FileText, Download, Loader, X, CheckCircle, Lock, Trash2 } from
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { downloadFileWithProgress } from '../utils/downloadFile';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -16,7 +17,7 @@ const PdfUploader = ({
     onDeleteSuccess
 }) => {
     const { token } = useAuth(); // Get token from context
-    const { showNotification, showConfirm } = useNotification();
+    const { showNotification, showConfirm, startDownload, updateDownloadProgress, finishDownload, failDownload } = useNotification();
     const [uploading, setUploading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [file, setFile] = useState(null);
@@ -95,15 +96,14 @@ const PdfUploader = ({
     };
 
     const handleDownload = () => {
-        // Use window.open or location.href to let the browser handle the download directly
-        // This avoids issues with Blob handling or double-encoding in JS
-        // Append token to URL for authentication
-        const urlWithToken = `${downloadUrl}?token=${token}`;
-
-        // Force download in the same tab instead of opening a new one
-        window.location.href = urlWithToken;
-
-        showNotification('✓ Iniciando descarga...', 'success');
+        const filename = (currentPdfPath ? currentPdfPath.split('/').pop() : null) || 'acta.pdf';
+        downloadFileWithProgress({
+            url: downloadUrl,
+            filename,
+            label: filename,
+            params: { token },
+            notification: { startDownload, updateDownloadProgress, finishDownload, failDownload, showNotification },
+        }).catch(() => {});
     };
 
     const handleDelete = async () => {
@@ -130,7 +130,7 @@ const PdfUploader = ({
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-slate-300">{label}</label>
+                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
             </div>
 
             {/* Si ya existe un PDF, mostrar estado bloqueado */}
@@ -140,11 +140,11 @@ const PdfUploader = ({
                     <div className="bg-green-500/10 border-2 border-green-500/30 rounded-lg p-4">
                         <div className="flex items-center gap-3">
                             <div className="bg-green-500/20 p-2 rounded-lg">
-                                <CheckCircle className="w-6 h-6 text-green-400" />
+                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm font-bold text-green-400">Acta Firmada Subida</p>
-                                <p className="text-xs text-green-300/70 mt-0.5">
+                                <p className="text-sm font-bold text-green-700 dark:text-green-400">Acta Firmada Subida</p>
+                                <p className="text-xs text-green-700/70 dark:text-green-300/70 mt-0.5">
                                     El archivo PDF firmado ya fue subido exitosamente
                                 </p>
                             </div>
@@ -156,7 +156,7 @@ const PdfUploader = ({
                         {/* Botón de descarga */}
                         <button
                             onClick={handleDownload}
-                            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:opacity-90 text-white px-4 py-3 rounded-lg font-medium transition-opacity"
                         >
                             <Download className="w-4 h-4" />
                             Descargar Acta
@@ -167,7 +167,7 @@ const PdfUploader = ({
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
+                                className="px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
                                 title="Eliminar acta firmada"
                             >
                                 {deleting ? (
@@ -180,9 +180,9 @@ const PdfUploader = ({
                     </div>
 
                     {/* Mensaje de bloqueo */}
-                    <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-3 flex items-start gap-2">
-                        <Lock className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-slate-400">
+                    <div className="bg-bg border border-slate-200 dark:border-slate-600 rounded-lg p-3 flex items-start gap-2">
+                        <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                             No se puede subir un nuevo archivo mientras exista uno. Elimina el actual si necesitas reemplazarlo.
                         </p>
                     </div>
@@ -198,7 +198,7 @@ const PdfUploader = ({
                                         ? 'border-green-500 bg-green-500/10'
                                         : isDragging
                                         ? 'border-blue-400 bg-blue-500/10'
-                                        : 'border-slate-600 hover:border-slate-500 bg-slate-800/50'
+                                        : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-bg'
                                 }`}
                                 onDragOver={handleDragOver}
                                 onDragEnter={handleDragOver}
@@ -215,8 +215,8 @@ const PdfUploader = ({
                                 <div className="flex items-center justify-center gap-2">
                                     {file ? (
                                         <>
-                                            <FileText className="w-5 h-5 text-green-400" />
-                                            <span className="text-sm text-green-400 truncate max-w-[200px]">
+                                            <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                            <span className="text-sm text-green-700 dark:text-green-400 truncate max-w-[200px]">
                                                 {file.name}
                                             </span>
                                             <button
@@ -224,7 +224,7 @@ const PdfUploader = ({
                                                     e.preventDefault();
                                                     setFile(null);
                                                 }}
-                                                className="text-red-400 hover:text-red-300"
+                                                className="text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>
@@ -232,7 +232,7 @@ const PdfUploader = ({
                                     ) : (
                                         <>
                                             <Upload className="w-5 h-5 text-slate-400" />
-                                            <span className="text-sm text-slate-400">
+                                            <span className="text-sm text-slate-500 dark:text-slate-400">
                                                 Seleccionar PDF (máx 10MB)
                                             </span>
                                         </>
@@ -245,7 +245,7 @@ const PdfUploader = ({
                             <button
                                 onClick={handleUpload}
                                 disabled={uploading}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 bg-accent hover:opacity-90 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-opacity"
                             >
                                 {uploading ? (
                                     <>
@@ -264,7 +264,7 @@ const PdfUploader = ({
 
                     {/* Info de ayuda */}
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                        <p className="text-xs text-blue-300">
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
                             <strong>Importante:</strong> Una vez subido el acta firmada, no podrá ser reemplazada directamente. Deberás eliminarla primero si necesitas cambiarla.
                         </p>
                     </div>

@@ -6,7 +6,7 @@ const ProtectedRoute = () => {
     const { token, loading } = useAuth();
 
     if (loading) {
-        return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading...</div>;
+        return <div className="min-h-screen bg-bg dark:bg-slate-900 flex items-center justify-center text-slate-900 dark:text-white">Loading...</div>;
     }
 
     return token ? <Outlet /> : <Navigate to="/login" replace />;

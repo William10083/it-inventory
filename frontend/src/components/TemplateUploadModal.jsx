@@ -29,17 +29,34 @@ const SYSTEM_FIELDS = [
     { value: 'EMPLOYEE_COMPANY', label: 'Empresa', sample: 'RANSAC' },
     { value: 'EMPLOYEE_LOCATION', label: 'Sede / Ubicación', sample: 'OFICINA PRINCIPAL' },
     { label: '--- Dispositivo (Principal) ---', value: 'disabled_2', disabled: true },
-    { value: 'DEVICE_TYPE', label: 'Tipo de Equipo', sample: 'LAPTOP' },
-    { value: 'DEVICE_BRAND', label: 'Marca', sample: 'HP' },
-    { value: 'DEVICE_MODEL', label: 'Modelo', sample: 'PROBOOK 440 G9' },
-    { value: 'DEVICE_SERIAL', label: 'Número de Serie', sample: '5CG2345678' },
-    { value: 'DEVICE_HOSTNAME', label: 'Hostname', sample: 'LAP-IT-01' },
-    { value: 'DEVICE_INVENTORY_CODE', label: 'Código de Inventario', sample: 'INV-LAP-001' },
-    { label: '--- Auriculares ---', value: 'disabled_6', disabled: true },
+    { value: 'DEVICE_TYPE', label: 'Tipo de Equipo (1er dispositivo)', sample: 'LAPTOP' },
+    { value: 'DEVICE_BRAND', label: 'Marca (1er dispositivo)', sample: 'HP' },
+    { value: 'DEVICE_MODEL', label: 'Modelo (1er dispositivo)', sample: 'PROBOOK 440 G9' },
+    { value: 'DEVICE_SERIAL', label: 'Número de Serie (1er dispositivo)', sample: '5CG2345678' },
+    { value: 'DEVICE_HOSTNAME', label: 'Hostname (1er dispositivo)', sample: 'LAP-IT-01' },
+    { value: 'DEVICE_INVENTORY_CODE', label: 'Código de Inventario (1er dispositivo)', sample: 'INV-LAP-001' },
+    { label: '--- Laptop Principal ---', value: 'disabled_lap', disabled: true },
+    { value: 'LAPTOP_TYPE', label: 'Laptop - Tipo', sample: 'LAPTOP' },
+    { value: 'LAPTOP_BRAND', label: 'Laptop - Marca', sample: 'HP' },
+    { value: 'LAPTOP_MODEL', label: 'Laptop - Modelo', sample: 'PROBOOK 440 G9' },
+    { value: 'LAPTOP_SERIAL', label: 'Laptop - Nro. Serie', sample: '5CG2345678' },
+    { value: 'LAPTOP_HOSTNAME', label: 'Laptop - Hostname', sample: 'LAP-IT-01' },
+    { value: 'LAPTOP_INVENTORY_CODE', label: 'Laptop - Código Inventario', sample: 'INV-LAP-001' },
+    { label: '--- Auriculares / Headset ---', value: 'disabled_6', disabled: true },
     { value: 'AURICULARES_BRAND', label: 'Auriculares - Marca', sample: 'JABRA' },
     { value: 'AURICULARES_MODEL', label: 'Auriculares - Modelo', sample: 'EVOLVE2 30' },
     { value: 'AURICULARES_SERIAL', label: 'Auriculares - Nro. Serie', sample: 'AURIC123456' },
     { value: 'AURICULARES_INVENTORY_CODE', label: 'Auriculares - Código Inventario', sample: 'INV-AUR-001' },
+    { value: 'HEADSET_BRAND', label: 'Headset - Marca (alias auriculares)', sample: 'JABRA' },
+    { value: 'HEADSET_MODEL', label: 'Headset - Modelo (alias auriculares)', sample: 'EVOLVE2 30' },
+    { value: 'HEADSET_SERIAL', label: 'Headset - Nro. Serie (alias auriculares)', sample: 'AURIC123456' },
+    { value: 'HEADSET_INVENTORY_CODE', label: 'Headset - Código Inventario (alias auriculares)', sample: 'INV-AUR-001' },
+    { label: '--- Docking Station ---', value: 'disabled_dock', disabled: true },
+    { value: 'DOCKING_TYPE', label: 'Docking - Tipo de Equipo', sample: 'DOCKING' },
+    { value: 'DOCKING_BRAND', label: 'Docking - Marca', sample: 'DELL' },
+    { value: 'DOCKING_MODEL', label: 'Docking - Modelo', sample: 'WD19S' },
+    { value: 'DOCKING_SERIAL', label: 'Docking - Nro. Serie', sample: 'CN-0DOCK123456' },
+    { value: 'DOCKING_INVENTORY_CODE', label: 'Docking - Código Inventario', sample: 'INV-DOCK-001' },
     { label: '--- Monitor ---', value: 'disabled_mon', disabled: true },
     { value: 'MONITOR_BRAND', label: 'Monitor - Marca', sample: 'LENOVO' },
     { value: 'MONITOR_MODEL', label: 'Monitor - Modelo', sample: 'E24-30' },
@@ -65,11 +82,30 @@ const SYSTEM_FIELDS = [
     { value: 'MOUSE_SERIAL', label: 'Mouse - Nro. Serie', sample: 'MOUSE123' },
     { value: 'MOUSE_INVENTORY_CODE', label: 'Mouse - Código Inventario', sample: 'INV-MOU-001' },
     { label: '--- Segunda Laptop ---', value: 'disabled_9', disabled: true },
+    { value: 'LAPTOP2_TYPE', label: '2da Laptop - Tipo de Equipo', sample: 'LAPTOP' },
     { value: 'LAPTOP2_BRAND', label: '2da Laptop - Marca', sample: 'LENOVO' },
     { value: 'LAPTOP2_MODEL', label: '2da Laptop - Modelo', sample: 'THINKBOOK 15 G4' },
     { value: 'LAPTOP2_SERIAL', label: '2da Laptop - Nro. Serie', sample: 'PF4XXXXX' },
     { value: 'LAPTOP2_HOSTNAME', label: '2da Laptop - Hostname', sample: 'LAP-IT-02' },
     { value: 'LAPTOP2_INVENTORY_CODE', label: '2da Laptop - Código Inventario', sample: 'INV-LAP-002' },
+    { label: '--- Equipo Adicional 1 ---', value: 'disabled_add1', disabled: true },
+    { value: 'ADICIONAL_1_TYPE', label: 'Adicional 1 - Tipo de Equipo', sample: 'MONITOR' },
+    { value: 'ADICIONAL_1_BRAND', label: 'Adicional 1 - Marca', sample: 'SAMSUNG' },
+    { value: 'ADICIONAL_1_MODEL', label: 'Adicional 1 - Modelo', sample: 'C27F390' },
+    { value: 'ADICIONAL_1_SERIAL', label: 'Adicional 1 - Nro. Serie', sample: 'H4ZR3CGX123456' },
+    { value: 'ADICIONAL_1_INVENTORY_CODE', label: 'Adicional 1 - Código Inventario', sample: 'INV-ADD-001' },
+    { label: '--- Equipo Adicional 2 ---', value: 'disabled_add2', disabled: true },
+    { value: 'ADICIONAL_2_TYPE', label: 'Adicional 2 - Tipo de Equipo', sample: 'AURICULARES' },
+    { value: 'ADICIONAL_2_BRAND', label: 'Adicional 2 - Marca', sample: 'JABRA' },
+    { value: 'ADICIONAL_2_MODEL', label: 'Adicional 2 - Modelo', sample: 'EVOLVE2 30' },
+    { value: 'ADICIONAL_2_SERIAL', label: 'Adicional 2 - Nro. Serie', sample: 'AURIC654321' },
+    { value: 'ADICIONAL_2_INVENTORY_CODE', label: 'Adicional 2 - Código Inventario', sample: 'INV-ADD-002' },
+    { label: '--- Equipo Adicional 3 ---', value: 'disabled_add3', disabled: true },
+    { value: 'ADICIONAL_3_TYPE', label: 'Adicional 3 - Tipo de Equipo', sample: 'CARGADOR' },
+    { value: 'ADICIONAL_3_BRAND', label: 'Adicional 3 - Marca', sample: 'HP' },
+    { value: 'ADICIONAL_3_MODEL', label: 'Adicional 3 - Modelo', sample: 'TPN-DA15' },
+    { value: 'ADICIONAL_3_SERIAL', label: 'Adicional 3 - Nro. Serie', sample: '-' },
+    { value: 'ADICIONAL_3_INVENTORY_CODE', label: 'Adicional 3 - Código Inventario', sample: 'INV-ADD-003' },
     { label: '--- Fechas ---', value: 'disabled_3', disabled: true },
     { value: 'CURRENT_DATE', label: 'Fecha Actual (dd/mm/yyyy)', sample: '12/01/2026' },
     { value: 'CURRENT_DATE_LONG', label: 'Fecha Larga', sample: '12 de Enero de 2026' },
@@ -80,6 +116,7 @@ const SYSTEM_FIELDS = [
     { value: 'MOBILE_DEVICES_TABLE', label: 'Tabla de Dispositivos Móviles', sample: '[TABLA_CELULARES]' },
     { value: 'SALE_TABLE', label: 'Tabla de Ventas', sample: '[TABLA_VENTA]' },
     { label: '--- Bajas / Decommission ---', value: 'disabled_5', disabled: true },
+    { value: 'AUTO_ID', label: 'ID Autoincrementable (inicia en 1 por descarga)', sample: '1' },
     { value: 'FABRICATION_YEAR', label: 'Año de Fabricación', sample: '2020' },
     { value: 'USAGE_TIME', label: 'Tiempo de Uso (Calculado)', sample: '3 años' },
     { value: 'PURCHASE_REASON', label: 'Motivo de Compra', sample: 'Renovación Tecnológica' },
@@ -89,6 +126,8 @@ const SYSTEM_FIELDS = [
     { value: 'DEVICE_IMAGE_PATH', label: 'Ruta Imagen Equipo', sample: '/uploads/device.jpg' },
     { value: 'SERIAL_IMAGE_PATH', label: 'Ruta Imagen Serie', sample: '/uploads/serial.jpg' },
     { value: 'DECOMMISSION_TABLE', label: 'Tabla de Baja (Resumen)', sample: '[TABLA_BAJA]' },
+    { value: 'DECOMMISSION_INVENTORY_TABLE', label: 'Tabla de Inventario de Bajas (multi-ítem)', sample: '[TABLA_INVENTARIO_BAJAS]' },
+    { value: 'DECOMMISSION_EQUIPMENT_TYPE', label: 'Tipo de Equipo (1 tipo = ese tipo; varios = EQUIPOS DE COMPUTO)', sample: 'IMPRESORAS' },
 ];
 
 const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => {
@@ -291,19 +330,19 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700 shadow-2xl">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             {isEditing ? 'Editar Template' : 'Subir Nuevo Template'}
                         </h2>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
                             {isEditing ? 'Actualiza la información del documento' : `Paso ${step} de 4`}
                         </p>
                     </div>
-                    <button onClick={handleClose} className="text-slate-400 hover:text-white">
+                    <button onClick={handleClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -313,11 +352,11 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                     <div className="flex items-center justify-between mb-8">
                         {[1, 2, 3, 4].map(s => (
                             <div key={s} className="flex items-center flex-1">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${s <= step ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${s <= step ? 'bg-accent text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                                     }`}>
                                     {s}
                                 </div>
-                                {s < 4 && <div className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-600' : 'bg-slate-700'}`} />}
+                                {s < 4 && <div className={`flex-1 h-1 mx-2 ${s < step ? 'bg-accent' : 'bg-slate-200 dark:bg-slate-700'}`} />}
                             </div>
                         ))}
                     </div>
@@ -326,10 +365,10 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                 {/* Step 1: Upload */}
                 {step === 1 && (
                     <div className="space-y-6">
-                        <div className="border-2 border-dashed border-slate-600 rounded-lg p-12 text-center hover:border-blue-500 transition-colors">
+                        <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-12 text-center hover:border-blue-500 transition-colors">
                             <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-white mb-2">Selecciona un archivo .docx</h3>
-                            <p className="text-slate-400 mb-4">Usa {"{{variable_name}}"} para definir placeholders</p>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Selecciona un archivo .docx</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-4">Usa {"{{variable_name}}"} para definir placeholders</p>
                             <input
                                 type="file"
                                 accept=".docx"
@@ -339,21 +378,21 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                             />
                             <label
                                 htmlFor="file-upload"
-                                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer font-medium"
+                                className="inline-block bg-accent hover:opacity-90 text-white px-6 py-3 rounded-lg cursor-pointer font-medium transition-opacity"
                             >
                                 Seleccionar Archivo
                             </label>
                             {file && (
-                                <div className="mt-4 p-4 bg-slate-700 rounded-lg">
-                                    <FileText className="w-6 h-6 text-blue-400 inline mr-2" />
-                                    <span className="text-white">{file.name}</span>
+                                <div className="mt-4 p-4 bg-bg rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 inline mr-2" />
+                                    <span className="text-slate-900 dark:text-white">{file.name}</span>
                                 </div>
                             )}
                         </div>
                         <button
                             onClick={handleUpload}
                             disabled={!file || loading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition-colors"
+                            className="w-full bg-accent hover:opacity-90 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition-opacity"
                         >
                             {loading ? 'Subiendo...' : 'Continuar'}
                         </button>
@@ -364,18 +403,18 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                 {step === 2 && (
                     <div className="space-y-6">
                         <div>
-                            <h3 className="text-lg font-bold text-white mb-4">Variables Detectadas: {variables.length}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Variables Detectadas: {variables.length}</h3>
                             <div className="space-y-4 max-h-96 overflow-y-auto">
                                 {variables.map((variable, index) => (
-                                    <div key={index} className="bg-slate-700 p-4 rounded-lg border border-slate-600">
+                                    <div key={index} className="bg-bg p-4 rounded-lg border border-slate-200 dark:border-slate-600">
                                         <div className="grid grid-cols-2 gap-4">
                                             {/* System Mapping (New Field) */}
                                             <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-slate-300 mb-1">
-                                                    Variable: <code className="text-blue-400 font-bold">{`{{${variable.name}}}`}</code>
+                                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+                                                    Variable: <code className="text-blue-600 dark:text-blue-400 font-bold">{`{{${variable.name}}}`}</code>
                                                 </label>
                                                 <div className="flex gap-2 items-center mb-2">
-                                                    <span className="text-sm text-slate-400">Mapear a:</span>
+                                                    <span className="text-sm text-slate-500 dark:text-slate-400">Mapear a:</span>
                                                     <select
                                                         value={variable.map_to || 'custom'}
                                                         onChange={(e) => {
@@ -392,7 +431,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
 
                                                             setVariables(newVars);
                                                         }}
-                                                        className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white"
+                                                        className="flex-1 bg-surface border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                                                     >
                                                         {SYSTEM_FIELDS.map(f => (
                                                             <option key={f.value} value={f.value} disabled={f.disabled}>
@@ -404,7 +443,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-300 mb-1">
+                                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                                     Etiqueta (Label)
                                                 </label>
                                                 <input
@@ -415,12 +454,12 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                                         newVars[index].label = e.target.value;
                                                         setVariables(newVars);
                                                     }}
-                                                    className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white"
+                                                    className="w-full bg-surface border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                                                     placeholder="Label amigable"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-300 mb-1">Tipo</label>
+                                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Tipo</label>
                                                 <select
                                                     value={variable.type}
                                                     onChange={(e) => {
@@ -428,7 +467,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                                         newVars[index].type = e.target.value;
                                                         setVariables(newVars);
                                                     }}
-                                                    className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white"
+                                                    className="w-full bg-surface border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                                                 >
                                                     <option value="text">Texto</option>
                                                     <option value="date">Fecha</option>
@@ -436,7 +475,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                                 </select>
                                             </div>
                                             <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-slate-300 mb-1 flex justify-between">
+                                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1 flex justify-between">
                                                     <span>Valor de Ejemplo (para preview)</span>
                                                     <span className="text-xs text-slate-500 font-normal">Se usará el valor real al generar el acta</span>
                                                 </label>
@@ -448,7 +487,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                                         newVars[index].sample_value = e.target.value;
                                                         setVariables(newVars);
                                                     }}
-                                                    className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white"
+                                                    className="w-full bg-surface border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                                                     placeholder="Ejemplo: Juan Pérez García"
                                                 />
                                             </div>
@@ -460,14 +499,14 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                         <div className="flex gap-4">
                             <button
                                 onClick={() => setStep(1)}
-                                className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 rounded-lg font-bold"
+                                className="flex-1 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white py-3 rounded-lg font-bold border border-slate-200 dark:border-slate-700"
                             >
                                 Atrás
                             </button>
                             <button
                                 onClick={handleGeneratePreview}
                                 disabled={loading}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white py-3 rounded-lg font-bold"
+                                className="flex-1 bg-accent hover:opacity-90 disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white py-3 rounded-lg font-bold transition-opacity"
                             >
                                 {loading ? 'Generando...' : 'Generar Preview'}
                             </button>
@@ -478,40 +517,40 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                 {/* Step 3: Preview */}
                 {step === 3 && (
                     <div className="space-y-6">
-                        <div className="bg-slate-700 p-4 rounded-lg border border-slate-600">
+                        <div className="bg-bg p-4 rounded-lg border border-slate-200 dark:border-slate-600">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                    <Eye className="w-5 h-5 text-blue-400" />
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                     Preview del Template
                                 </h3>
-                                <p className="text-slate-400 text-sm">Validación con datos de ejemplo</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm">Validación con datos de ejemplo</p>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Variables Sidebar */}
                                 <div className="lg:col-span-1 space-y-4">
-                                    <div className="bg-slate-800 p-4 rounded border border-slate-600">
-                                        <p className="text-white font-bold text-sm mb-3 border-b border-slate-700 pb-2">Datos de Prueba:</p>
+                                    <div className="bg-surface p-4 rounded border border-slate-200 dark:border-slate-600">
+                                        <p className="text-slate-900 dark:text-white font-bold text-sm mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">Datos de Prueba:</p>
                                         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                             {variables.map((v, i) => (
                                                 <div key={i} className="text-sm">
-                                                    <p className="text-blue-400 font-mono text-xs">{`{{${v.name}}}`}</p>
-                                                    <p className="text-slate-300 truncate" title={v.sample_value}>{v.sample_value || '(vacío)'}</p>
+                                                    <p className="text-blue-600 dark:text-blue-400 font-mono text-xs">{`{{${v.name}}}`}</p>
+                                                    <p className="text-slate-600 dark:text-slate-300 truncate" title={v.sample_value}>{v.sample_value || '(vacío)'}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="bg-blue-900/20 p-3 rounded border border-blue-500/30 text-xs text-blue-300 italic">
+                                    <div className="bg-blue-500/10 p-3 rounded border border-blue-500/30 text-xs text-blue-700 dark:text-blue-300 italic">
                                         Nota: El preview es una representación aproximada del documento final.
                                     </div>
                                 </div>
 
                                 {/* PDF Viewer */}
-                                <div className="lg:col-span-2 bg-slate-900 rounded-lg border border-slate-600 overflow-hidden h-[500px]">
+                                <div className="lg:col-span-2 bg-bg rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden h-[500px]">
                                     {previewUrl ? (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 p-8 text-center">
                                             <FileText className="w-16 h-16 mb-4 text-blue-500/50" />
-                                            <h4 className="text-lg font-bold text-white mb-2">Vista Previa Generada</h4>
+                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Vista Previa Generada</h4>
                                             <p className="text-sm mb-6 max-w-sm">
                                                 Los archivos .docx no se pueden visualizar directamente en el navegador.
                                                 Haz clic abajo para descargar el archivo con los datos de prueba.
@@ -519,7 +558,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                             <a
                                                 href={previewUrl}
                                                 download={`preview_${extractFilename(tempFilename) || 'template.docx'}`}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors"
+                                                className="bg-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-opacity"
                                             >
                                                 <Upload className="w-5 h-5 rotate-180" /> {/* Download icon */}
                                                 Descargar Preview
@@ -537,13 +576,13 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                         <div className="flex gap-4">
                             <button
                                 onClick={() => setStep(2)}
-                                className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 rounded-lg font-bold"
+                                className="flex-1 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white py-3 rounded-lg font-bold border border-slate-200 dark:border-slate-700"
                             >
                                 Atrás
                             </button>
                             <button
                                 onClick={() => setStep(4)}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold"
+                                className="flex-1 bg-accent hover:opacity-90 text-white py-3 rounded-lg font-bold transition-opacity"
                             >
                                 Continuar
                             </button>
@@ -555,37 +594,38 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                 {step === 4 && (
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Nombre del Template *</label>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Nombre del Template *</label>
                             <input
                                 type="text"
                                 value={templateData.name}
                                 onChange={(e) => setTemplateData({ ...templateData, name: e.target.value })}
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-3 text-white"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                                 placeholder="Ej: Acta de Entrega v2"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Descripción</label>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Descripción</label>
                             <textarea
                                 value={templateData.description}
                                 onChange={(e) => setTemplateData({ ...templateData, description: e.target.value })}
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-3 text-white h-24"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded px-4 py-3 text-slate-900 dark:text-white h-24 focus:outline-none focus:border-accent"
                                 placeholder="Descripción del template..."
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Tipo de Template</label>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Tipo de Template</label>
                             <select
                                 value={templateData.template_type}
                                 onChange={(e) => setTemplateData({ ...templateData, template_type: e.target.value })}
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-3 text-white"
+                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
                             >
                                 <option value="ASSIGNMENT_COMPUTER">Acta de Entrega - Equipo Cómputo</option>
                                 <option value="ASSIGNMENT_MOBILE">Acta de Entrega - Celular</option>
                                 <option value="RETURN_COMPUTER">Acta de Devolución - Equipo Cómputo</option>
                                 <option value="RETURN_MOBILE">Acta de Devolución - Celular</option>
                                 <option value="ACTA_BAJA">Acta de Baja (Decommission)</option>
+                                <option value="INFORME_GAF">Informe GAF (Tabla de Inventario de Bajas)</option>
                                 <option value="ACTA_VENTA">Acta de Venta</option>
                                 <option value="OTROS">Otros</option>
                             </select>
@@ -594,7 +634,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                             {!isEditing && (
                                 <button
                                     onClick={() => setStep(3)}
-                                    className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 rounded-lg font-bold"
+                                    className="flex-1 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white py-3 rounded-lg font-bold border border-slate-200 dark:border-slate-700"
                                 >
                                     Atrás
                                 </button>
@@ -602,7 +642,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                             <button
                                 onClick={handleSave}
                                 disabled={loading}
-                                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2"
+                                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2"
                             >
                                 <Save className="w-5 h-5" />
                                 {loading ? 'Guardando...' : (isEditing ? 'Actualizar Template' : 'Guardar Template')}

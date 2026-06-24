@@ -47,8 +47,8 @@ const ForcePasswordChange = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center relative overflow-hidden">
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div className="min-h-screen bg-bg dark:bg-slate-900 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] animate-pulse-slow"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[120px] animate-pulse-slow delay-1000"></div>
 
             <div className="glass-card w-full max-w-md p-8 relative z-10 border border-slate-700/50 shadow-2xl">
@@ -80,7 +80,7 @@ const ForcePasswordChange = () => {
                                 required
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
                                 placeholder="Contraseña temporal recibida"
                             />
                             <button type="button" onClick={() => setShowCurrent(v => !v)}
@@ -101,7 +101,7 @@ const ForcePasswordChange = () => {
                                 required
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
                                 placeholder="Mínimo 6 caracteres"
                             />
                             <button type="button" onClick={() => setShowNew(v => !v)}
@@ -122,7 +122,7 @@ const ForcePasswordChange = () => {
                                 required
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
                                 placeholder="Repite tu nueva contraseña"
                             />
                             <button type="button" onClick={() => setShowConfirm(v => !v)}

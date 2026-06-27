@@ -38,19 +38,9 @@ const Navbar = ({ onAlertClick, notificationCount = 0 }) => {
     };
 
     return (
-        <nav className="border-b border-slate-200 dark:border-slate-700 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
+        <nav className="border-b border-slate-200 dark:border-slate-700 bg-surface/95 backdrop-blur-md sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="bg-accent/20 p-2 rounded-lg">
-                            <Laptop className="w-6 h-6 text-accent" />
-                        </div>
-                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
-                            IT Asset Manager
-                        </span>
-                    </div>
-
+                <div className="flex items-center justify-end h-16">
                     {/* Right Side - Alerts and User Menu */}
                     <div className="flex items-center gap-3">
                         {/* Alerts Button with Badge */}

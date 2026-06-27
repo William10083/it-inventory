@@ -34,7 +34,8 @@ import AssignmentActaModal from '../components/AssignmentActaModal';
 import EmployeeCard from '../components/EmployeeCard';
 import EmptyState from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
-import NavTabs from '../components/NavTabs';
+import Sidebar from '../components/Sidebar';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -152,6 +153,8 @@ const Dashboard = () => {
     const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
     const [isTerminationModalOpen, setIsTerminationModalOpen] = useState(false);
     const [selectedDeviceDetail, setSelectedDeviceDetail] = useState(null);
+    const [expandedDeviceId, setExpandedDeviceId] = useState(null);
+    const statusES = (s) => ({ available: 'Disponible', assigned: 'Asignado', maintenance: 'Mantenimiento', decommissioned: 'De baja' }[s] || s || '—');
     const [selectedEmployeeForTermination, setSelectedEmployeeForTermination] = useState(null);
     const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState(null);
     const [selectedDevices, setSelectedDevices] = useState([]); // Cart
@@ -687,13 +690,16 @@ const Dashboard = () => {
 
 
     return (
-        <div className="min-h-screen bg-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-accent/30">
+        <div className="min-h-screen flex bg-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-accent/30">
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className="flex-1 min-w-0">
             <Navbar onAlertClick={() => setIsAlertsOpen(true)} notificationCount={alertsCount} />
 
             <AlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-                {/* Header Section */}
+                {activeTab === 'inventory' && (
+                <>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <DashboardHeaderAccent />
@@ -739,62 +745,39 @@ const Dashboard = () => {
                 </div>
 
                 {/* Metrics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-md mb-8 overflow-hidden">
-                    <div className="bg-surface p-4 border-l-4 border-device-kit">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Box className="w-4 h-4 text-device-kit" /> Kits
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedKits} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalKits}</span>
-                        </p>
-                    </div>
-                    <div className="bg-surface p-4 border-l-4 border-device-backpack">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Briefcase className="w-4 h-4 text-device-backpack" /> Mochilas
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedBackpacks} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalBackpacks}</span>
-                        </p>
-                    </div>
-                    <div className="bg-surface p-4 border-l-4 border-device-headphones">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Headphones className="w-4 h-4 text-device-headphones" /> Auriculares
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedHeadphones} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalHeadphones}</span>
-                        </p>
-                    </div>
-                    <div className="bg-surface p-4 border-l-4 border-device-monitor">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Tv className="w-4 h-4 text-device-monitor" /> Monitores
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedMonitors} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalMonitors}</span>
-                        </p>
-                    </div>
-                    <div className="bg-surface p-4 border-l-4 border-device-laptop">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Monitor className="w-4 h-4 text-device-laptop" /> Laptops
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedLaptops} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalLaptops}</span>
-                        </p>
-                    </div>
-                    <div className="bg-surface p-4 border-l-4 border-device-mobile">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                            <Smartphone className="w-4 h-4 text-device-mobile" /> Celulares
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                            <CountUpNumber value={metrics.assignedMobiles} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {metrics.totalMobiles}</span>
-                        </p>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+                    {[
+                        { label: 'Kits', Icon: Box, chip: 'bg-device-kit/15 text-device-kit', bar: 'bg-device-kit', a: metrics.assignedKits, t: metrics.totalKits },
+                        { label: 'Mochilas', Icon: Briefcase, chip: 'bg-device-backpack/15 text-device-backpack', bar: 'bg-device-backpack', a: metrics.assignedBackpacks, t: metrics.totalBackpacks },
+                        { label: 'Auriculares', Icon: Headphones, chip: 'bg-device-headphones/15 text-device-headphones', bar: 'bg-device-headphones', a: metrics.assignedHeadphones, t: metrics.totalHeadphones },
+                        { label: 'Monitores', Icon: Tv, chip: 'bg-device-monitor/15 text-device-monitor', bar: 'bg-device-monitor', a: metrics.assignedMonitors, t: metrics.totalMonitors },
+                        { label: 'Laptops', Icon: Monitor, chip: 'bg-device-laptop/15 text-device-laptop', bar: 'bg-device-laptop', a: metrics.assignedLaptops, t: metrics.totalLaptops },
+                        { label: 'Celulares', Icon: Smartphone, chip: 'bg-device-mobile/15 text-device-mobile', bar: 'bg-device-mobile', a: metrics.assignedMobiles, t: metrics.totalMobiles },
+                    ].map(({ label, Icon, chip, bar, a, t }) => {
+                        const pct = t ? Math.round((a / t) * 100) : 0;
+                        return (
+                            <div key={label} className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
+                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${chip}`}>
+                                        <Icon className="w-4 h-4" />
+                                    </span>
+                                    {label}
+                                </div>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                                    <CountUpNumber value={a} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {t}</span>
+                                </p>
+                                <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700/60 mt-3 overflow-hidden">
+                                    <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
-                {/* 2. Controls: Search & Tabs - Grouped Navigation */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-                    <div className="relative w-full md:w-96">
+                {/* 2. Controls: Search & Tabs - Grouped Navigation */}
+                <div className="flex flex-col md:flex-row justify-end items-center mb-6 gap-4 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <input
                             type="text"
@@ -805,17 +788,64 @@ const Dashboard = () => {
                         />
                     </div>
                 </div>
+                </>
+                )}
 
                 {/* 3. Content Views */}
                 {activeTab === 'inventory' && (
-                    <div className="grid grid-cols-1 gap-4">
-                        {activeTab === 'inventory' && (
+                    <div className="flex flex-col lg:flex-row gap-6">
+                        <aside className="lg:w-72 shrink-0 space-y-4">
+                            <div className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
+                                <div className="flex gap-6">
+                                    <div>
+                                        <div className="text-xs text-slate-400">En inventario</div>
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{metrics.totalKits + metrics.totalBackpacks + metrics.totalHeadphones + metrics.totalMonitors + metrics.totalLaptops + metrics.totalMobiles}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-400">Asignados</div>
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{metrics.assignedKits + metrics.assignedBackpacks + metrics.assignedHeadphones + metrics.assignedMonitors + metrics.assignedLaptops + metrics.assignedMobiles}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
+                                <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Equipos por tipo</div>
+                                <div style={{ width: '100%', height: 140 }}>
+                                    <ResponsiveContainer>
+                                        <AreaChart data={[
+                                            { name: 'Kits', value: metrics.assignedKits },
+                                            { name: 'Moch', value: metrics.assignedBackpacks },
+                                            { name: 'Aur', value: metrics.assignedHeadphones },
+                                            { name: 'Mon', value: metrics.assignedMonitors },
+                                            { name: 'Lap', value: metrics.assignedLaptops },
+                                            { name: 'Cel', value: metrics.assignedMobiles },
+                                        ]} margin={{ top: 5, right: 4, left: -24, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="roseGrad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="#EE7AA0" stopOpacity={0.35} />
+                                                    <stop offset="100%" stopColor="#EE7AA0" stopOpacity={0.02} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.18)" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval={0} />
+                                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={22} allowDecimals={false} />
+                                            <Tooltip cursor={{ stroke: '#EE7AA0', strokeWidth: 1 }} />
+                                            <Area type="monotone" dataKey="value" name="Equipos" stroke="#EE7AA0" strokeWidth={2} fill="url(#roseGrad)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl p-4 bg-accent text-white">
+                                <div className="text-sm font-semibold">Reporte de inventario</div>
+                                <div className="text-xs opacity-90 mt-1">Exportá el estado actual del inventario.</div>
+                                <button onClick={() => { window.location.href = `${API_URL}/export/excel?token=${token}`; showNotification('✓ Iniciando exportación...', 'success'); }} className="mt-3 bg-white text-accent text-xs font-semibold px-3 py-1.5 rounded-lg hover:opacity-90">Generar</button>
+                            </div>
+                        </aside>
+                        <div className="flex-1 min-w-0 space-y-4">
                             <div className="flex gap-4 mb-2 overflow-x-auto pb-2">
                                 {/* Scanner Input */}
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
                             </div>
-                        )}
-                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto">
                             <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
                                 <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                     <tr>
@@ -987,8 +1017,8 @@ const Dashboard = () => {
                                     {getFilteredDevices().map(device => {
                                         const isSelected = selectedDevices.find(d => d.id === device.id);
                                         return (
+                                            <React.Fragment key={device.id}>
                                             <tr
-                                                key={device.id}
                                                 onClick={() => toggleSelection(device)}
                                                 className={`hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : ''}`}
                                             >
@@ -1019,12 +1049,19 @@ const Dashboard = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${device.status === 'available' ? 'text-green-400 bg-green-500/10' :
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${device.status === 'available' ? 'text-green-400 bg-green-500/10' :
                                                         device.status === 'assigned' ? 'text-blue-400 bg-blue-500/10' : 'text-red-400 bg-red-500/10'
-                                                        }`}>{device.status}</span>
+                                                        }`}>{statusES(device.status)}</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     <div className="flex items-center gap-2 justify-end">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setExpandedDeviceId(expandedDeviceId === device.id ? null : device.id); }}
+                                                            className="text-slate-400 hover:text-accent transition-colors p-1"
+                                                            title={expandedDeviceId === device.id ? 'Ocultar detalle' : 'Ver detalle'}
+                                                        >
+                                                            {expandedDeviceId === device.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                        </button>
                                                         <button onClick={(e) => handleViewDetails(e, device)} className="text-xs bg-slate-700 text-white px-2 py-1 rounded hover:bg-slate-600">
                                                             Detalles
                                                         </button>
@@ -1038,6 +1075,30 @@ const Dashboard = () => {
                                                     </div>
                                                 </td>
                                             </tr>
+                                            {expandedDeviceId === device.id && (
+                                                <tr className="bg-slate-50 dark:bg-slate-800/30">
+                                                    <td colSpan={7} className="px-4 py-4">
+                                                        <div className="flex flex-col md:flex-row gap-4">
+                                                            <div className="w-16 h-16 rounded-xl bg-accent/10 text-accent flex items-center justify-center flex-shrink-0">
+                                                                {getIcon(device.device_type)}
+                                                            </div>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 flex-1 text-sm">
+                                                                <div><div className="text-xs text-slate-400">Modelo</div><div className="text-slate-900 dark:text-white">{device.model || '—'}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Marca</div><div className="text-slate-900 dark:text-white">{device.brand || '—'}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Serie</div><div className="font-mono text-slate-900 dark:text-white">{device.serial_number || '—'}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Hostname</div><div className="font-mono text-slate-900 dark:text-white">{device.hostname || '—'}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Cód. inventario</div><div className="font-mono text-slate-900 dark:text-white">{device.inventory_code || '—'}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Estado</div><div className="text-slate-900 dark:text-white">{statusES(device.status)}</div></div>
+                                                                <div><div className="text-xs text-slate-400">Sede</div><div className="text-slate-900 dark:text-white">{device.location || '—'}</div></div>
+                                                            </div>
+                                                            <button onClick={(e) => handleViewDetails(e, device)} className="self-start text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:opacity-90 flex-shrink-0">
+                                                                Ver ficha completa
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            </React.Fragment>
                                         );
                                     })}
                                 </tbody>
@@ -1058,6 +1119,7 @@ const Dashboard = () => {
                             itemsPerPage={itemsPerPage}
                             onPageChange={handlePageChange}
                         />
+                        </div>
                     </div>
                 )}
 
@@ -1214,6 +1276,7 @@ const Dashboard = () => {
                     }, 100);
                 }}
             />
+            </div>
         </div>
     );
     // Helper to render individual asset card
@@ -1233,9 +1296,9 @@ const Dashboard = () => {
 
             // Common - Show SN for everything EXCEPT mobile/chip (as requested)
             if (asset.serial_number && asset.device_type !== 'mobile' && asset.device_type !== 'chip') {
-                details.push(<span key="sn" className="text-slate-500">SN: <span className="text-slate-300 font-mono">{asset.serial_number}</span></span>);
+                details.push(<span key="sn" className="text-slate-500">SN: <span className="text-slate-700 dark:text-slate-300 font-mono">{asset.serial_number}</span></span>);
             }
-            if (asset.hostname) details.push(<span key="host" className="text-slate-500">Host: <span className="text-slate-300 font-mono">{asset.hostname}</span></span>);
+            if (asset.hostname) details.push(<span key="host" className="text-slate-500">Host: <span className="text-slate-700 dark:text-slate-300 font-mono">{asset.hostname}</span></span>);
 
             // Mobile Specific
             if (asset.device_type === 'mobile' || asset.device_type === 'chip') {
@@ -1253,16 +1316,16 @@ const Dashboard = () => {
                     } catch (e) { }
                 }
 
-                if (imei) details.push(<span key="imei" className="text-slate-500">IMEI: <span className="text-slate-300 font-mono">{imei}</span></span>);
-                if (phone) details.push(<span key="phone" className="text-slate-500">Tel: <span className="text-slate-300 font-mono">{phone}</span></span>);
+                if (imei) details.push(<span key="imei" className="text-slate-500">IMEI: <span className="text-slate-700 dark:text-slate-300 font-mono">{imei}</span></span>);
+                if (phone) details.push(<span key="phone" className="text-slate-500">Tel: <span className="text-slate-700 dark:text-slate-300 font-mono">{phone}</span></span>);
             }
 
             // Location Badge for Laptops (Casa vs Oficina)
             if (asset.device_type === 'laptop' && asset.location) {
                 if (asset.location === 'Casa') {
-                    details.push(<span key="loc-home" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">CASA</span>);
+                    details.push(<span key="loc-home" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">CASA</span>);
                 } else if (asset.location === 'Oficina') {
-                    details.push(<span key="loc-office" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">OFICINA</span>);
+                    details.push(<span key="loc-office" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30">OFICINA</span>);
                 }
             }
 
@@ -1272,10 +1335,14 @@ const Dashboard = () => {
         return (
             <div key={asset.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isGrouped ? 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' : 'bg-surface/50 border-slate-200/50 dark:border-slate-700/50 hover:border-accent/30'}`}>
                 <div className="flex items-center gap-3 w-full min-w-0">
-                    <div className={`p-2 rounded-lg flex-shrink-0 ${asset.device_type === 'laptop' ? 'bg-blue-500/20 text-blue-400' :
-                        asset.device_type === 'charger' ? 'bg-yellow-500/20 text-yellow-500' :
-                            asset.device_type === 'monitor' ? 'bg-purple-500/20 text-purple-400' :
-                                'bg-slate-700 text-slate-400'
+                    <div className={`p-2 rounded-lg flex-shrink-0 ${asset.device_type === 'laptop' ? 'bg-blue-500/15' :
+                        asset.device_type === 'monitor' ? 'bg-cyan-500/15' :
+                            asset.device_type === 'celular' ? 'bg-green-500/15' :
+                                asset.device_type === 'charger' ? 'bg-orange-500/15' :
+                                    asset.device_type === 'auriculares' ? 'bg-pink-500/15' :
+                                        asset.device_type === 'mochila' ? 'bg-amber-500/15' :
+                                            asset.device_type === 'kit teclado/mouse' ? 'bg-purple-500/15' :
+                                                'bg-slate-400/15'
                         }`}>
                         {getIcon(asset.device_type)}
                     </div>
@@ -1285,22 +1352,22 @@ const Dashboard = () => {
                                 {label}
                             </p>
                         )}
-                        <h4 className="font-medium text-white text-sm leading-tight truncate">
-                            <span className="text-slate-400 font-normal mr-1">{asset.brand}</span>
+                        <h4 className="font-medium text-slate-900 dark:text-white text-sm leading-tight truncate">
+                            <span className="text-slate-500 dark:text-slate-400 font-normal mr-1">{asset.brand}</span>
                             {asset.model}
                         </h4>
 
                         {/* Details Grid */}
                         <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] leading-tight item-center">
                             {renderDetails()}
-                            {asset.status === 'assigned' && <span className="text-green-500/80 font-medium text-[10px] border border-green-500/20 px-1 rounded bg-green-500/10 self-center">ACTIVO</span>}
+                            {asset.status === 'assigned' && <span className="text-green-600 dark:text-green-400 font-medium text-[10px] border border-green-500/20 px-1 rounded bg-green-500/10 self-center">ACTIVO</span>}
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                     <button
                         onClick={(e) => (onViewDetailsOverride || handleViewDetails)(e, asset)}
-                        className="p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
+                        className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                         title="Ver detalles"
                     >
                         <Search className="w-4 h-4" />

@@ -50,8 +50,24 @@ export const AuthProvider = ({ children }) => {
             (error) => Promise.reject(error)
         );
 
+        const responseInterceptor = axios.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                // Skip /login failures so a wrong password never wipes an existing session
+                const isLoginRequest = error.config?.url?.endsWith('/login');
+                if (error.response?.status === 401 && !isLoginRequest && localStorage.getItem('token')) {
+                    localStorage.removeItem('token');
+                    setToken(null);
+                    setUser(null);
+                    delete axios.defaults.headers.common['Authorization'];
+                }
+                return Promise.reject(error);
+            }
+        );
+
         return () => {
             axios.interceptors.request.eject(requestInterceptor);
+            axios.interceptors.response.eject(responseInterceptor);
         };
     }, [API_URL]);
 
@@ -59,17 +75,14 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const res = await axios.post(`${API_URL}/login`, { username, password });
-            const { access_token, must_change_password } = res.data;
+            const { access_token, user: userData } = res.data;
 
             localStorage.setItem('token', access_token);
             setToken(access_token);
             axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            setUser(userData);
 
-            // Fetch full user profile after login
-            const profileRes = await axios.get(`${API_URL}/users/me`);
-            setUser(profileRes.data);
-
-            return { success: true, must_change_password: Boolean(must_change_password) };
+            return { success: true, must_change_password: Boolean(userData.must_change_password) };
         } catch (err) {
             return {
                 success: false,

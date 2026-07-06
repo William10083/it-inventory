@@ -318,8 +318,15 @@ async def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "username": user.username,
-        "must_change_password": bool(user.must_change_password)
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name or "",
+            "dni": user.dni or "",
+            "role": user.role,
+            "is_active": user.is_active,
+            "must_change_password": bool(user.must_change_password),
+        }
     }
 
 @app.get("/users/me")

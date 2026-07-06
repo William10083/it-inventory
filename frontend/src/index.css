@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Warm Sand & Indigo — light mode (default) */
+  /* Lavender & Violet — light mode (default) */
   --color-bg: #F3F1FB;
   --color-surface: #FFFFFF;
   --color-accent: #7C6FF0;

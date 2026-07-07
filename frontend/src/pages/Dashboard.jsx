@@ -653,14 +653,14 @@ const Dashboard = () => {
 
 
     return (
-        <div className="min-h-screen flex bg-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-accent/30">
+        <div className="min-h-screen flex bg-bg text-slate-900 dark:text-slate-200 font-sans selection:bg-accent/20 selection:text-accent">
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
             <div className="flex-1 min-w-0">
             <Navbar onAlertClick={() => setIsAlertsOpen(true)} notificationCount={alertsCount} />
 
             <AlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-8">
                 {activeTab === 'inventory' && (
                 <>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -672,11 +672,10 @@ const Dashboard = () => {
                         </div>
                     </div>
                     <div className="flex gap-3 items-center flex-wrap">
-                        {/* Global Location Filter */}
                         <select
                             value={locationFilter}
                             onChange={(e) => { setLocationFilter(e.target.value); setAssignmentsPage(1); }}
-                            className="bg-surface border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-accent min-w-[150px]"
+                            className="glass-card rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white text-sm focus-ring min-w-[150px] transition-all duration-200"
                         >
                             <option value="all">Todas las Sedes</option>
                             <option value="Callao">Callao</option>
@@ -694,21 +693,21 @@ const Dashboard = () => {
                                 setSelectedEmployeeForEdit(null);
                                 setIsEmployeeModalOpen(true);
                             }}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium"
+                            className="bg-surface-secondary hover:bg-surface-hover text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium text-sm transition-all duration-200 shadow-soft border border-slate-200/60 dark:border-slate-700/40"
                         >
-                            <Users className="w-5 h-5" /> Agregar Empleado
+                            <Users className="w-4 h-4" /> Agregar Empleado
                         </button>
                         <button
                             onClick={() => setIsManualDeviceModalOpen(true)}
-                            className="bg-accent hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium"
+                            className="bg-gradient-to-br from-accent to-violet-600 hover:opacity-90 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium text-sm shadow-soft-md transition-all duration-200"
                         >
-                            <Plus className="w-5 h-5" /> Nuevo Equipo
+                            <Plus className="w-4 h-4" /> Nuevo Equipo
                         </button>
                     </div>
                 </div>
 
                 {/* Metrics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                     {[
                         { label: 'Kits', Icon: Box, chip: 'bg-device-kit/15 text-device-kit', bar: 'bg-device-kit', a: metrics.assignedKits, t: metrics.totalKits },
                         { label: 'Mochilas', Icon: Briefcase, chip: 'bg-device-backpack/15 text-device-backpack', bar: 'bg-device-backpack', a: metrics.assignedBackpacks, t: metrics.totalBackpacks },
@@ -719,18 +718,18 @@ const Dashboard = () => {
                     ].map(({ label, Icon, chip, bar, a, t }) => {
                         const pct = t ? Math.round((a / t) * 100) : 0;
                         return (
-                            <div key={label} className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
+                            <div key={label} className="glass-card rounded-2xl p-4 shadow-soft hover:shadow-soft-md transition-all duration-300 hover:-translate-y-0.5">
                                 <div className="flex items-center gap-2 text-muted text-sm">
-                                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${chip}`}>
+                                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${chip}`}>
                                         <Icon className="w-4 h-4" />
                                     </span>
-                                    {label}
+                                    <span className="font-medium">{label}</span>
                                 </div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
-                                    <CountUpNumber value={a} /> <span className="text-sm text-slate-500 font-normal tabular-nums">/ {t}</span>
+                                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-3 tracking-tight">
+                                    <CountUpNumber value={a} /> <span className="text-sm text-muted font-normal tabular-nums">/ {t}</span>
                                 </p>
-                                <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700/60 mt-3 overflow-hidden">
-                                    <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+                                <div className="h-1.5 rounded-full bg-slate-200/60 dark:bg-slate-700/40 mt-3 overflow-hidden">
+                                    <div className={`h-full rounded-full ${bar} transition-all duration-500`} style={{ width: `${pct}%` }} />
                                 </div>
                             </div>
                         );
@@ -739,13 +738,13 @@ const Dashboard = () => {
 
 
                 {/* 2. Controls: Search & Tabs - Grouped Navigation */}
-                <div className="flex flex-col md:flex-row justify-end items-center mb-6 gap-4 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex flex-col md:flex-row justify-end items-center mb-6 gap-4 glass-card p-2.5 rounded-2xl shadow-soft">
                     <div className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Buscar por Serie, Hostname, Nombre, DNI..."
-                            className="w-full bg-surface border border-slate-300 dark:border-slate-600 rounded-md py-2 pl-10 pr-4 text-slate-900 dark:text-white focus:outline-none focus:border-accent"
+                            className="w-full bg-transparent rounded-xl py-2.5 pl-11 pr-4 text-slate-900 dark:text-white placeholder:text-muted focus-ring text-sm transition-all duration-200"
                             value={searchQuery}
                             onChange={(e) => { setSearchQuery(e.target.value); setAssignmentsPage(1); }}
                         />
@@ -758,20 +757,20 @@ const Dashboard = () => {
                 {activeTab === 'inventory' && (
                     <div className="flex flex-col lg:flex-row gap-6">
                         <aside className="lg:w-72 shrink-0 space-y-4">
-                            <div className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
+                            <div className="glass-card rounded-2xl p-5 shadow-soft">
                                 <div className="flex gap-6">
                                     <div>
-                                        <div className="text-xs text-slate-400">En inventario</div>
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{metrics.totalKits + metrics.totalBackpacks + metrics.totalHeadphones + metrics.totalMonitors + metrics.totalLaptops + metrics.totalMobiles}</div>
+                                        <div className="text-xs text-muted font-medium uppercase tracking-wider">En inventario</div>
+                                        <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1">{metrics.totalKits + metrics.totalBackpacks + metrics.totalHeadphones + metrics.totalMonitors + metrics.totalLaptops + metrics.totalMobiles}</div>
                                     </div>
                                     <div>
-                                        <div className="text-xs text-slate-400">Asignados</div>
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{metrics.assignedKits + metrics.assignedBackpacks + metrics.assignedHeadphones + metrics.assignedMonitors + metrics.assignedLaptops + metrics.assignedMobiles}</div>
+                                        <div className="text-xs text-muted font-medium uppercase tracking-wider">Asignados</div>
+                                        <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1">{metrics.assignedKits + metrics.assignedBackpacks + metrics.assignedHeadphones + metrics.assignedMonitors + metrics.assignedLaptops + metrics.assignedMobiles}</div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
-                                <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Equipos por tipo</div>
+                            <div className="glass-card rounded-2xl p-5 shadow-soft">
+                                <div className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Equipos por tipo</div>
                                 <div
                                     style={{ width: '100%', height: 160 }}
                                     data-testid="devices-by-type-chart"
@@ -802,10 +801,10 @@ const Dashboard = () => {
                                     </ResponsiveContainer>
                                 </div>
                             </div>
-                            <div className="rounded-2xl p-4 bg-accent text-white">
+                            <div className="rounded-2xl p-5 bg-gradient-to-br from-accent to-violet-600 text-white shadow-soft-md">
                                 <div className="text-sm font-semibold">Reporte de inventario</div>
                                 <div className="text-xs opacity-90 mt-1">Exportá el estado actual del inventario.</div>
-                                <button onClick={() => { window.location.href = `${API_URL}/export/excel?token=${token}`; showNotification('✓ Iniciando exportación...', 'success'); }} className="mt-3 bg-white text-accent text-xs font-semibold px-3 py-1.5 rounded-lg hover:opacity-90">Generar</button>
+                                <button onClick={() => { window.location.href = `${API_URL}/export/excel?token=${token}`; showNotification('✓ Iniciando exportación...', 'success'); }} className="mt-3 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3.5 py-2 rounded-xl backdrop-blur-sm transition-all duration-200">Generar</button>
                             </div>
                         </aside>
                         <div className="flex-1 min-w-0 space-y-4">
@@ -813,9 +812,9 @@ const Dashboard = () => {
                                 {/* Scanner Input */}
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
                             </div>
-                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto" data-testid="device-table-scroll-container">
+                        <div className="glass-card rounded-2xl overflow-x-auto shadow-soft" data-testid="device-table-scroll-container">
                             <table className="w-full min-w-[850px] text-left text-sm text-muted" data-testid="device-table">
-                                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                <thead className="glass-nav text-xs uppercase tracking-wider text-muted">
                                     <tr>
                                         {/* Combined Header & Filter: Type */}
                                         <th className="px-4 py-3 align-top w-24">
@@ -981,14 +980,14 @@ const Dashboard = () => {
                                         <th className="px-4 py-3 w-40" data-testid="actions-column-header"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {getFilteredDevices().map(device => {
+                                <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/30">
+                                    {getFilteredDevices().map((device, idx) => {
                                         const isSelected = selectedDevices.find(d => d.id === device.id);
                                         return (
                                             <React.Fragment key={device.id}>
                                             <tr
                                                 onClick={() => toggleSelection(device)}
-                                                className={`hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : ''}`}
+                                                className={`hover:bg-accent/5 cursor-pointer transition-all duration-150 ${isSelected ? 'bg-accent/10' : idx % 2 === 0 ? '' : 'bg-slate-50/50 dark:bg-slate-800/20'}`}
                                             >
                                                 <td className="px-4 py-3">{getIcon(device.device_type)}</td>
                                                 <td

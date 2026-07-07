@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Package, Laptop, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ onAlertClick, notificationCount = 0 }) => {
@@ -8,103 +8,80 @@ const Navbar = ({ onAlertClick, notificationCount = 0 }) => {
     const [username, setUsername] = useState('');
     const menuRef = useRef(null);
 
-    // Get username from localStorage
     useEffect(() => {
         const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
+        if (storedUsername) setUsername(storedUsername);
     }, []);
 
-    // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setIsUserMenuOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleLogout = () => {
-        // Clear auth data
         localStorage.removeItem('token');
         localStorage.removeItem('username');
-
-        // Redirect to login
         navigate('/login');
     };
 
     return (
-        <nav className="border-b border-slate-200 dark:border-slate-700 bg-surface/95 backdrop-blur-md sticky top-0 z-40">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="glass-nav border-b border-slate-200/40 dark:border-slate-700/30 sticky top-0 z-40">
+            <div className="px-6">
                 <div className="flex items-center justify-end h-16">
-                    {/* Right Side - Alerts and User Menu */}
-                    <div className="flex items-center gap-3">
-                        {/* Alerts Button with Badge */}
+                    <div className="flex items-center gap-2">
+                        {/* Alerts */}
                         {onAlertClick && (
                             <button
                                 onClick={onAlertClick}
-                                className="relative p-2 text-muted hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-full"
+                                className="relative p-2.5 rounded-xl text-muted hover:text-accent hover:bg-accent/8 transition-all duration-200"
                                 title="Alertas"
                             >
                                 <Bell className="w-5 h-5" />
-                                {/* Notification Badge */}
                                 {notificationCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-danger to-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-soft">
                                         {notificationCount > 99 ? '99+' : notificationCount}
                                     </span>
                                 )}
                             </button>
                         )}
 
-                        {/* User Menu */}
+                        {/* User menu */}
                         <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors group"
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-accent/8 transition-all duration-200 group"
                             >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                                        <User className="w-5 h-5 text-white" />
-                                    </div>
-                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white hidden sm:block">
-                                        {username || 'Usuario'}
-                                    </span>
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-violet-500 flex items-center justify-center shadow-soft">
+                                    <User className="w-4 h-4 text-white" />
                                 </div>
-                                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform hidden sm:block ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-accent hidden sm:block transition-colors">
+                                    {username || 'Usuario'}
+                                </span>
+                                <ChevronDown className={`w-4 h-4 text-muted transition-transform hidden sm:block ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
 
-                            {/* Dropdown Menu */}
                             {isUserMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-surface border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
-                                    {/* User Info */}
-                                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                                        <p className="text-sm font-medium text-slate-900 dark:text-white">{username || 'Usuario'}</p>
-                                        <p className="text-xs text-muted mt-1">Administrador</p>
+                                <div className="absolute right-0 mt-2 w-60 glass-card rounded-2xl shadow-soft-lg overflow-hidden">
+                                    <div className="px-4 py-3.5 border-b border-slate-200/50 dark:border-slate-700/40">
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{username || 'Usuario'}</p>
+                                        <p className="text-xs text-muted mt-0.5">Administrador</p>
                                     </div>
-
-                                    {/* Menu Items */}
-                                    <div className="py-2">
+                                    <div className="py-1.5">
                                         <button
-                                            onClick={() => {
-                                                setIsUserMenuOpen(false);
-                                                navigate('/settings');
-                                            }}
-                                            className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-3"
+                                            onClick={() => { setIsUserMenuOpen(false); navigate('/settings'); }}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-accent/8 hover:text-accent transition-all duration-150 flex items-center gap-3"
                                         >
                                             <Settings className="w-4 h-4" />
                                             Configuración
                                         </button>
-
                                         <button
-                                            onClick={() => {
-                                                setIsUserMenuOpen(false);
-                                                handleLogout();
-                                            }}
-                                            className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-3"
+                                            onClick={() => { setIsUserMenuOpen(false); handleLogout(); }}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-danger hover:bg-danger/10 transition-all duration-150 flex items-center gap-3"
                                         >
                                             <LogOut className="w-4 h-4" />
                                             Cerrar Sesión

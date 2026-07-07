@@ -20,15 +20,21 @@
   --color-device-headphones: #ec4899;
   --color-device-mobile: #22c55e;
 
-  --font-sans: "Space Grotesk", system-ui, sans-serif;
+  /* Semantic status colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  --font-sans: "Inter", "Space Grotesk", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 .dark {
-  --color-bg: #16142A;
-  --color-surface: #211D38;
-  --color-surface-secondary: #2A2547;
-  --color-surface-hover: #322C52;
+  --color-bg: #0F0E1A;
+  --color-surface: #1A1828;
+  --color-surface-secondary: #232038;
+  --color-surface-hover: #2A2745;
   --color-accent: #8B7FF5;
   /* 4.98:1 on dark --color-surface-secondary (WCAG AA) */
   --color-muted: #9A93B8;
@@ -36,7 +42,7 @@
 
 @layer base {
   body {
-    @apply bg-bg text-slate-900 antialiased font-sans transition-colors duration-200;
+    @apply bg-bg text-slate-900 antialiased font-sans transition-colors duration-300;
   }
 
   .dark body {
@@ -44,22 +50,59 @@
   }
 }
 
-/* Glassmorphism utilities */
+/* ─── Glassmorphism ─── */
 .glass {
-  @apply bg-white/10 backdrop-blur-lg border border-white/20;
+  @apply bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10;
 }
 
 .glass-card {
-  @apply bg-slate-900 border border-surface-secondary rounded-md shadow-sm;
+  @apply bg-surface/80 dark:bg-surface/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/40;
 }
 
-/* GSAP motion layer replaces these keyframes — see useGsapEntrance.js */
+.glass-nav {
+  @apply bg-surface/70 dark:bg-surface/50 backdrop-blur-xl border border-transparent;
+}
+
+/* ─── Shadow system (soft, macOS-style) ─── */
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .shadow-soft-md {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
+  }
+  .shadow-soft-lg {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.03);
+  }
+  .shadow-soft-xl {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.04);
+  }
+  .dark .shadow-soft {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .dark .shadow-soft-md {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .dark .shadow-soft-lg {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .dark .shadow-soft-xl {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.4);
+  }
+
+  /* ─── Gradient text ─── */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent to-violet-500;
+  }
+}
+
+/* ─── GSAP motion layer replaces these keyframes — see useGsapEntrance.js ─── */
 /* Retired: slide-in-right, fade-in, scale-in (migrated to @gsap/react) */
 
-/* Custom Scrollbar */
+/* ─── Custom Scrollbar (macOS-style) ─── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -67,16 +110,30 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  /* slate-700 */
-  border-radius: 4px;
+  background: rgba(124, 111, 240, 0.3);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-  /* slate-600 */
+  background: rgba(124, 111, 240, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: rgba(124, 111, 240, 0.25);
+}
+
+.dark ::selection {
+  background: rgba(139, 127, 245, 0.3);
+}
+
+/* ─── Focus ring (macOS-style) ─── */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
 }

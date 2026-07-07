@@ -16,9 +16,7 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
-
         const result = await login(username, password);
-
         if (result.success) {
             navigate('/');
         } else {
@@ -28,63 +26,64 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-bg dark:bg-slate-900 flex items-center justify-center relative overflow-hidden">
-            {/* Animated Background Elements */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[120px] animate-pulse-slow delay-1000"></div>
+        <div className="min-h-screen bg-bg flex items-center justify-center relative overflow-hidden">
+            {/* Ambient gradient orbs */}
+            <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-accent/20 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-violet-500/15 rounded-full blur-[120px]" />
+            <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] bg-device-kit/10 rounded-full blur-[100px]" />
 
-            <div className="glass-card w-full max-w-md p-8 relative z-10 border border-slate-700/50 shadow-2xl">
+            <div className="glass w-full max-w-md p-10 relative z-10 rounded-3xl shadow-soft-xl">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 mb-4 shadow-lg shadow-blue-500/20">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-accent to-violet-600 mb-4 shadow-soft-md">
                         <Monitor className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">IT Inventory</h1>
-                    <p className="text-slate-400 mt-2">Enterprise Asset Management</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">IT Inventory</h1>
+                    <p className="text-muted mt-2 text-sm">Enterprise Asset Management</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3">
-                            <ShieldCheck className="w-5 h-5 text-red-400 mt-0.5" />
-                            <p className="text-sm text-red-300">{error}</p>
+                        <div className="bg-danger/10 border border-danger/20 rounded-xl p-3.5 flex items-start gap-3">
+                            <ShieldCheck className="w-5 h-5 text-danger mt-0.5" />
+                            <p className="text-sm text-danger">{error}</p>
                         </div>
                     )}
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200 ml-1">Username</label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <User className="h-5 w-5 text-slate-500" />
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <User className="h-5 w-5 text-muted" />
                             </div>
                             <input
                                 type="text"
                                 required
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                                className="block w-full pl-11 pr-3.5 py-3 bg-white/50 dark:bg-white/5 border border-slate-300/50 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-white placeholder:text-muted focus-ring transition-all duration-200"
                                 placeholder="Enter your username"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300 ml-1">Password</label>
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200 ml-1">Password</label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Lock className="h-5 w-5 text-slate-500" />
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <Lock className="h-5 w-5 text-muted" />
                             </div>
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                                className="block w-full pl-11 pr-10 py-3 bg-white/50 dark:bg-white/5 border border-slate-300/50 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-white placeholder:text-muted focus-ring transition-all duration-200"
                                 placeholder="••••••••"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(v => !v)}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-accent transition-colors"
                             >
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                             </button>
@@ -94,10 +93,13 @@ const LoginPage = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 rounded-lg shadow-lg shadow-blue-500/25 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-violet-600 hover:from-violet-600 hover:to-accent text-white font-semibold py-3.5 rounded-xl shadow-soft-md transition-all duration-200 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? (
-                            'Signing in...'
+                            <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Signing in...
+                            </span>
                         ) : (
                             <>
                                 Sign In <ArrowRight className="w-5 h-5" />
@@ -107,7 +109,7 @@ const LoginPage = () => {
                 </form>
 
                 <div className="mt-8 text-center">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted">
                         Restricted Access • Authorized Personnel Only
                     </p>
                 </div>

@@ -54,7 +54,7 @@ const ThemeToggle = () => {
             onClick={handleClick}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 dark:hover:bg-slate-700/50 transition-colors"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-muted hover:text-accent hover:bg-accent/8 transition-all duration-200"
         >
             <span ref={iconRef} className="inline-flex">
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

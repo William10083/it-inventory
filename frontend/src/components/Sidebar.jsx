@@ -26,9 +26,6 @@ import {
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
-// Navigation groups mirror the legacy NavTabs structure so no section is lost
-// when switching from the top dropdown bar to the icon rail. Each group renders
-// as a single rail icon that opens a flyout with its sections.
 const GROUPS = [
     {
         id: 'gestion',
@@ -93,21 +90,23 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     const isGroupActive = (group) => group.items.some((item) => item.tab === activeTab);
 
     const railButton =
-        'relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors';
+        'relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200';
     const railIdle =
-        'text-slate-400 hover:text-accent hover:bg-accent/10 dark:text-slate-500 dark:hover:bg-slate-800';
-    const railOn = 'text-accent bg-accent/10';
+        'text-muted hover:text-accent hover:bg-accent/8';
+    const railOn = 'text-accent bg-accent/12 shadow-soft';
 
     return (
         <nav
             ref={railRef}
             aria-label="Navegación principal"
-            className="flex flex-col items-center gap-1.5 w-16 shrink-0 h-screen sticky top-0 z-50 py-4 bg-surface border-r border-slate-200/70 dark:bg-slate-900 dark:border-slate-800"
+            className="flex flex-col items-center gap-1.5 w-16 shrink-0 h-screen sticky top-0 z-50 py-4 glass-nav border-r border-slate-200/40 dark:border-slate-700/30"
         >
-            <div className="w-9 h-9 rounded-xl bg-accent text-white flex items-center justify-center mb-3 shrink-0">
+            {/* Logo / brand mark */}
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-violet-600 text-white flex items-center justify-center mb-3 shrink-0 shadow-soft-md">
                 <Monitor className="w-5 h-5" />
             </div>
 
+            {/* Dashboard direct button */}
             <button
                 type="button"
                 onClick={() => selectTab('inventory')}
@@ -118,6 +117,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                 <LayoutDashboard className="w-5 h-5" />
             </button>
 
+            <div className="w-8 h-px bg-slate-200/60 dark:bg-slate-700/40 my-1" />
+
+            {/* Group buttons */}
             {GROUPS.map((group) => (
                 <div key={group.id} className="relative">
                     <button
@@ -132,8 +134,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                     </button>
 
                     {openFlyout === group.id && (
-                        <div className="absolute left-full top-0 ml-2 z-[60] min-w-[190px] bg-surface dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5">
-                            <p className="px-3 py-1 text-xs font-medium text-muted">
+                        <div className="absolute left-full top-0 ml-2 z-[60] min-w-[200px] glass-card rounded-2xl shadow-soft-lg py-2 overflow-hidden">
+                            <p className="px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
                                 {group.label}
                             </p>
                             {group.items.map((item) => (
@@ -141,9 +143,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                                     key={item.tab}
                                     type="button"
                                     onClick={() => selectTab(item.tab)}
-                                    className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2.5 transition-colors ${activeTab === item.tab
-                                        ? 'text-accent bg-accent/10'
-                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                    className={`w-full px-3.5 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${activeTab === item.tab
+                                        ? 'text-accent bg-accent/10 font-medium'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-accent/5 hover:text-accent'
                                         }`}
                                 >
                                     <item.Icon className="w-4 h-4 shrink-0" />
@@ -155,7 +157,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                 </div>
             ))}
 
-            <div className="mt-auto flex flex-col items-center gap-1.5">
+            {/* Bottom section */}
+            <div className="mt-auto flex flex-col items-center gap-2">
                 <button
                     type="button"
                     onClick={() => { setOpenFlyout(null); setActiveTab('settings'); }}
@@ -166,7 +169,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                     <Settings className="w-5 h-5" />
                 </button>
                 <ThemeToggle />
-                <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-xs font-medium mt-1">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent/20 to-violet-500/20 text-accent flex items-center justify-center text-xs font-semibold ring-1 ring-accent/20">
                     VW
                 </div>
             </div>

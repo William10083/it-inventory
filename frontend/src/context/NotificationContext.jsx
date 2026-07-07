@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X, Download } from 'lucide-react';
+import { useGsapEntrance } from '../components/ui/hooks/useGsapEntrance.js';
 
 const NotificationContext = createContext(null);
 
@@ -115,9 +116,10 @@ export const NotificationProvider = ({ children }) => {
 
 const DownloadProgress = ({ download }) => {
     const { label, progress, status } = download;
+    const slideRef = useGsapEntrance({ from: { autoAlpha: 0, x: 30 }, to: { autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out' } });
 
     return (
-        <div className="min-w-72 max-w-md p-3 rounded-lg border bg-surface/95 dark:bg-slate-800/95 border-slate-200 dark:border-slate-700 backdrop-blur-sm shadow-lg animate-slide-in-right">
+        <div ref={slideRef} className="min-w-72 max-w-md p-3 rounded-lg border bg-surface/95 dark:bg-slate-800/95 border-slate-200 dark:border-slate-700 backdrop-blur-sm shadow-lg">
             <div className="flex items-center gap-2 mb-2">
                 {status === 'error' ? (
                     <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
@@ -144,6 +146,7 @@ const DownloadProgress = ({ download }) => {
 };
 
 const Notification = ({ notification, onClose }) => {
+    const slideRef = useGsapEntrance({ from: { autoAlpha: 0, x: 30 }, to: { autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out' } });
     const icons = {
         success: <CheckCircle className="w-5 h-5" />,
         error: <XCircle className="w-5 h-5" />,
@@ -159,7 +162,7 @@ const Notification = ({ notification, onClose }) => {
     };
 
     return (
-        <div className={`min-w-80 max-w-md p-4 rounded-lg border backdrop-blur-sm ${colors[notification.type]} shadow-lg animate-slide-in-right flex items-start gap-3`}>
+        <div ref={slideRef} className={`min-w-80 max-w-md p-4 rounded-lg border backdrop-blur-sm ${colors[notification.type]} shadow-lg flex items-start gap-3`}>
             <div className="flex-shrink-0">
                 {icons[notification.type]}
             </div>
@@ -177,9 +180,11 @@ const Notification = ({ notification, onClose }) => {
 };
 
 const ConfirmDialog = ({ title, message, onConfirm, onCancel }) => {
+    const fadeRef = useGsapEntrance({ from: { autoAlpha: 0 }, to: { autoAlpha: 1, duration: 0.2, ease: 'power2.out' } });
+    const scaleRef = useGsapEntrance({ from: { autoAlpha: 0, scale: 0.9 }, to: { autoAlpha: 1, scale: 1, duration: 0.2, ease: 'power2.out' } });
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-            <div className="bg-surface dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full animate-scale-in">
+        <div ref={fadeRef} className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <div ref={scaleRef} className="bg-surface dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full">
                 <div className="p-6">
                     <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">

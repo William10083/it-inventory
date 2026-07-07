@@ -42,7 +42,9 @@
 }
 
 .glass-card {
-  @apply bg-slate-900 border border-slate-700 rounded-md shadow-sm;
+  /* Interim: reuse the existing --color-accent token for the border until PR2
+     adds dedicated --color-surface-secondary/-hover tokens (see design doc). */
+  @apply bg-slate-900 border border-accent/20 rounded-md shadow-sm;
 }
 
 /* Notification animations */

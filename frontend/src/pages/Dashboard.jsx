@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import gsap from 'gsap';
 import Navbar from '../components/Navbar';
 import ScannerInput from '../components/ScannerInput';
 import AssignmentModal from '../components/AssignmentModal';
@@ -35,48 +34,10 @@ import EmployeeCard from '../components/EmployeeCard';
 import EmptyState from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
+import CountUpNumber from '../components/CountUpNumber';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-// Animates a numeric value counting up from 0 to `value` using GSAP.
-// Respects prefers-reduced-motion (renders the final value immediately when set).
-const CountUpNumber = ({ value }) => {
-    const [display, setDisplay] = useState(0);
-    const tweenRef = useRef(null);
-
-    useEffect(() => {
-        const targetValue = Number(value) || 0;
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        if (tweenRef.current) {
-            tweenRef.current.kill();
-            tweenRef.current = null;
-        }
-
-        if (prefersReducedMotion) {
-            setDisplay(targetValue);
-            return;
-        }
-
-        const proxy = { val: 0 };
-        tweenRef.current = gsap.to(proxy, {
-            val: targetValue,
-            duration: 0.6,
-            ease: 'power2.out',
-            onUpdate: () => setDisplay(Math.round(proxy.val)),
-        });
-
-        return () => {
-            if (tweenRef.current) {
-                tweenRef.current.kill();
-                tweenRef.current = null;
-            }
-        };
-    }, [value]);
-
-    return <span className="tabular-nums">{display}</span>;
-};
 
 // Small illustrated accent mark for the Dashboard header — the one
 // deliberately visible "wow" moment of this PR (unlike PR0's invisible
@@ -809,16 +770,21 @@ const Dashboard = () => {
                             </div>
                             <div className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
                                 <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Equipos por tipo</div>
-                                <div style={{ width: '100%', height: 140 }}>
+                                <div
+                                    style={{ width: '100%', height: 160 }}
+                                    data-testid="devices-by-type-chart"
+                                    data-chart-labels={JSON.stringify(['Kits', 'Mochilas', 'Auriculares', 'Monitores', 'Laptops', 'Celulares'])}
+                                    data-chart-xaxis-angle="-45"
+                                >
                                     <ResponsiveContainer>
                                         <AreaChart data={[
                                             { name: 'Kits', value: metrics.assignedKits },
-                                            { name: 'Moch', value: metrics.assignedBackpacks },
-                                            { name: 'Aur', value: metrics.assignedHeadphones },
-                                            { name: 'Mon', value: metrics.assignedMonitors },
-                                            { name: 'Lap', value: metrics.assignedLaptops },
-                                            { name: 'Cel', value: metrics.assignedMobiles },
-                                        ]} margin={{ top: 5, right: 4, left: -24, bottom: 0 }}>
+                                            { name: 'Mochilas', value: metrics.assignedBackpacks },
+                                            { name: 'Auriculares', value: metrics.assignedHeadphones },
+                                            { name: 'Monitores', value: metrics.assignedMonitors },
+                                            { name: 'Laptops', value: metrics.assignedLaptops },
+                                            { name: 'Celulares', value: metrics.assignedMobiles },
+                                        ]} margin={{ top: 5, right: 4, left: -24, bottom: 20 }}>
                                             <defs>
                                                 <linearGradient id="roseGrad" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="0%" stopColor="#EE7AA0" stopOpacity={0.35} />
@@ -826,7 +792,7 @@ const Dashboard = () => {
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.18)" vertical={false} />
-                                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval={0} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={40} />
                                             <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={22} allowDecimals={false} />
                                             <Tooltip cursor={{ stroke: '#EE7AA0', strokeWidth: 1 }} />
                                             <Area type="monotone" dataKey="value" name="Equipos" stroke="#EE7AA0" strokeWidth={2} fill="url(#roseGrad)" />
@@ -845,8 +811,8 @@ const Dashboard = () => {
                                 {/* Scanner Input */}
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
                             </div>
-                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto">
-                            <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                        <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto" data-testid="device-table-scroll-container">
+                            <table className="w-full min-w-[850px] text-left text-sm text-slate-500 dark:text-slate-400" data-testid="device-table">
                                 <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                     <tr>
                                         {/* Combined Header & Filter: Type */}
@@ -877,7 +843,7 @@ const Dashboard = () => {
                                         </th>
 
                                         {/* Combined Header & Filter: Model/Brand */}
-                                        <th className="px-4 py-3 align-top">
+                                        <th className="px-4 py-3 align-top w-48" data-testid="model-column-header">
                                             <div className="flex items-center justify-between gap-2">
                                                 <div
                                                     className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors group"
@@ -1010,7 +976,7 @@ const Dashboard = () => {
                                                 />
                                             </div>
                                         </th>
-                                        <th className="px-4 py-3 w-24"></th>
+                                        <th className="px-4 py-3 w-40" data-testid="actions-column-header"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
@@ -1023,7 +989,11 @@ const Dashboard = () => {
                                                 className={`hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : ''}`}
                                             >
                                                 <td className="px-4 py-3">{getIcon(device.device_type)}</td>
-                                                <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">
+                                                <td
+                                                    className="px-4 py-3 text-slate-900 dark:text-white font-medium max-w-[12rem] truncate"
+                                                    title={device.model}
+                                                    data-testid={`model-cell-${device.id}`}
+                                                >
                                                     {device.model}
                                                     <div className="text-xs text-slate-500">{device.brand}</div>
                                                 </td>
@@ -1031,8 +1001,14 @@ const Dashboard = () => {
                                                 <td className="px-4 py-3 font-mono">
                                                     {device.device_type === 'laptop' && device.hostname ? (
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-xs bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded" title="Hostname">PC</span>
-                                                            <span className="text-blue-300">{device.hostname}</span>
+                                                            <span
+                                                                className="text-xs bg-device-laptop/20 text-device-laptop px-1.5 py-0.5 rounded"
+                                                                title="Hostname"
+                                                                data-testid={`hostname-chip-${device.id}`}
+                                                            >
+                                                                PC
+                                                            </span>
+                                                            <span className="text-device-laptop">{device.hostname}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-slate-600">-</span>

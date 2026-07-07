@@ -35,6 +35,7 @@ import EmptyState from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import CountUpNumber from '../components/CountUpNumber';
+import Badge from '../components/ui/Badge';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -115,7 +116,7 @@ const Dashboard = () => {
     const [isTerminationModalOpen, setIsTerminationModalOpen] = useState(false);
     const [selectedDeviceDetail, setSelectedDeviceDetail] = useState(null);
     const [expandedDeviceId, setExpandedDeviceId] = useState(null);
-    const statusES = (s) => ({ available: 'Disponible', assigned: 'Asignado', maintenance: 'Mantenimiento', decommissioned: 'De baja' }[s] || s || '—');
+    const statusES = (s) => ({ available: 'Disponible', assigned: 'Asignado', maintenance: 'Mantenimiento', retired: 'De baja', sold: 'Vendido', decommissioned: 'De baja' }[s] || s || '—');
     const [selectedEmployeeForTermination, setSelectedEmployeeForTermination] = useState(null);
     const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState(null);
     const [selectedDevices, setSelectedDevices] = useState([]); // Cart
@@ -1025,9 +1026,7 @@ const Dashboard = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${device.status === 'available' ? 'text-green-400 bg-green-500/10' :
-                                                        device.status === 'assigned' ? 'text-blue-400 bg-blue-500/10' : 'text-red-400 bg-red-500/10'
-                                                        }`}>{statusES(device.status)}</span>
+                                                    <Badge variant={device.status}>{statusES(device.status)}</Badge>
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     <div className="flex items-center gap-2 justify-end">

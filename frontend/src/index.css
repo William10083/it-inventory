@@ -6,6 +6,8 @@
   /* Lavender & Violet — light mode (default) */
   --color-bg: #F3F1FB;
   --color-surface: #FFFFFF;
+  --color-surface-secondary: #EDEAF7;
+  --color-surface-hover: #E7E3F5;
   --color-accent: #7C6FF0;
 
   /* Device-type hue tokens — mode-invariant (same hue light/dark) */
@@ -23,6 +25,8 @@
 .dark {
   --color-bg: #16142A;
   --color-surface: #211D38;
+  --color-surface-secondary: #2A2547;
+  --color-surface-hover: #322C52;
   --color-accent: #8B7FF5;
 }
 
@@ -42,9 +46,7 @@
 }
 
 .glass-card {
-  /* Interim: reuse the existing --color-accent token for the border until PR2
-     adds dedicated --color-surface-secondary/-hover tokens (see design doc). */
-  @apply bg-slate-900 border border-accent/20 rounded-md shadow-sm;
+  @apply bg-slate-900 border border-surface-secondary rounded-md shadow-sm;
 }
 
 /* Notification animations */

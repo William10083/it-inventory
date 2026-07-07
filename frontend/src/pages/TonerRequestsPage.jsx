@@ -3,6 +3,7 @@ import { Plus, Search, Loader, Printer, Package, Edit2, Trash2, X, MapPin, Wifi,
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import FormField from '../components/ui/FormField';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -410,13 +411,14 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
                 <div className="p-6 space-y-4">
                     {!isEdit && (
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Sede</label>
-                            <select value={locationFilter} onChange={e => handleLocationFilterChange(e.target.value)}
-                                className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500">
-                                <option value="">Todas las sedes</option>
-                                {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                            </select>
-                            <p className="text-[11px] text-slate-500 mt-1">Filtra el selector de impresoras a una sola sede.</p>
+                            <FormField
+                                type="select"
+                                label="Sede"
+                                name="locationFilter"
+                                value={locationFilter}
+                                onChange={handleLocationFilterChange}
+                                options={[{ value: '', label: 'Todas las sedes' }, ...locations.map(loc => ({ value: loc, label: loc }))]}
+                            />\n                            <p className="text-[11px] text-slate-500 mt-1">Filtra el selector de impresoras a una sola sede.</p>
                         </div>
                     )}
 

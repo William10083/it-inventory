@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, FileText, Settings, AlertTriangle, CheckCircle, PenTool, QrCode, Wrench, Plus, DollarSign, Loader, Edit, Save, XCircle, MapPin } from 'lucide-react';
 import axios from 'axios';
 import { useNotification } from '../context/NotificationContext';
+import Modal from './ui/Modal';
+import Badge from './ui/Badge';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -291,29 +293,26 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
     if (!isOpen || !device || !displayDevice) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-surface rounded-xl w-full max-w-5xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
-
-                {/* Header */}
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-start bg-bg/50">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{displayDevice.model}</h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-accent font-mono bg-accent/10 px-2 py-0.5 rounded">{displayDevice.serial_number}</span>
-                            <span className="text-slate-500 dark:text-slate-400 text-sm">• {displayDevice.brand}</span>
-                        </div>
+        <Modal isOpen={isOpen} onClose={onClose} labelledBy="device-details-title">
+            <Modal.Header>
+                <div>
+                    <h2 id="device-details-title" className="text-2xl font-bold text-text">{displayDevice.model}</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-accent font-mono bg-accent/10 px-2 py-0.5 rounded">{displayDevice.serial_number}</span>
+                        <span className="text-muted text-sm">• {displayDevice.brand}</span>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                        <X className="w-6 h-6" />
-                    </button>
                 </div>
+                <button onClick={onClose} className="text-muted hover:text-text transition-colors">
+                    <X className="w-6 h-6" />
+                </button>
+            </Modal.Header>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <Modal.Body>
                     {/* Specs Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Device Details</h3>
+                                <h3 className="text-sm font-bold text-accent uppercase tracking-wider">Detalles del equipo</h3>
                                 {!isEditMode ? (
                                     <button
                                         onClick={() => setIsEditMode(true)}
@@ -416,12 +415,12 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                             })()}
                                             <div className="flex justify-between items-center py-1">
                                                 <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2"><MapPin className="w-3 h-3" /> Sede</span>
-                                                <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">{displayDevice.location || 'Callao'}</span>
+                                                <span className="text-accent font-medium text-sm">{displayDevice.location || 'Callao'}</span>
                                             </div>
                                         </div>
                                         {displayDevice.device_type !== 'celular' && (displayDevice.specifications || getMetrics(displayDevice.model)) && (
                                             <div className="pt-3 border-t border-slate-200 dark:border-slate-700/50 mt-3">
-                                                <p className="text-yellow-700 dark:text-yellow-400 text-sm font-bold uppercase mb-2 flex items-center gap-2">
+                                                <p className="text-accent text-sm font-bold uppercase mb-2 flex items-center gap-2">
                                                     <Settings className="w-4 h-4" /> Especificaciones
                                                 </p>
                                                 <div className="bg-slate-100 dark:bg-slate-800/50 p-3 rounded border border-slate-200 dark:border-slate-700">
@@ -663,7 +662,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                 } catch {}
                                 return (
                                     <div className="bg-bg/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-3">
-                                        <p className="text-yellow-700 dark:text-yellow-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <p className="text-accent text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                                             <Settings className="w-4 h-4" /> Chip / SIM
                                         </p>
                                         {!isEditMode ? (
@@ -718,16 +717,11 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                         </div>
 
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status & Actions</h3>
+                            <h3 className="text-sm font-bold text-accent uppercase tracking-wider">Estado y acciones</h3>
                             <div className="bg-bg/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-500 dark:text-slate-400">Current Status:</span>
-                                    <span className={`px-2 py-1 rounded text-sm font-bold uppercase ${displayDevice.status === 'available' ? 'text-green-600 dark:text-green-400 bg-green-500/10' :
-                                        displayDevice.status === 'assigned' ? 'text-blue-600 dark:text-blue-400 bg-blue-500/10' :
-                                            'text-red-600 dark:text-red-400 bg-red-500/10'
-                                        }`}>
-                                        {displayDevice.status}
-                                    </span>
+                                    <span className="text-muted">Estado actual:</span>
+                                    <Badge variant={displayDevice.status}>{displayDevice.status}</Badge>
                                 </div>
 
                                 <a
@@ -736,7 +730,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 w-full bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-2 rounded border border-slate-300 dark:border-slate-600 transition-colors mb-2 mt-3"
                                 >
-                                    <QrCode className="w-4 h-4" /> Print Asset Tag
+                                    <QrCode className="w-4 h-4" /> Imprimir etiqueta
                                 </a>
 
                                 {displayDevice.status === 'sold' && displayDevice.sale && (
@@ -1206,9 +1200,8 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                             </div>
                         )}
                     </div>
-                </div>
-            </div>
-        </div>
+            </Modal.Body>
+        </Modal>
     );
 };
 

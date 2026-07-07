@@ -514,7 +514,7 @@ const Dashboard = () => {
             }
         } else {
             const confirmed = await showConfirm(`Device ${value} not found. Register?`);
-            if (confirmed) setIsManualModalOpen(true);
+            if (confirmed) setIsManualDeviceModalOpen(true);
         }
     };
 

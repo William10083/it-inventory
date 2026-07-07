@@ -2,15 +2,6 @@ import React from 'react';
 import { Laptop, Monitor, X } from 'lucide-react';
 
 const DeviceChip = ({ device, price, onPriceChange, onRemove }) => {
-    // Debug: ver qué tipo de dispositivo llega
-    console.log('DeviceChip - Device:', {
-        brand: device.brand,
-        model: device.model,
-        type: device.device_type,
-        serial: device.serial_number,
-        fullDevice: device
-    });
-
     const Icon = device.device_type === 'laptop' ? Laptop : Monitor;
     const deviceTypeLabel = device.device_type === 'laptop' ? 'LAPTOP' : 'MONITOR';
 

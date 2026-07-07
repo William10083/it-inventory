@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FileText, Download, Upload, Settings, AlertTriangle, CheckCircle, Search, Filter, MapPin, ChevronUp, ChevronDown, Archive, X } from 'lucide-react';
+import { FileText, Download, Upload, Settings, AlertTriangle, CheckCircle, Search, Filter, MapPin, Archive, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ExcelFilter from '../components/ExcelFilter';
 import PdfUploader from '../components/PdfUploader';
+import Table from '../components/ui/Table';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { downloadFileWithProgress } from '../utils/downloadFile';
@@ -74,6 +75,7 @@ const ActasStatusPage = () => {
             setData(response.data);
         } catch (error) {
             console.error('Error fetching actas status:', error);
+            showNotification('Error al cargar estado de actas. Intente de nuevo.', 'error');
         } finally {
             setLoading(false);
         }
@@ -300,6 +302,139 @@ const ActasStatusPage = () => {
         setExcelFilters(prev => ({ ...prev, [key]: values }));
     };
 
+    // Column defs for the shared Table primitive. Sort/filter state stays here
+    // (sortConfig/handleSort, excelFilters/updateExcelFilter) — Table is presentational only.
+    const columns = [
+        {
+            key: 'employee_name',
+            header: 'Empleado',
+            sortable: true,
+            cell: (acta) => (
+                <>
+                    <div className="font-medium text-slate-900 dark:text-white">{acta.employee_name}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{acta.employee_location}</div>
+                </>
+            ),
+        },
+        {
+            key: 'typeLabel',
+            header: 'Tipo',
+            sortable: true,
+            cell: (acta) => (
+                <span className="text-sm text-slate-600 dark:text-slate-300">{acta.typeLabel}</span>
+            ),
+        },
+        {
+            key: 'statusLabel',
+            header: 'Estado',
+            sortable: true,
+            align: 'center',
+            width: 'w-32',
+            cell: (acta) => (
+                acta.has_acta ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30 text-xs font-medium">
+                        <CheckCircle className="w-3 h-3" />
+                        Firmada
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500/20 text-orange-700 dark:text-orange-400 border border-orange-500/30 text-xs font-medium">
+                        <AlertTriangle className="w-3 h-3" />
+                        Pendiente
+                    </span>
+                )
+            ),
+        },
+        {
+            key: 'days_pending',
+            header: 'Días Pend.',
+            sortable: true,
+            align: 'center',
+            width: 'w-36',
+            cell: (acta) => getDaysBadge(acta.days_pending),
+        },
+        {
+            key: 'actions',
+            header: 'Acciones',
+            align: 'center',
+            width: 'w-28',
+            cell: (acta) => (
+                <div className="inline-flex items-center gap-1">
+                    {acta.has_acta ? (
+                        <>
+                            <button
+                                onClick={() => {
+                                    let id;
+                                    if (acta.type === 'assignment_computer' || acta.type === 'assignment_mobile') {
+                                        id = acta.assignment_id;
+                                    } else if (acta.type === 'sale') {
+                                        id = acta.sale_id;
+                                    } else {
+                                        id = acta.termination_id;
+                                    }
+                                    handleDownload(acta.type, id, acta.employee_name);
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-accent hover:opacity-90 text-white rounded-lg text-xs font-medium transition-opacity"
+                            >
+                                <Download className="w-3 h-3" />
+                                Descargar
+                            </button>
+                            <button
+                                onClick={() => setUploadModalActa(acta)}
+                                title="Gestionar acta"
+                                className="inline-flex items-center justify-center p-1.5 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                            >
+                                <Settings className="w-3 h-3" />
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={() => setUploadModalActa(acta)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-colors"
+                        >
+                            <Upload className="w-3 h-3" />
+                            Subir
+                        </button>
+                    )}
+                    <button
+                        onClick={() => handleDownloadGenerated(acta)}
+                        title="Descargar acta generada (sin firmar)"
+                        className="inline-flex items-center justify-center p-1.5 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                    >
+                        <FileText className="w-3 h-3" />
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
+    const filterKeyByColumn = {
+        employee_name: 'employee_name',
+        typeLabel: 'typeLabel',
+        statusLabel: 'statusLabel',
+        days_pending: 'days_pending',
+    };
+
+    const filterPlaceholderByColumn = {
+        employee_name: 'Buscar...',
+        typeLabel: 'Tipo...',
+        statusLabel: 'Estado...',
+        days_pending: 'Días...',
+    };
+
+    const renderColumnFilter = (column) => {
+        const filterKey = filterKeyByColumn[column.key];
+        if (!filterKey) return null;
+        return (
+            <ExcelFilter
+                column={filterKey}
+                data={processedActas}
+                selectedValues={excelFilters[filterKey]}
+                onFilterChange={(val) => updateExcelFilter(filterKey, val)}
+                placeholder={filterPlaceholderByColumn[filterKey]}
+            />
+        );
+    };
+
     return (
         <div className="space-y-6 pb-16">
             {/* Header */}
@@ -501,198 +636,21 @@ const ActasStatusPage = () => {
             <div className="bg-surface rounded-lg border border-slate-200 dark:border-slate-700 overflow-visible">
                 <div className="overflow-x-auto min-h-[400px]">
                     <div className="inline-block min-w-full align-middle">
-                        <table className="min-w-full">
-                            <thead className="bg-bg border-b border-slate-200 dark:border-slate-700">
-                                <tr>
-                                    {/* HEADER: EMPLEADO */}
-                                    <th className="px-4 py-3 align-top">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div
-                                                className="flex items-center gap-1 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors group"
-                                                onClick={() => handleSort('employee_name')}
-                                            >
-                                                <span className="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Empleado</span>
-                                                {sortConfig.key === 'employee_name' ? (
-                                                    sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
-                                                ) : <div className="w-3 h-3" />}
-                                            </div>
-                                            <ExcelFilter
-                                                column="employee_name"
-                                                data={processedActas}
-                                                selectedValues={excelFilters.employee_name}
-                                                onFilterChange={(val) => updateExcelFilter('employee_name', val)}
-                                                placeholder="Buscar..."
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* HEADER: TIPO */}
-                                    <th className="px-4 py-3 align-top">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div
-                                                className="flex items-center gap-1 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors group"
-                                                onClick={() => handleSort('typeLabel')}
-                                            >
-                                                <span className="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Tipo</span>
-                                                {sortConfig.key === 'typeLabel' ? (
-                                                    sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
-                                                ) : <div className="w-3 h-3" />}
-                                            </div>
-                                            <ExcelFilter
-                                                column="typeLabel"
-                                                data={processedActas}
-                                                selectedValues={excelFilters.typeLabel}
-                                                onFilterChange={(val) => updateExcelFilter('typeLabel', val)}
-                                                placeholder="Tipo..."
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* HEADER: ESTADO */}
-                                    <th className="px-4 py-3 align-top text-center w-32">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <div
-                                                className="flex items-center gap-1 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors group"
-                                                onClick={() => handleSort('statusLabel')}
-                                            >
-                                                <span className="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Estado</span>
-                                                {sortConfig.key === 'statusLabel' ? (
-                                                    sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
-                                                ) : <div className="w-3 h-3" />}
-                                            </div>
-                                            <ExcelFilter
-                                                column="statusLabel"
-                                                data={processedActas}
-                                                selectedValues={excelFilters.statusLabel}
-                                                onFilterChange={(val) => updateExcelFilter('statusLabel', val)}
-                                                placeholder="Estado..."
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* HEADER: DIAS PENDIENTES */}
-                                    <th className="px-4 py-3 align-top text-center w-36">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <div
-                                                className="flex items-center gap-1 cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors group"
-                                                onClick={() => handleSort('days_pending')}
-                                            >
-                                                <span className="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Días Pend.</span>
-                                                {sortConfig.key === 'days_pending' ? (
-                                                    sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 text-accent" /> : <ChevronDown className="w-3 h-3 text-accent" />
-                                                ) : <div className="w-3 h-3" />}
-                                            </div>
-                                            <ExcelFilter
-                                                column="days_pending"
-                                                data={processedActas}
-                                                selectedValues={excelFilters.days_pending}
-                                                onFilterChange={(val) => updateExcelFilter('days_pending', val)}
-                                                placeholder="Días..."
-                                            />
-                                        </div>
-                                    </th>
-
-                                    <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase w-28">
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
-                                            <div className="flex flex-col items-center justify-center gap-2">
-                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                                                <span>Cargando resultados...</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : filteredActas.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
-                                            No se encontraron actas
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredActas.map((acta, index) => (
-                                        <tr key={index} className="hover:bg-slate-100 dark:hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-4 py-3">
-                                                <div className="font-medium text-slate-900 dark:text-white">{acta.employee_name}</div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400">{acta.employee_location}</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-sm text-slate-600 dark:text-slate-300">
-                                                    {acta.typeLabel}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                {acta.has_acta ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30 text-xs font-medium">
-                                                        <CheckCircle className="w-3 h-3" />
-                                                        Firmada
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500/20 text-orange-700 dark:text-orange-400 border border-orange-500/30 text-xs font-medium">
-                                                        <AlertTriangle className="w-3 h-3" />
-                                                        Pendiente
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                {getDaysBadge(acta.days_pending)}
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <div className="inline-flex items-center gap-1">
-                                                    {acta.has_acta ? (
-                                                        <>
-                                                            <button
-                                                                onClick={() => {
-                                                                    let id;
-                                                                    if (acta.type === 'assignment_computer' || acta.type === 'assignment_mobile') {
-                                                                        id = acta.assignment_id;
-                                                                    } else if (acta.type === 'sale') {
-                                                                        id = acta.sale_id;
-                                                                    } else {
-                                                                        id = acta.termination_id;
-                                                                    }
-                                                                    handleDownload(acta.type, id, acta.employee_name);
-                                                                }}
-                                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-accent hover:opacity-90 text-white rounded-lg text-xs font-medium transition-opacity"
-                                                            >
-                                                                <Download className="w-3 h-3" />
-                                                                Descargar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setUploadModalActa(acta)}
-                                                                title="Gestionar acta"
-                                                                className="inline-flex items-center justify-center p-1.5 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
-                                                            >
-                                                                <Settings className="w-3 h-3" />
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => setUploadModalActa(acta)}
-                                                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-colors"
-                                                        >
-                                                            <Upload className="w-3 h-3" />
-                                                            Subir
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleDownloadGenerated(acta)}
-                                                        title="Descargar acta generada (sin firmar)"
-                                                        className="inline-flex items-center justify-center p-1.5 bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
-                                                    >
-                                                        <FileText className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center text-slate-500">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                <span>Cargando resultados...</span>
+                            </div>
+                        ) : (
+                            <Table
+                                columns={columns}
+                                data={filteredActas}
+                                sortState={sortConfig}
+                                onSort={handleSort}
+                                renderFilter={renderColumnFilter}
+                                emptyState="No se encontraron actas"
+                            />
+                        )}
                     </div>
                 </div>
             </div>

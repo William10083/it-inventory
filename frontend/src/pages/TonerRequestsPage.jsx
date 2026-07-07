@@ -17,7 +17,7 @@ const PRIORITIES = [
 ];
 const STATUSES = [
     { value: 'pendiente', label: 'Pendiente', cls: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' },
-    { value: 'aprobado', label: 'Aprobado', cls: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+    { value: 'aprobado', label: 'Aprobado', cls: 'bg-blue-500/20 text-accent border-blue-500/30' },
     { value: 'ordenado', label: 'Ordenado', cls: 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30' },
     { value: 'recibido', label: 'Recibido', cls: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
     { value: 'cancelado', label: 'Cancelado', cls: 'bg-slate-600/20 text-slate-500 border-slate-600/30' },
@@ -36,17 +36,17 @@ const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('es-PE', { da
 // hues with light/dark text pairing added; the underlying color logic (red/orange/
 // yellow/emerald by percent threshold) is intentionally unchanged.
 const levelBarColor = (pct) => pct == null ? 'bg-slate-400 dark:bg-slate-500' : pct <= 15 ? 'bg-red-500' : pct <= 35 ? 'bg-orange-500' : pct <= 60 ? 'bg-yellow-500' : 'bg-emerald-500';
-const levelTextColor = (pct) => pct == null ? 'text-slate-500 dark:text-slate-400' : pct <= 15 ? 'text-red-600 dark:text-red-400' : pct <= 35 ? 'text-orange-600 dark:text-orange-400' : pct <= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-emerald-600 dark:text-emerald-400';
+const levelTextColor = (pct) => pct == null ? 'text-muted' : pct <= 15 ? 'text-red-600 dark:text-red-400' : pct <= 35 ? 'text-orange-600 dark:text-orange-400' : pct <= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-emerald-600 dark:text-emerald-400';
 
 const SupplyLevels = ({ data, loading }) => {
     if (!data) {
-        return <p className="text-xs text-slate-400 dark:text-slate-600 italic">{loading ? 'Consultando...' : 'Cargando niveles...'}</p>;
+        return <p className="text-xs text-muted italic">{loading ? 'Consultando...' : 'Cargando niveles...'}</p>;
     }
     if (!data.online) {
         return <p className="text-xs text-red-500/80 dark:text-red-400/80">La impresora no respondió (apagada o fuera de red)</p>;
     }
     if (!data.supplies?.length) {
-        return <p className="text-xs text-slate-400 dark:text-slate-600 italic">La impresora no reporta niveles de suministro</p>;
+        return <p className="text-xs text-muted italic">La impresora no reporta niveles de suministro</p>;
     }
     return (
         <div className="space-y-1.5">
@@ -151,37 +151,37 @@ const PrinterModal = ({ printer, onClose, onSaved }) => {
             <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-xl shadow-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-surface">
                     <h3 className="text-slate-900 dark:text-white font-semibold">{printer ? 'Editar Impresora' : 'Registrar Impresora'}</h3>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Marca *</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Marca *</label>
                             <input value={form.brand} onChange={e => { const v = e.target.value; setForm(f => ({ ...f, brand: v })); lookupToners(v, form.model); }}
                                 placeholder="HP, Epson, Canon..." className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Modelo *</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Modelo *</label>
                             <input value={form.model} onChange={e => { const v = e.target.value; setForm(f => ({ ...f, model: v })); lookupToners(form.brand, v); }}
                                 placeholder="LaserJet Pro M404n..." className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">N° Serie</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">N° Serie</label>
                             <input value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })}
                                 placeholder="CNBHJ12345" className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Cód. Inventario</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Cód. Inventario</label>
                             <input value={form.inventory_code} onChange={e => setForm({ ...form, inventory_code: e.target.value })}
                                 placeholder="INV-IMP-001" className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Dirección IP</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Dirección IP</label>
                             <input value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })}
                                 placeholder="192.168.1.100" className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white font-mono focus:outline-none focus:border-violet-500" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Sede</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Sede</label>
                             <select value={form.location} onChange={e => setForm({ ...form, location: e.target.value })}
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500">
                                 {SEDES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -192,14 +192,14 @@ const PrinterModal = ({ printer, onClose, onSaved }) => {
                     {/* Toners */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            <label className="text-xs font-medium text-muted flex items-center gap-2">
                                 Tóneres compatibles
                                 {lookingUp && <span className="text-violet-600 dark:text-violet-400 text-xs flex items-center gap-1"><Loader className="w-3 h-3 animate-spin" /> Buscando...</span>}
                             </label>
                             <div className="flex items-center gap-3">
                                 <button type="button" onClick={() => setPriceFieldsUnlocked(v => !v)}
                                     title={priceFieldsUnlocked ? 'Bloquear edición de Peso (g) / Valor unit.' : 'Desbloquear edición de Peso (g) / Valor unit.'}
-                                    className="text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-300 transition-colors">
+                                    className="text-muted hover:text-violet-600 dark:hover:text-violet-300 transition-colors">
                                     {priceFieldsUnlocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                                 </button>
                                 <button onClick={addToner} className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 transition-colors">
@@ -208,7 +208,7 @@ const PrinterModal = ({ printer, onClose, onSaved }) => {
                             </div>
                         </div>
                         {form.toner_info.length === 0 ? (
-                            <p className="text-xs text-slate-400 dark:text-slate-600 italic">Sin tóneres registrados</p>
+                            <p className="text-xs text-muted italic">Sin tóneres registrados</p>
                         ) : (
                             <div className="space-y-2">
                                 <div className="grid grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)_48px_56px_64px_auto] gap-2">
@@ -406,7 +406,7 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
             <div className={`bg-surface border border-slate-200 dark:border-slate-700 rounded-2xl w-full ${isEdit ? 'max-w-xl' : 'max-w-5xl'} shadow-2xl max-h-[90vh] overflow-y-auto`}>
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-surface">
                     <h3 className="text-slate-900 dark:text-white font-semibold">{isEdit ? 'Editar Solicitud' : 'Nueva Solicitud de Tóner'}</h3>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="p-6 space-y-4">
                     {!isEdit && (
@@ -423,7 +423,7 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
                     )}
 
                     {!isEdit && totalRequests > 1 && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-muted">
                             Se crearán <span className="text-violet-600 dark:text-violet-400 font-semibold">{totalRequests} solicitudes</span> (una por cada tóner elegido), todas con la misma prioridad, notas y solicitante.
                         </p>
                     )}
@@ -453,7 +453,7 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
                                         </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Impresora *</label>
+                                            <label className="block text-xs font-medium text-muted mb-1.5">Impresora *</label>
                                             <select value={it.device_id} onChange={e => handlePrinterChange(i, e.target.value)}
                                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500">
                                                 <option value="">Seleccionar impresora...</option>
@@ -469,7 +469,7 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
                                     {printerToners.length > 0 ? (
                                         <>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                                <label className="block text-xs font-medium text-muted mb-1.5">
                                                     Tóner de la impresora <span className="text-slate-500 font-normal normal-case">(elige uno o varios)</span>
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
@@ -516,21 +516,21 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
                                         <>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Color</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1.5">Color</label>
                                                     <select value={it.toners[0]?.color || 'Negro'} onChange={e => updateToner(i, 0, { color: e.target.value })}
                                                         className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500">
                                                         {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Cantidad</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1.5">Cantidad</label>
                                                     <input type="number" min="1" value={it.toners[0]?.quantity ?? 1}
                                                         onChange={e => updateToner(i, 0, { quantity: parseInt(e.target.value) || 1 })}
                                                         className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Referencia del tóner</label>
+                                                <label className="block text-xs font-medium text-muted mb-1.5">Referencia del tóner</label>
                                                 <input value={it.toners[0]?.toner_reference || ''} onChange={e => updateToner(i, 0, { toner_reference: e.target.value })}
                                                     placeholder="Ej: CF217A, TN-450..." className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white font-mono focus:outline-none focus:border-violet-500" />
                                             </div>
@@ -549,21 +549,21 @@ const RequestModal = ({ request, prefill, printers, onClose, onSaved, currentUse
 
                     <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-slate-700">
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Prioridad</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Prioridad</label>
                             <select value={shared.priority} onChange={e => setShared(s => ({ ...s, priority: e.target.value }))}
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500">
                                 {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Solicitado por</label>
+                            <label className="block text-xs font-medium text-muted mb-1.5">Solicitado por</label>
                             <input value={shared.requested_by} onChange={e => setShared(s => ({ ...s, requested_by: e.target.value }))}
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Notas</label>
+                        <label className="block text-xs font-medium text-muted mb-1.5">Notas</label>
                         <textarea rows={2} value={shared.notes} onChange={e => setShared(s => ({ ...s, notes: e.target.value }))}
                             placeholder="Observaciones adicionales..." className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 resize-none" />
                     </div>
@@ -714,18 +714,18 @@ const TonerRequestsPage = () => {
                         <Printer className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                         Gestión de Tóner
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{printers.length} impresora{printers.length !== 1 ? 's' : ''} registrada{printers.length !== 1 ? 's' : ''}</p>
+                    <p className="text-muted text-sm mt-1">{printers.length} impresora{printers.length !== 1 ? 's' : ''} registrada{printers.length !== 1 ? 's' : ''}</p>
                 </div>
             </div>
 
             {/* Tabs */}
             <div className="flex gap-1 bg-surface/50 p-1 rounded-lg border border-slate-200 dark:border-slate-700 w-fit">
                 <button onClick={() => setTab('impresoras')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'impresoras' ? 'bg-violet-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'impresoras' ? 'bg-violet-600 text-white' : 'text-muted hover:text-slate-900 dark:hover:text-white'}`}>
                     🖨️ Impresoras
                 </button>
                 <button onClick={() => setTab('solicitudes')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'solicitudes' ? 'bg-violet-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'solicitudes' ? 'bg-violet-600 text-white' : 'text-muted hover:text-slate-900 dark:hover:text-white'}`}>
                     📦 Solicitudes de Tóner
                 </button>
             </div>
@@ -776,7 +776,7 @@ const TonerRequestsPage = () => {
                             <Loader className="w-8 h-8 text-violet-600 dark:text-violet-400 animate-spin" />
                         </div>
                     ) : printers.length === 0 ? (
-                        <div className="text-center py-20 text-slate-500 dark:text-slate-400 bg-surface/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="text-center py-20 text-muted bg-surface/50 rounded-xl border border-slate-200 dark:border-slate-700">
                             <Printer className="w-12 h-12 mx-auto mb-3 opacity-30" />
                             <p className="text-lg font-medium">Sin impresoras registradas</p>
                             <p className="text-sm mt-1">Registra las impresoras de cada sede.</p>
@@ -785,7 +785,7 @@ const TonerRequestsPage = () => {
                         Object.entries(byLocation).sort(([a], [b]) => a.localeCompare(b)).map(([loc, list]) => (
                             <div key={loc}>
                                 <h3 className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-3">
-                                    <MapPin className="w-3.5 h-3.5" /> {loc} <span className="text-slate-400 dark:text-slate-600">({list.length})</span>
+                                    <MapPin className="w-3.5 h-3.5" /> {loc} <span className="text-muted">({list.length})</span>
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                                     {list.map(p => (
@@ -799,12 +799,12 @@ const TonerRequestsPage = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1">
-                                                    <button onClick={() => setPrinterModal(p)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                    <button onClick={() => handleDeletePrinter(p.id)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => setPrinterModal(p)} className="p-1.5 text-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDeletePrinter(p.id)} className="p-1.5 text-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </div>
                                             {p.ip_address && (
-                                                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                                <div className="flex items-center gap-1.5 text-xs text-muted mb-2">
                                                     <Wifi className="w-3 h-3" /> <span className="font-mono">{p.ip_address}</span>
                                                 </div>
                                             )}
@@ -821,7 +821,7 @@ const TonerRequestsPage = () => {
                                                                     {t.brand && <span className="text-slate-500">{t.brand}</span>}
                                                                     {t.reference && <span className="font-mono text-violet-600 dark:text-violet-400">{t.reference}</span>}
                                                                     {hasStock && (
-                                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${Number(t.stock) > 0 ? 'text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-600' : 'text-red-600 dark:text-red-400 border-red-500/40 bg-red-500/10'}`}>
+                                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${Number(t.stock) > 0 ? 'text-muted border-slate-300 dark:border-slate-600' : 'text-red-600 dark:text-red-400 border-red-500/40 bg-red-500/10'}`}>
                                                                             Stock: {t.stock}
                                                                         </span>
                                                                     )}
@@ -863,7 +863,7 @@ const TonerRequestsPage = () => {
                             {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                         </select>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                             <input type="text" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)}
                                 className="pl-9 pr-4 py-2 bg-surface border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 w-48" />
                         </div>
@@ -877,7 +877,7 @@ const TonerRequestsPage = () => {
                         {requestsLoading ? (
                             <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 text-violet-600 dark:text-violet-400 animate-spin" /></div>
                         ) : requests.length === 0 ? (
-                            <div className="text-center py-20 text-slate-500 dark:text-slate-400">
+                            <div className="text-center py-20 text-muted">
                                 <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
                                 <p className="text-lg font-medium">Sin solicitudes</p>
                             </div>
@@ -886,13 +886,13 @@ const TonerRequestsPage = () => {
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-700 bg-bg/50">
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Impresora</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tóner</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cant.</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Prioridad</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Solicitado por</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Impresora</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Tóner</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Cant.</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Prioridad</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Estado</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Solicitado por</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Fecha</th>
                                             <th className="px-4 py-3"></th>
                                         </tr>
                                     </thead>
@@ -919,11 +919,11 @@ const TonerRequestsPage = () => {
                                                     </select>
                                                 </td>
                                                 <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-sm">{req.requested_by || '—'}</td>
-                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">{formatDate(req.created_at)}</td>
+                                                <td className="px-4 py-3 text-muted text-xs">{formatDate(req.created_at)}</td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex gap-1">
-                                                        <button onClick={() => setRequestModal(req)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                        <button onClick={() => handleDeleteRequest(req.id)} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                        <button onClick={() => setRequestModal(req)} className="p-1.5 text-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                                                        <button onClick={() => handleDeleteRequest(req.id)} className="p-1.5 text-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                                                     </div>
                                                 </td>
                                             </tr>

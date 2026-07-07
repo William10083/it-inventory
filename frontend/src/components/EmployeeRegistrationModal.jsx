@@ -147,17 +147,17 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-surface rounded-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-label="Registro de empleado" onClick={onClose}>
+            <div className="bg-surface rounded-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-bg/60">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <User className="w-5 h-5 text-accent" />
                         </div>
                         <h2 className="text-base font-semibold text-slate-900 dark:text-white">{employee ? 'Editar Empleado' : 'Registrar Empleado'}</h2>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -167,7 +167,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Nombre Completo — full width */}
                         <div className="col-span-2">
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <User className="w-3 h-3 inline mr-1" />Nombre Completo
                             </label>
                             <input
@@ -182,7 +182,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* DNI */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <IdCard className="w-3 h-3 inline mr-1" />DNI
                             </label>
                             <input
@@ -199,7 +199,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Empresa */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <Building className="w-3 h-3 inline mr-1" />Empresa
                             </label>
                             <select
@@ -220,7 +220,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Email — full width */}
                         <div className="col-span-2">
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <Mail className="w-3 h-3 inline mr-1" />Email
                             </label>
                             <div className="flex items-center bg-bg border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden focus-within:border-blue-500 transition-colors">
@@ -232,7 +232,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
                                     className="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none min-w-0"
                                     placeholder="usuario"
                                 />
-                                <span className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 border-l border-slate-300 dark:border-slate-600 whitespace-nowrap select-none">
+                                <span className="px-3 py-2 text-sm text-muted bg-slate-100 dark:bg-slate-700/60 border-l border-slate-300 dark:border-slate-600 whitespace-nowrap select-none">
                                     @{emailDomain}
                                 </span>
                             </div>
@@ -240,7 +240,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Departamento */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <Building className="w-3 h-3 inline mr-1" />Departamento
                             </label>
                             <select
@@ -273,7 +273,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Cargo */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <Briefcase className="w-3 h-3 inline mr-1" />Cargo
                             </label>
                             <input
@@ -294,7 +294,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Sede */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <MapPin className="w-3 h-3 inline mr-1" />Sede
                             </label>
                             <select
@@ -315,7 +315,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Fecha de Ingreso */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 <Calendar className="w-3 h-3 inline mr-1" />Fecha de Ingreso
                             </label>
                             <input
@@ -328,7 +328,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
 
                         {/* Equipos requeridos */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 💻 Laptops Requeridas
                             </label>
                             <select
@@ -343,7 +343,7 @@ const EmployeeRegistrationModal = ({ isOpen, onClose, onSuccess, employee = null
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label className="block text-xs font-medium text-muted mb-1.5">
                                 📱 Celulares Requeridos
                             </label>
                             <select

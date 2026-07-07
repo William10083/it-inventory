@@ -36,7 +36,7 @@ const ActiveDirectoryPage = () => {
                         <Monitor className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                         Active Directory
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">transtotal.net</p>
+                    <p className="text-muted text-sm mt-1">transtotal.net</p>
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -46,7 +46,7 @@ const ActiveDirectoryPage = () => {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-colors whitespace-nowrap ${
                             onlyEnabled
                                 ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
-                                : 'bg-slate-100 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400'
+                                : 'bg-slate-100 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-muted'
                         }`}
                     >
                         {onlyEnabled ? <ShieldCheck className="w-3.5 h-3.5" /> : <ShieldOff className="w-3.5 h-3.5" />}
@@ -69,7 +69,7 @@ const ActiveDirectoryPage = () => {
 
             {/* Content */}
             {(
-                <div className="text-center py-32 text-slate-500 dark:text-slate-400">
+                <div className="text-center py-32 text-muted">
                     <Monitor className="w-16 h-16 mx-auto mb-4 opacity-20" />
                     <p className="text-xl font-semibold text-slate-600 dark:text-slate-300">Integración en configuración</p>
                     <p className="text-sm mt-2">La conexión con Active Directory estará disponible próximamente.</p>
@@ -84,7 +84,7 @@ const ActiveDirectoryPage = () => {
                                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                     <Building2 className="w-3.5 h-3.5" />
                                     {dept}
-                                    <span className="text-slate-400 dark:text-slate-600">({list.length})</span>
+                                    <span className="text-muted">({list.length})</span>
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                                     {list.map(user => (
@@ -113,19 +113,19 @@ const ActiveDirectoryPage = () => {
 
                                                 <div className="space-y-1">
                                                     {user.title && (
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                        <div className="flex items-center gap-1.5 text-xs text-muted">
                                                             <Briefcase className="w-3 h-3 flex-shrink-0" />
                                                             <span className="truncate">{user.title}</span>
                                                         </div>
                                                     )}
                                                     {user.email && (
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                        <div className="flex items-center gap-1.5 text-xs text-muted">
                                                             <Mail className="w-3 h-3 flex-shrink-0" />
                                                             <span className="truncate">{user.email}</span>
                                                         </div>
                                                     )}
                                                     {(user.phone || user.mobile) && (
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                        <div className="flex items-center gap-1.5 text-xs text-muted">
                                                             <Phone className="w-3 h-3 flex-shrink-0" />
                                                             <span>{user.phone || user.mobile}</span>
                                                         </div>

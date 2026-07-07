@@ -9,6 +9,8 @@
   --color-surface-secondary: #EDEAF7;
   --color-surface-hover: #E7E3F5;
   --color-accent: #7C6FF0;
+  /* Muted ink for neutral/low-emphasis text — 4.64:1 on --color-surface-secondary (WCAG AA) */
+  --color-muted: #6B6584;
 
   /* Device-type hue tokens — mode-invariant (same hue light/dark) */
   --color-device-laptop: #3b82f6;
@@ -28,6 +30,8 @@
   --color-surface-secondary: #2A2547;
   --color-surface-hover: #322C52;
   --color-accent: #8B7FF5;
+  /* 4.98:1 on dark --color-surface-secondary (WCAG AA) */
+  --color-muted: #9A93B8;
 }
 
 @layer base {

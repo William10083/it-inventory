@@ -65,7 +65,7 @@ const FormTemplateSelector = ({ onSelect, type = "DECOMMISSION", onTemplateDelet
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
+                className="flex items-center gap-2 text-sm text-accent hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
                 <BookTemplate className="w-4 h-4" />
                 Cargar Plantilla

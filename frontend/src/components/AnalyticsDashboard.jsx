@@ -121,7 +121,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                     if (!types.includes('monitor')) missing.push({ label: 'Monitor', color: 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30' });
                     const hasKit = types.includes('kit teclado/mouse') || (types.includes('keyboard') && types.includes('mouse'));
                     if (!hasKit) missing.push({ label: 'Kit T/M', color: 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30' });
-                    if (!types.includes('mochila')) missing.push({ label: 'Mochila', color: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30' });
+                    if (!types.includes('mochila')) missing.push({ label: 'Mochila', color: 'bg-yellow-500/20 text-accent border-yellow-500/30' });
                     if (!types.includes('auriculares')) missing.push({ label: 'Auriculares', color: 'bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-500/30' });
                 }
 
@@ -151,7 +151,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                     {emp.full_name}
                     <div className="text-xs text-slate-500 font-normal">{emp.email}</div>
                 </td>
-                <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                <td className="px-6 py-4 text-muted">
                     <div>{emp.position || 'Sin Cargo'}</div>
                     <div className="text-xs text-slate-500">{emp.location}</div>
                 </td>
@@ -230,7 +230,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                             <div className="bg-bg p-4 rounded-lg">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm">Stock Bajo</p>
+                                        <p className="text-muted text-sm">Stock Bajo</p>
                                         <p className="text-2xl font-bold text-slate-900 dark:text-white">{lowStockItems.length} tipos</p>
                                     </div>
                                     <Package className="w-8 h-8 text-red-600 dark:text-red-400 opacity-50" />
@@ -248,12 +248,12 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                             <div className="bg-bg p-4 rounded-lg">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm">Empleados Sin Equipos</p>
+                                        <p className="text-muted text-sm">Empleados Sin Equipos</p>
                                         <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.employee_stats.without_devices}</p>
                                     </div>
-                                    <Users className="w-8 h-8 text-blue-600 dark:text-blue-400 opacity-50" />
+                                    <Users className="w-8 h-8 text-accent opacity-50" />
                                 </div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                                <div className="text-xs text-muted">
                                     {unassignedEmployees.slice(0, 3).join(", ")}{unassignedEmployees.length > 3 && "..."}
                                 </div>
                             </div>
@@ -267,12 +267,12 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                 <div className="bg-surface rounded-md shadow-sm p-6 border-l-4 border-blue-500">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Laptops Disponibles</p>
+                            <p className="text-muted text-sm">Laptops Disponibles</p>
                             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1"><CountUpNumber value={laptopsAvailable} /></h3>
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Listas para entregar</p>
+                            <p className="text-xs text-accent mt-1">Listas para entregar</p>
                         </div>
                         <div className="p-3 bg-blue-500/20 rounded-lg">
-                            <Laptop className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <Laptop className="w-6 h-6 text-accent" />
                         </div>
                     </div>
                 </div>
@@ -281,7 +281,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                 <div className="bg-surface rounded-md shadow-sm p-6 border-l-4 border-green-500">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Tasa de Asignación</p>
+                            <p className="text-muted text-sm">Tasa de Asignación</p>
                             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{assignmentRate}%</h3>
                             <p className="text-xs text-green-600 dark:text-green-400 mt-1">{assignedCount} de {stats.total_devices} equipos</p>
                         </div>
@@ -294,7 +294,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                 <div className="bg-surface rounded-md shadow-sm p-6 border-l-4 border-yellow-500">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Por Renovar</p>
+                            <p className="text-muted text-sm">Por Renovar</p>
                             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1"><CountUpNumber value={renewalCount} /></h3>
                             <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Antigüedad &gt; 3 años</p>
                         </div>
@@ -308,7 +308,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                 <div className="bg-surface rounded-md shadow-sm p-6 border-l-4 border-purple-500">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Cobertura Completa</p>
+                            <p className="text-muted text-sm">Cobertura Completa</p>
                             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{coverageRate}%</h3>
                             <p className="text-xs text-slate-500 mt-1">{employeesComplete} / {employeesFiltered.length} empleados con todo</p>
                         </div>
@@ -324,15 +324,15 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <div className="mb-4">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">Resumen de Equipos por Tipo</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">Estado completo: asignados, pendientes y disponibles</p>
+                        <p className="text-muted text-sm">Estado completo: asignados, pendientes y disponibles</p>
                     </div>
 
                     <div className="h-80 w-full mb-6">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-700" />
-                                <XAxis dataKey="name" stroke="currentColor" className="text-slate-500 dark:text-slate-400" />
-                                <YAxis stroke="currentColor" className="text-slate-500 dark:text-slate-400" />
+                                <XAxis dataKey="name" stroke="currentColor" className="text-muted" />
+                                <YAxis stroke="currentColor" className="text-muted" />
                                 <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(148,163,184,0.3)', borderRadius: '8px', color: 'inherit' }} />
                                 <Legend />
                                 <Bar dataKey="Asignados" stackId="a" fill="#22C55E" />
@@ -346,12 +346,12 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-slate-200 dark:border-slate-700">
-                                    <th className="text-left py-3 px-4 text-slate-500 dark:text-slate-400 font-medium">Equipo</th>
-                                    <th className="text-center py-3 px-4 text-slate-500 dark:text-slate-400 font-medium">Total</th>
+                                    <th className="text-left py-3 px-4 text-muted font-medium">Equipo</th>
+                                    <th className="text-center py-3 px-4 text-muted font-medium">Total</th>
                                     <th className="text-center py-3 px-4 text-green-600 dark:text-green-400 font-medium">Asignados</th>
-                                    <th className="text-center py-3 px-4 text-blue-600 dark:text-blue-400 font-medium">Disponibles</th>
+                                    <th className="text-center py-3 px-4 text-accent font-medium">Disponibles</th>
                                     <th className="text-center py-3 px-4 text-orange-600 dark:text-orange-400 font-medium">Pendientes</th>
-                                    <th className="text-center py-3 px-4 text-slate-500 dark:text-slate-400 font-medium">Stock</th>
+                                    <th className="text-center py-3 px-4 text-muted font-medium">Stock</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -365,7 +365,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                                                 <span className="bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">{data.assigned || 0}</span>
                                             </td>
                                             <td className="py-3 px-4 text-center">
-                                                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">{data.available || 0}</span>
+                                                <span className="bg-blue-500/20 text-accent px-2 py-1 rounded">{data.available || 0}</span>
                                             </td>
                                             <td className="py-3 px-4 text-center">
                                                 <span className="bg-orange-500/20 text-orange-700 dark:text-orange-400 px-2 py-1 rounded">{data.pending || 0}</span>
@@ -388,7 +388,7 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
                         </table>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-4 justify-center text-xs text-slate-500 dark:text-slate-400">
+                    <div className="mt-4 flex flex-wrap gap-4 justify-center text-xs text-muted">
                         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-500 rounded"></div><span>Asignados: equipos ya entregados</span></div>
                         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 rounded"></div><span>Disponibles: stock actual</span></div>
                         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-orange-500 rounded"></div><span>Pendientes: empleados que les falta</span></div>
@@ -400,12 +400,12 @@ const AnalyticsDashboard = ({ employees, locationFilter = 'all' }) => {
             {employees && (
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Detalle de Entregas Pendientes</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+                    <p className="text-muted text-sm mb-6">
                         Empleados activos con equipos pendientes — ordenados por mayor faltante primero.
                     </p>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="text-xs text-muted uppercase bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th className="px-6 py-3">Empleado</th>
                                     <th className="px-6 py-3">Cargo / Sede</th>

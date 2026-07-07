@@ -12,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const STATUS_CONFIG = {
     resolved:  { label: 'Atendido',  cls: 'text-emerald-600 dark:text-emerald-400', Icon: CheckCircle },
     reingreso: { label: 'Reingreso', cls: 'text-amber-600 dark:text-amber-400',     Icon: RefreshCw   },
-    pending:   { label: 'Pendiente', cls: 'text-slate-500 dark:text-slate-400',     Icon: Clock       },
+    pending:   { label: 'Pendiente', cls: 'text-muted',     Icon: Clock       },
 };
 
 const FIELD_LABELS = {
@@ -180,7 +180,7 @@ const IngressosPage = () => {
                             <UserPlus className="text-emerald-500 dark:text-emerald-400 w-8 h-8" />
                             Ingresos de Empleados
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm max-w-2xl">
+                        <p className="text-muted mt-2 text-sm max-w-2xl">
                             Correos de nuevos ingresos detectados automáticamente desde RRHH.
                         </p>
                     </div>
@@ -244,18 +244,18 @@ const IngressosPage = () => {
                             <thead className="bg-bg/80 sticky top-0 backdrop-blur-md">
                                 <tr>
                                     <th className="px-4 py-4 w-8" />
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empleado</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empresa / Área</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cargo</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha Ingreso</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Empleado</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Empresa / Área</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Cargo</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Fecha Ingreso</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Estado</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 bg-surface/30">
                                 {alerts.length === 0 && !loading ? (
                                     <tr>
                                         <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
-                                            <UserPlus className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-3 opacity-50" />
+                                            <UserPlus className="w-12 h-12 mx-auto text-muted mb-3 opacity-50" />
                                             <p className="text-lg">No hay ingresos registrados.</p>
                                             <p className="text-sm mt-1">Sincroniza los correos de RRHH desde la Bandeja.</p>
                                         </td>
@@ -278,8 +278,8 @@ const IngressosPage = () => {
                                             >
                                                 <td className="px-4 py-4">
                                                     {isExpanded
-                                                        ? <ChevronUp className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                                        : <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500" />}
+                                                        ? <ChevronUp className="w-4 h-4 text-muted" />
+                                                        : <ChevronDown className="w-4 h-4 text-muted" />}
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     <div className="font-semibold text-slate-900 dark:text-white text-sm">{nombre}</div>
@@ -287,10 +287,10 @@ const IngressosPage = () => {
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     {empresa && <div className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">{empresa}</div>}
-                                                    {area && <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{area}</div>}
+                                                    {area && <div className="text-xs text-muted mt-0.5">{area}</div>}
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{cargo || '—'}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{fechaIngreso || formatDate(alert.received_date)}</td>
+                                                <td className="px-4 py-4 text-sm text-muted">{fechaIngreso || formatDate(alert.received_date)}</td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
                                                     <span className={`flex items-center gap-1.5 text-xs font-bold ${statusCfg.cls}`}>
                                                         <statusCfg.Icon className="w-3.5 h-3.5" />

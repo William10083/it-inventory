@@ -37,14 +37,14 @@ const DeviceChip = ({ device, price, onPriceChange, onRemove }) => {
                 <div className="font-medium text-slate-900 dark:text-white truncate">
                     {device.brand} {device.model}
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                <div className="text-xs text-muted truncate">
                     SN: {device.serial_number} {device.hostname && `• ${device.hostname}`}
                 </div>
             </div>
 
             {/* Price Input */}
             <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 dark:text-slate-400">S/.</span>
+                <span className="text-sm text-muted">S/.</span>
                 <input
                     type="number"
                     value={price}

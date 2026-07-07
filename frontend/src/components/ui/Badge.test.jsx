@@ -33,6 +33,7 @@ describe('Badge', () => {
             render(<Badge variant="not-a-real-variant">Desconocido</Badge>);
             const el = screen.getByText('Desconocido');
             expect(hasTokenBackground(el.className)).toBe(true);
+            expect(el.className).toMatch(/text-muted/);
             expect(hasDarkSlatePair(el.className)).toBe(false);
         });
 
@@ -40,6 +41,7 @@ describe('Badge', () => {
             render(<Badge>Sin variante</Badge>);
             const el = screen.getByText('Sin variante');
             expect(hasTokenBackground(el.className)).toBe(true);
+            expect(el.className).toMatch(/text-muted/);
             expect(hasDarkSlatePair(el.className)).toBe(false);
         });
     });
@@ -54,6 +56,13 @@ describe('Badge', () => {
                 expect(hasDarkSlatePair(el.className)).toBe(false);
             }
         );
+
+        it('uses muted ink for basic so it stays distinct from premium accent ink', () => {
+            render(<Badge variant="basic">basic-tier</Badge>);
+            render(<Badge variant="premium">premium-tier</Badge>);
+            expect(screen.getByText('basic-tier').className).toMatch(/text-muted/);
+            expect(screen.getByText('premium-tier').className).toMatch(/text-accent/);
+        });
     });
 
     describe('device-hue variants', () => {

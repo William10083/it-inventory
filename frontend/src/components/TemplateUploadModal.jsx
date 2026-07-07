@@ -338,11 +338,11 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             {isEditing ? 'Editar Template' : 'Subir Nuevo Template'}
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        <p className="text-muted text-sm">
                             {isEditing ? 'Actualiza la información del documento' : `Paso ${step} de 4`}
                         </p>
                     </div>
-                    <button onClick={handleClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <button onClick={handleClose} className="text-muted hover:text-slate-900 dark:hover:text-white">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -352,7 +352,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                     <div className="flex items-center justify-between mb-8">
                         {[1, 2, 3, 4].map(s => (
                             <div key={s} className="flex items-center flex-1">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${s <= step ? 'bg-accent text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${s <= step ? 'bg-accent text-white' : 'bg-slate-200 dark:bg-slate-700 text-muted'
                                     }`}>
                                     {s}
                                 </div>
@@ -368,7 +368,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                         <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-12 text-center hover:border-blue-500 transition-colors">
                             <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Selecciona un archivo .docx</h3>
-                            <p className="text-slate-500 dark:text-slate-400 mb-4">Usa {"{{variable_name}}"} para definir placeholders</p>
+                            <p className="text-muted mb-4">Usa {"{{variable_name}}"} para definir placeholders</p>
                             <input
                                 type="file"
                                 accept=".docx"
@@ -384,7 +384,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                             </label>
                             {file && (
                                 <div className="mt-4 p-4 bg-bg rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 inline mr-2" />
+                                    <FileText className="w-6 h-6 text-accent inline mr-2" />
                                     <span className="text-slate-900 dark:text-white">{file.name}</span>
                                 </div>
                             )}
@@ -411,10 +411,10 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                             {/* System Mapping (New Field) */}
                                             <div className="col-span-2">
                                                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
-                                                    Variable: <code className="text-blue-600 dark:text-blue-400 font-bold">{`{{${variable.name}}}`}</code>
+                                                    Variable: <code className="text-accent font-bold">{`{{${variable.name}}}`}</code>
                                                 </label>
                                                 <div className="flex gap-2 items-center mb-2">
-                                                    <span className="text-sm text-slate-500 dark:text-slate-400">Mapear a:</span>
+                                                    <span className="text-sm text-muted">Mapear a:</span>
                                                     <select
                                                         value={variable.map_to || 'custom'}
                                                         onChange={(e) => {
@@ -520,10 +520,10 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                         <div className="bg-bg p-4 rounded-lg border border-slate-200 dark:border-slate-600">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    <Eye className="w-5 h-5 text-accent" />
                                     Preview del Template
                                 </h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm">Validación con datos de ejemplo</p>
+                                <p className="text-muted text-sm">Validación con datos de ejemplo</p>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -534,13 +534,13 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                             {variables.map((v, i) => (
                                                 <div key={i} className="text-sm">
-                                                    <p className="text-blue-600 dark:text-blue-400 font-mono text-xs">{`{{${v.name}}}`}</p>
+                                                    <p className="text-accent font-mono text-xs">{`{{${v.name}}}`}</p>
                                                     <p className="text-slate-600 dark:text-slate-300 truncate" title={v.sample_value}>{v.sample_value || '(vacío)'}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="bg-blue-500/10 p-3 rounded border border-blue-500/30 text-xs text-blue-700 dark:text-blue-300 italic">
+                                    <div className="bg-blue-500/10 p-3 rounded border border-blue-500/30 text-xs text-accent italic">
                                         Nota: El preview es una representación aproximada del documento final.
                                     </div>
                                 </div>
@@ -548,7 +548,7 @@ const TemplateUploadModal = ({ isOpen, onClose, onSuccess, templateToEdit }) => 
                                 {/* PDF Viewer */}
                                 <div className="lg:col-span-2 bg-bg rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden h-[500px]">
                                     {previewUrl ? (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 p-8 text-center">
+                                        <div className="flex flex-col items-center justify-center h-full text-muted p-8 text-center">
                                             <FileText className="w-16 h-16 mb-4 text-blue-500/50" />
                                             <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Vista Previa Generada</h4>
                                             <p className="text-sm mb-6 max-w-sm">

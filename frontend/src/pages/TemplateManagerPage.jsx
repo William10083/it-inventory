@@ -62,7 +62,7 @@ const TemplateManagerPage = () => {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Gestión de Templates</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Administra los templates de documentos del sistema</p>
+                    <p className="text-muted">Administra los templates de documentos del sistema</p>
                 </div>
                 <button
                     onClick={() => setIsUploadModalOpen(true)}
@@ -110,9 +110,9 @@ const TemplateManagerPage = () => {
                 <div className="text-center text-slate-900 dark:text-white py-12">Cargando templates...</div>
             ) : filteredTemplates.length === 0 ? (
                 <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-xl p-12 text-center">
-                    <FileText className="w-16 h-16 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+                    <FileText className="w-16 h-16 text-muted mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No hay templates</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-6">Comienza creando tu primer template</p>
+                    <p className="text-muted mb-6">Comienza creando tu primer template</p>
                     <button
                         onClick={() => setIsUploadModalOpen(true)}
                         className="bg-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-bold inline-flex items-center gap-2 transition-opacity"
@@ -137,22 +137,22 @@ const TemplateManagerPage = () => {
                                             <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
                                         )}
                                     </div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                                    <p className="text-sm text-muted line-clamp-2">
                                         {template.description || 'Sin descripción'}
                                     </p>
                                 </div>
-                                <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                <FileText className="w-8 h-8 text-accent flex-shrink-0" />
                             </div>
 
                             {/* Type Badge */}
                             <div className="mb-4">
-                                <span className="inline-block bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs px-3 py-1 rounded-full font-medium">
+                                <span className="inline-block bg-blue-500/10 text-accent text-xs px-3 py-1 rounded-full font-medium">
                                     {template.template_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </span>
                             </div>
 
                             {/* Variables Count */}
-                            <div className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+                            <div className="mb-4 text-sm text-muted">
                                 {template.variables ? JSON.parse(template.variables).length : 0} variables configuradas
                             </div>
 

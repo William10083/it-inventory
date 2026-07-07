@@ -30,7 +30,7 @@ const EmployeeCard = memo(({
                             <h3 className="font-bold text-slate-900 dark:text-white leading-tight break-words">{emp.full_name}</h3>
                             <button
                                 onClick={(e) => onDownloadActa(e, emp)}
-                                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex-shrink-0 mt-0.5"
+                                className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors flex-shrink-0 mt-0.5"
                                 title="Descargar Acta Reciente"
                             >
                                 <Download className="w-4 h-4" />
@@ -40,14 +40,14 @@ const EmployeeCard = memo(({
                                     e.stopPropagation();
                                     onEditEmployee(emp);
                                 }}
-                                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0 mt-0.5"
+                                className="text-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0 mt-0.5"
                                 title="Editar Empleado"
                             >
                                 <Edit className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setShowSignature(true); }}
-                                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0 mt-0.5"
+                                className="text-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0 mt-0.5"
                                 title="Generar firma de correo"
                             >
                                 <Mail className="w-4 h-4" />
@@ -65,7 +65,7 @@ const EmployeeCard = memo(({
                                 </button>
                             )}
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{emp.department} • DNI: {emp.dni}</p>
+                        <p className="text-xs text-muted truncate">{emp.department} • DNI: {emp.dni}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -82,7 +82,7 @@ const EmployeeCard = memo(({
                         <option value="Ilo">Ilo</option>
                         <option value="Mollendo">Mollendo</option>
                     </select>
-                    <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs px-2 py-1 rounded border border-blue-500/20">
+                    <div className="bg-blue-500/10 text-accent text-xs px-2 py-1 rounded border border-blue-500/20">
                         Active
                     </div>
                 </div>

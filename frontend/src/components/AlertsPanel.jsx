@@ -42,14 +42,14 @@ const AlertsPanel = ({ isOpen, onClose }) => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={fetchAlerts}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
                         title="Actualizar"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button
                         onClick={onClose}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -61,7 +61,7 @@ const AlertsPanel = ({ isOpen, onClose }) => {
                 {alerts.length === 0 && !loading && (
                     <div className="text-center py-10 text-slate-500">
                         <div className="bg-slate-100 dark:bg-slate-800/50 rounded-full p-4 mb-3 inline-block">
-                            <Bell className="w-8 h-8 text-slate-400 dark:text-slate-600" />
+                            <Bell className="w-8 h-8 text-muted" />
                         </div>
                         <p>No hay alertas activas.</p>
                         <p className="text-xs mt-1">¡Buen trabajo manteniendo el inventario!</p>

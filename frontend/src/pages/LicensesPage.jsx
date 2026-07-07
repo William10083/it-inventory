@@ -63,7 +63,7 @@ const LicensesPage = () => {
         if (!name) return 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
         const lower = name.toLowerCase();
         if (lower.includes('premium') || lower.includes('e5')) return 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30';
-        if (lower.includes('standard') || lower.includes('e3') || lower.includes('e4')) return 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30';
+        if (lower.includes('standard') || lower.includes('e3') || lower.includes('e4')) return 'bg-blue-500/20 text-accent border-blue-500/30';
         if (lower.includes('basic') || lower.includes('f1')) return 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
         if (lower.includes('project')) return 'bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-500/30';
         if (lower.includes('visio')) return 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30';
@@ -204,7 +204,7 @@ const LicensesPage = () => {
                         <KeyRound className="w-8 h-8 text-purple-500 dark:text-purple-400" />
                         Licencias
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Gestiona licencias Microsoft 365 y otras licencias de software</p>
+                    <p className="text-muted mt-1">Gestiona licencias Microsoft 365 y otras licencias de software</p>
                 </div>
             </div>
 
@@ -214,7 +214,7 @@ const LicensesPage = () => {
                     onClick={() => setActiveSubTab('m365')}
                     className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeSubTab === 'm365'
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                        : 'text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }`}
                 >
                     <Shield className="w-4 h-4" />
@@ -224,7 +224,7 @@ const LicensesPage = () => {
                     onClick={() => setActiveSubTab('sap')}
                     className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeSubTab === 'sap'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                        : 'text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }`}
                 >
                     <Database className="w-4 h-4" />
@@ -234,7 +234,7 @@ const LicensesPage = () => {
                     onClick={() => setActiveSubTab('otros')}
                     className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeSubTab === 'otros'
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                        : 'text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }`}
                 >
                     <FolderKey className="w-4 h-4" />
@@ -259,7 +259,7 @@ const LicensesPage = () => {
                             />
                         </div>
                         <div className="flex items-center gap-3">
-                            <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                            <span className="text-muted text-sm font-medium">
                                 Total Usuarios: <strong className="text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded ml-1">{allLicenses.length}</strong>
                             </span>
                             <button
@@ -275,7 +275,7 @@ const LicensesPage = () => {
                     {loading && (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="w-8 h-8 text-purple-500 dark:text-purple-400 animate-spin" />
-                            <span className="ml-3 text-slate-500 dark:text-slate-400">Consultando licencias globales...</span>
+                            <span className="ml-3 text-muted">Consultando licencias globales...</span>
                         </div>
                     )}
 
@@ -293,9 +293,9 @@ const LicensesPage = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead className="sticky top-0 z-10">
                                         <tr className="bg-bg border-b border-slate-200 dark:border-slate-700">
-                                            <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuario</th>
-                                            <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email Principal</th>
-                                            <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Licencias Asignadas</th>
+                                            <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Usuario</th>
+                                            <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Email Principal</th>
+                                            <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Licencias Asignadas</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
@@ -304,7 +304,7 @@ const LicensesPage = () => {
                                                 <td className="p-4 align-top">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                                            <User className="w-4 h-4 text-muted" />
                                                         </div>
                                                         <span className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
                                                             {user.display_name || 'Sin nombre'}
@@ -312,7 +312,7 @@ const LicensesPage = () => {
                                                     </div>
                                                 </td>
                                                 <td className="p-4 align-top">
-                                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <span className="text-sm text-muted">
                                                         {user.email || 'N/A'}
                                                     </span>
                                                 </td>
@@ -343,7 +343,7 @@ const LicensesPage = () => {
 
                     {!loading && !error && filteredUsers.length === 0 && allLicenses.length > 0 && (
                         <div className="text-center py-12 bg-surface/50 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <p className="text-slate-500 dark:text-slate-400">No se encontraron usuarios coincidiendo con "{searchTerm}"</p>
+                            <p className="text-muted">No se encontraron usuarios coincidiendo con "{searchTerm}"</p>
                         </div>
                     )}
                 </div>
@@ -357,8 +357,8 @@ const LicensesPage = () => {
                         <button
                             onClick={() => { setSapCompany('RESUMEN'); if (!sapResumen) fetchSapResumen(); }}
                             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${sapCompany === 'RESUMEN'
-                                ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/40'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                ? 'bg-blue-500/20 text-accent border border-blue-500/40'
+                                : 'text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                 }`}
                         >
                             <GitCompare className="w-3.5 h-3.5" />
@@ -370,7 +370,7 @@ const LicensesPage = () => {
                                 onClick={() => { setSapCompany(co); setSapSearch(''); fetchSapUsers(co); }}
                                 className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${sapCompany === co
                                     ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                                    : 'text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                     }`}
                             >
                                 {co}
@@ -391,7 +391,7 @@ const LicensesPage = () => {
                                 />
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                                <span className="text-muted text-sm font-medium">
                                     {sapCompany} — Usuarios activos: <strong className="text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded ml-1">{sapUsers.length}</strong>
                                 </span>
                                 <button
@@ -409,7 +409,7 @@ const LicensesPage = () => {
                     {sapCompany !== 'RESUMEN' && sapLoading && (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="w-8 h-8 text-amber-500 dark:text-amber-400 animate-spin" />
-                            <span className="ml-3 text-slate-500 dark:text-slate-400">Consultando SAP HANA...</span>
+                            <span className="ml-3 text-muted">Consultando SAP HANA...</span>
                         </div>
                     )}
 
@@ -432,13 +432,13 @@ const LicensesPage = () => {
                                     <table className="w-full text-left border-collapse">
                                         <thead className="sticky top-0 z-10">
                                             <tr className="bg-bg border-b border-slate-200 dark:border-slate-700">
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Código</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nombre</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Correo</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Departamento</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sucursal</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Licencia</th>
-                                                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Último Login</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Código</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Nombre</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Correo</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Departamento</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Sucursal</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Licencia</th>
+                                                <th className="p-4 text-xs font-semibold text-muted uppercase tracking-wider">Último Login</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
@@ -459,21 +459,21 @@ const LicensesPage = () => {
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className={`p-4 text-sm ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>{user.U_NAME || <span className="italic text-slate-500 dark:text-slate-600">—</span>}</td>
-                                                        <td className={`p-4 text-sm ${isLocked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>{user.E_Mail || <span className="italic text-slate-500 dark:text-slate-600">—</span>}</td>
-                                                        <td className={`p-4 text-sm ${isLocked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>{user.DEPT_NAME || <span className="italic text-slate-400 dark:text-slate-700">—</span>}</td>
-                                                        <td className={`p-4 text-sm ${isLocked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>{user.Branch != null && user.Branch !== '' ? user.Branch : <span className="italic text-slate-400 dark:text-slate-700">—</span>}</td>
+                                                        <td className={`p-4 text-sm ${isLocked ? 'text-muted' : 'text-slate-900 dark:text-white'}`}>{user.U_NAME || <span className="italic text-muted">—</span>}</td>
+                                                        <td className={`p-4 text-sm ${isLocked ? 'text-muted' : 'text-muted'}`}>{user.E_Mail || <span className="italic text-muted">—</span>}</td>
+                                                        <td className={`p-4 text-sm ${isLocked ? 'text-muted' : 'text-muted'}`}>{user.DEPT_NAME || <span className="italic text-muted">—</span>}</td>
+                                                        <td className={`p-4 text-sm ${isLocked ? 'text-muted' : 'text-muted'}`}>{user.Branch != null && user.Branch !== '' ? user.Branch : <span className="italic text-muted">—</span>}</td>
                                                         <td className="p-4 text-sm">
                                                             {(() => {
                                                                 const lic = getSapLicense(user.U_NAME);
-                                                                const cls = isLocked ? 'text-slate-400 dark:text-slate-600 italic' : lic.cls;
+                                                                const cls = isLocked ? 'text-muted italic' : lic.cls;
                                                                 return <span className={`text-xs font-medium ${cls}`}>{lic.label}</span>;
                                                             })()}
                                                         </td>
-                                                        <td className={`p-4 text-sm ${isLocked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                        <td className={`p-4 text-sm ${isLocked ? 'text-muted' : 'text-muted'}`}>
                                                             {user.lastLogin
                                                                 ? new Date(user.lastLogin).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                : <span className="italic text-slate-400 dark:text-slate-700">—</span>}
+                                                                : <span className="italic text-muted">—</span>}
                                                         </td>
                                                     </tr>
                                                 );
@@ -482,7 +482,7 @@ const LicensesPage = () => {
                                     </table>
                                 </div>
                                 {filtered.length === 0 && sapSearch && (
-                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
+                                    <div className="text-center py-8 text-muted text-sm">
                                         No hay usuarios que coincidan con "{sapSearch}"
                                     </div>
                                 )}
@@ -495,7 +495,7 @@ const LicensesPage = () => {
                         <div className="space-y-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    {sapResumenLoading && <><Loader2 className="w-5 h-5 text-blue-500 dark:text-blue-400 animate-spin" /><span className="text-slate-500 dark:text-slate-400 text-sm">Consultando las 5 empresas...</span></>}
+                                    {sapResumenLoading && <><Loader2 className="w-5 h-5 text-blue-500 dark:text-blue-400 animate-spin" /><span className="text-muted text-sm">Consultando las 5 empresas...</span></>}
                                     {sapResumen && !sapResumenLoading && (
                                         <div className="flex gap-4 flex-wrap">
                                             <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2">
@@ -541,7 +541,7 @@ const LicensesPage = () => {
                                             <div key={co} className="bg-surface/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
                                                 <div className="text-amber-600 dark:text-amber-300 font-bold text-lg">{co}</div>
                                                 <div className="text-slate-900 dark:text-white text-2xl font-bold">{total}</div>
-                                                <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">usuarios US*</div>
+                                                <div className="text-muted text-xs mt-1">usuarios US*</div>
                                             </div>
                                         ))}
                                     </div>
@@ -554,18 +554,18 @@ const LicensesPage = () => {
                                                 <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
                                                     <User className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                                                     <span className="text-slate-900 dark:text-white font-semibold">Usuarios activos</span>
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm">({sapResumen.activos.length} usuarios)</span>
+                                                    <span className="text-muted text-sm">({sapResumen.activos.length} usuarios)</span>
                                                 </div>
                                                 <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
                                                     <table className="w-full text-left border-collapse">
                                                         <thead className="sticky top-0 z-10">
                                                             <tr className="bg-bg border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Código</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Nombre</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Correo</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Departamento</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Sucursal</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Licencia</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Código</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Nombre</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Correo</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Departamento</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Sucursal</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Licencia</th>
                                                                 {allCos.map(co => (
                                                                     <th key={co} className="p-3 text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase text-center">{co}</th>
                                                                 ))}
@@ -577,7 +577,7 @@ const LicensesPage = () => {
                                                                     <td className="p-3 font-mono text-sm font-semibold text-amber-600 dark:text-amber-300">{u.user_code}</td>
                                                                     <td className="p-3 text-sm">
                                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                                            <span className="text-slate-900 dark:text-white">{u.nombre || <span className="italic text-slate-400 dark:text-slate-600">—</span>}</span>
+                                                                            <span className="text-slate-900 dark:text-white">{u.nombre || <span className="italic text-muted">—</span>}</span>
                                                                             {u.cesado && (
                                                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40">
                                                                                     <AlertCircle className="w-3 h-3" />Usuario cesado
@@ -590,9 +590,9 @@ const LicensesPage = () => {
                                                                             )}
                                                                         </div>
                                                                     </td>
-                                                                    <td className="p-3 text-sm text-slate-500 dark:text-slate-400">{u.email || <span className="italic text-slate-400 dark:text-slate-600">—</span>}</td>
-                                                                    <td className="p-3 text-sm text-slate-500 dark:text-slate-400">{u.departamento || <span className="italic text-slate-400 dark:text-slate-600">—</span>}</td>
-                                                                    <td className="p-3 text-sm text-slate-500 dark:text-slate-400">{u.sucursal || <span className="italic text-slate-400 dark:text-slate-600">—</span>}</td>
+                                                                    <td className="p-3 text-sm text-muted">{u.email || <span className="italic text-muted">—</span>}</td>
+                                                                    <td className="p-3 text-sm text-muted">{u.departamento || <span className="italic text-muted">—</span>}</td>
+                                                                    <td className="p-3 text-sm text-muted">{u.sucursal || <span className="italic text-muted">—</span>}</td>
                                                                     <td className="p-3 text-sm">{(() => {
                                                                         const lic = getSapLicense(u.nombre);
                                                                         return <span className={`text-xs font-medium ${lic.cls}`}>{lic.label}</span>;
@@ -606,7 +606,7 @@ const LicensesPage = () => {
                                                                                     <Lock className="w-3 h-3" />
                                                                                 </span>
                                                                             ) : (
-                                                                                <span className="italic text-slate-400 dark:text-slate-700 text-xs">—</span>
+                                                                                <span className="italic text-muted text-xs">—</span>
                                                                             )}
                                                                         </td>
                                                                     ))}
@@ -634,22 +634,22 @@ const LicensesPage = () => {
                                                     <div className="flex items-center gap-2">
                                                         <GitCompare className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                                                         <span className="text-slate-900 dark:text-white font-semibold">Inconsistencias entre empresas</span>
-                                                        <span className="text-slate-500 dark:text-slate-400 text-sm">({sapResumen.inconsistencias.length} usuarios)</span>
+                                                        <span className="text-muted text-sm">({sapResumen.inconsistencias.length} usuarios)</span>
                                                     </div>
-                                                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                                                    <div className="flex items-center gap-3 text-xs text-muted flex-wrap">
                                                         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Coincide con mayoría</span>
                                                         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span>Valor diferente</span>
                                                         <span className="flex items-center gap-1 text-slate-500 border border-slate-300 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-800/40 px-1.5 py-0.5 rounded italic">sin dato</span>
                                                         <span className="flex items-center gap-1 text-red-600 dark:text-red-400 bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 rounded"><Lock className="w-3 h-3" />bloqueado</span>
-                                                        <span className="flex items-center gap-1 text-slate-400 dark:text-slate-600 italic">—&nbsp;no existe</span>
+                                                        <span className="flex items-center gap-1 text-muted italic">—&nbsp;no existe</span>
                                                     </div>
                                                 </div>
                                                 <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
                                                     <table className="w-full text-left border-collapse">
                                                         <thead className="sticky top-0 z-10">
                                                             <tr className="bg-bg/80 border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase sticky left-0 bg-bg/80 min-w-[120px]">Usuario</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase min-w-[90px]">Campo</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase sticky left-0 bg-bg/80 min-w-[120px]">Usuario</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase min-w-[90px]">Campo</th>
                                                                 {allCos.map(co => (
                                                                     <th key={co} className="p-3 text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase text-center min-w-[140px]">{co}</th>
                                                                 ))}
@@ -665,7 +665,7 @@ const LicensesPage = () => {
                                                                             {di === 0 && (
                                                                                 <td className="p-3 sticky left-0 bg-surface/90" rowSpan={item.diferencias.length}>
                                                                                     <div className="font-mono font-bold text-amber-600 dark:text-amber-300 text-sm">{item.user_code}</div>
-                                                                                    <div className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 max-w-[100px] truncate">{item.nombre}</div>
+                                                                                    <div className="text-muted text-xs mt-0.5 max-w-[100px] truncate">{item.nombre}</div>
                                                                                 </td>
                                                                             )}
                                                                             <td className="p-3 text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">{d.campo}</td>
@@ -682,7 +682,7 @@ const LicensesPage = () => {
                                                                                                 <Lock className="w-3 h-3" />bloqueado
                                                                                             </span>
                                                                                         ) : !exists ? (
-                                                                                            <span className="text-slate-400 dark:text-slate-700 text-xs italic" title="Usuario no existe en esta empresa">—</span>
+                                                                                            <span className="text-muted text-xs italic" title="Usuario no existe en esta empresa">—</span>
                                                                                         ) : !hasValue ? (
                                                                                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs italic text-slate-500 border border-slate-300 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-800/40" title="Campo vacío">sin dato</span>
                                                                                         ) : (
@@ -716,14 +716,14 @@ const LicensesPage = () => {
                                                 <div className="px-5 py-3 border-b border-red-300 dark:border-red-900/30 flex items-center gap-2">
                                                     <Lock className="w-4 h-4 text-red-600 dark:text-red-400" />
                                                     <span className="text-slate-900 dark:text-white font-semibold">Usuarios bloqueados en todas sus empresas</span>
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm">({rows.length} usuarios)</span>
+                                                    <span className="text-muted text-sm">({rows.length} usuarios)</span>
                                                 </div>
                                                 <div className="overflow-y-auto max-h-[400px]">
                                                     <table className="w-full text-left">
                                                         <thead className="sticky top-0 z-10">
                                                             <tr className="bg-bg border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Código</th>
-                                                                <th className="p-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Nombre</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Código</th>
+                                                                <th className="p-3 text-xs font-semibold text-muted uppercase">Nombre</th>
                                                                 {allCos.map(co => (
                                                                     <th key={co} className="p-3 text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase text-center">{co}</th>
                                                                 ))}
@@ -733,14 +733,14 @@ const LicensesPage = () => {
                                                             {rows.map(b => (
                                                                 <tr key={b.user_code} className="bg-red-100/40 dark:bg-red-950/10 hover:bg-red-100/70 dark:hover:bg-red-950/20">
                                                                     <td className="p-3 font-mono text-sm font-semibold text-red-600 dark:text-red-400 line-through">{b.user_code}</td>
-                                                                    <td className="p-3 text-sm text-slate-500 dark:text-slate-400">{b.nombre || <span className="italic text-slate-400 dark:text-slate-600">—</span>}</td>
+                                                                    <td className="p-3 text-sm text-muted">{b.nombre || <span className="italic text-muted">—</span>}</td>
                                                                     {allCos.map(co => (
                                                                         <td key={co} className="p-3 text-center">
                                                                             {b.empresas.includes(co)
                                                                                 ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30" title="Bloqueado">
                                                                                     <Lock className="w-3 h-3" /> bloqueado
                                                                                   </span>
-                                                                                : <span className="italic text-slate-400 dark:text-slate-700 text-xs">—</span>}
+                                                                                : <span className="italic text-muted text-xs">—</span>}
                                                                         </td>
                                                                     ))}
                                                                 </tr>
@@ -753,7 +753,7 @@ const LicensesPage = () => {
                                     })()}
 
                                     {sapResumen.inconsistencias.length === 0 && sapResumen.bloqueados.length === 0 && (
-                                        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                        <div className="text-center py-12 text-muted">
                                             Sin inconsistencias ni usuarios bloqueados.
                                         </div>
                                     )}

@@ -117,21 +117,21 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Acta de asignación">
             <div className="bg-surface rounded-xl w-full max-w-4xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-surface sticky top-0 z-10">
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                <FileText className="w-6 h-6 text-accent" />
                                 Gestión de Actas
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">
+                            <p className="text-muted mt-1">
                                 {assignment.employee?.full_name || 'Empleado'}
                             </p>
                         </div>
-                        <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
@@ -144,7 +144,7 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                         <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase mb-3">
                             Acta Generada Automáticamente
                         </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                        <p className="text-xs text-muted mb-3">
                             Descarga el acta generada por el sistema para imprimir y firmar, o envíala por correo.
                         </p>
                         <div className="flex flex-wrap items-center gap-3">
@@ -173,7 +173,7 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                                 <Laptop className="w-4 h-4" />
                                 Acta de Asignación - Equipo de Cómputo
                             </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                            <p className="text-xs text-muted mb-4">
                                 Acta firmada para equipos de cómputo (laptop, monitor, teclado, mouse, etc.)
                             </p>
                             <PdfUploader
@@ -195,7 +195,7 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                                 <Smartphone className="w-4 h-4" />
                                 Acta de Asignación - Celular
                             </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                            <p className="text-xs text-muted mb-4">
                                 Acta firmada para dispositivos móviles (celular, chip, cargador)
                             </p>
                             <PdfUploader
@@ -213,7 +213,7 @@ const AssignmentActaModal = ({ isOpen, onClose, assignment, onSuccess }) => {
                     {/* Info */}
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                         <div className="flex gap-3">
-                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <FileText className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                             <div className="text-sm text-blue-700 dark:text-blue-200">
                                 <p className="font-bold mb-1">Proceso:</p>
                                 <ol className="list-decimal list-inside space-y-1 text-blue-600 dark:text-blue-300">

@@ -225,7 +225,7 @@ const ActasStatusPage = () => {
     const getDaysBadge = (days) => {
         if (days === null) return null;
 
-        let colorClass = 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30';
+        let colorClass = 'bg-yellow-500/20 text-accent border-yellow-500/30';
         if (days > 30) colorClass = 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30';
         else if (days > 15) colorClass = 'bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30';
 
@@ -312,7 +312,7 @@ const ActasStatusPage = () => {
             cell: (acta) => (
                 <>
                     <div className="font-medium text-slate-900 dark:text-white">{acta.employee_name}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{acta.employee_location}</div>
+                    <div className="text-xs text-muted">{acta.employee_location}</div>
                 </>
             ),
         },
@@ -441,10 +441,10 @@ const ActasStatusPage = () => {
             <div className="bg-surface p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-start">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <FileText className="w-6 h-6 text-accent" />
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Estado de Actas Firmadas</h2>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                    <p className="text-muted text-sm">
                         Seguimiento de actas firmadas y pendientes de asignaciones y ceses
                     </p>
                 </div>
@@ -472,12 +472,12 @@ const ActasStatusPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Assignment Computer Summary */}
                 <div className="bg-surface p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Asignación Cómputo</div>
+                    <div className="text-sm text-muted mb-1">Asignación Cómputo</div>
                     <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             {data.summary.assignment_computer_signed}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400">/ {data.summary.assignment_computer_total}</span>
+                        <span className="text-muted">/ {data.summary.assignment_computer_total}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -491,12 +491,12 @@ const ActasStatusPage = () => {
 
                 {/* Assignment Mobile Summary */}
                 <div className="bg-surface p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Asignación Celular</div>
+                    <div className="text-sm text-muted mb-1">Asignación Celular</div>
                     <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             {data.summary.assignment_mobile_signed}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400">/ {data.summary.assignment_mobile_total}</span>
+                        <span className="text-muted">/ {data.summary.assignment_mobile_total}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -510,12 +510,12 @@ const ActasStatusPage = () => {
 
                 {/* Sales Summary */}
                 <div className="bg-surface p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Ventas</div>
+                    <div className="text-sm text-muted mb-1">Ventas</div>
                     <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             {data.summary.sales_signed}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400">/ {data.summary.sales_total}</span>
+                        <span className="text-muted">/ {data.summary.sales_total}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -529,12 +529,12 @@ const ActasStatusPage = () => {
 
                 {/* Terminations Summary */}
                 <div className="bg-surface p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Ceses</div>
+                    <div className="text-sm text-muted mb-1">Ceses</div>
                     <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             {data.summary.terminations_signed}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400">/ {data.summary.terminations_total}</span>
+                        <span className="text-muted">/ {data.summary.terminations_total}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -548,12 +548,12 @@ const ActasStatusPage = () => {
 
                 {/* Total Summary */}
                 <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/30">
-                    <div className="text-sm text-blue-700 dark:text-blue-300 mb-1">Total</div>
+                    <div className="text-sm text-accent mb-1">Total</div>
                     <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             {data.summary.total_signed}
                         </span>
-                        <span className="text-blue-700 dark:text-blue-300">/ {data.summary.total}</span>
+                        <span className="text-accent">/ {data.summary.total}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -662,14 +662,14 @@ const ActasStatusPage = () => {
                         <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-start">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    <FileText className="w-5 h-5 text-accent" />
                                     Subir Acta Firmada
                                 </h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                <p className="text-muted text-sm mt-1">
                                     {uploadModalActa.employee_name} · {getTypeLabel(uploadModalActa.type)}
                                 </p>
                             </div>
-                            <button onClick={() => setUploadModalActa(null)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button onClick={() => setUploadModalActa(null)} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>

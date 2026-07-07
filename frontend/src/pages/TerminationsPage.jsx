@@ -218,7 +218,7 @@ const TerminationsPage = () => {
                             <UserMinus className="text-rose-600 dark:text-rose-400 w-8 h-8" />
                             Ceses de Empleados
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm max-w-2xl">
+                        <p className="text-muted mt-2 text-sm max-w-2xl">
                             Historial de terminaciones laborales y seguimiento de licencias M365 activas.
                         </p>
                     </div>
@@ -249,13 +249,13 @@ const TerminationsPage = () => {
                 <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-1">
                     <button
                         onClick={() => setActiveTab('historial')}
-                        className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${activeTab === 'historial' ? 'bg-surface text-slate-900 dark:text-white border border-b-surface dark:border-b-slate-800 border-slate-200 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                        className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${activeTab === 'historial' ? 'bg-surface text-slate-900 dark:text-white border border-b-surface dark:border-b-slate-800 border-slate-200 dark:border-slate-700' : 'text-muted hover:text-slate-700 dark:hover:text-slate-300'}`}
                     >
                         Historial de Ceses
                     </button>
                     <button
                         onClick={() => { setActiveTab('licencias'); if (!licensesData.length) fetchLicenses(); }}
-                        className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors flex items-center gap-2 ${activeTab === 'licencias' ? 'bg-surface text-slate-900 dark:text-white border border-b-surface dark:border-b-slate-800 border-slate-200 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                        className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors flex items-center gap-2 ${activeTab === 'licencias' ? 'bg-surface text-slate-900 dark:text-white border border-b-surface dark:border-b-slate-800 border-slate-200 dark:border-slate-700' : 'text-muted hover:text-slate-700 dark:hover:text-slate-300'}`}
                     >
                         <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                         Licencias M365 Activas
@@ -289,11 +289,11 @@ const TerminationsPage = () => {
                                 <thead className="bg-slate-100 dark:bg-slate-800/80 sticky top-0 backdrop-blur-md">
                                     <tr>
                                         <th className="px-6 py-4 w-10"></th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empleado</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empresa / Cargo</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha Cese</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Equipos</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actas</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Empleado</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Empresa / Cargo</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Fecha Cese</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Equipos</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Actas</th>
                                         <th className="px-6 py-4 w-10"></th>
                                     </tr>
                                 </thead>
@@ -301,7 +301,7 @@ const TerminationsPage = () => {
                                     {terminations.length === 0 && !loading ? (
                                         <tr>
                                             <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
-                                                <UserMinus className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-3 opacity-50" />
+                                                <UserMinus className="w-12 h-12 mx-auto text-muted mb-3 opacity-50" />
                                                 <p className="text-lg">{searchTerm ? 'No se encontraron resultados' : 'No hay ceses registrados'}</p>
                                             </td>
                                         </tr>
@@ -316,8 +316,8 @@ const TerminationsPage = () => {
                                                     >
                                                         <td className="px-6 py-4">
                                                             {isExpanded
-                                                                ? <ChevronUp className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                                                                : <ChevronDown className="w-5 h-5 text-slate-400 dark:text-slate-500" />}
+                                                                ? <ChevronUp className="w-5 h-5 text-muted" />
+                                                                : <ChevronDown className="w-5 h-5 text-muted" />}
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <div className="text-sm font-semibold text-slate-900 dark:text-white">{term.employee.full_name}</div>
@@ -327,7 +327,7 @@ const TerminationsPage = () => {
                                                             <div className="text-sm text-slate-600 dark:text-slate-300">{term.employee.company || term.employee.company_name || '-'}</div>
                                                             <div className="text-xs text-slate-500">{term.employee.position || '-'}</div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
                                                             {formatDate(term.termination_date)}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -339,13 +339,13 @@ const TerminationsPage = () => {
                                                             {(term.computer_acta_available || term.mobile_acta_available) ? (
                                                                 <button
                                                                     onClick={(e) => downloadActas(term.id, e)}
-                                                                    className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-lg transition-colors"
+                                                                    className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-accent border border-blue-500/20 rounded-lg transition-colors"
                                                                 >
                                                                     <Download className="w-3.5 h-3.5" />
                                                                     Descargar
                                                                 </button>
                                                             ) : (
-                                                                <span className="text-xs text-slate-400 dark:text-slate-600">Sin actas</span>
+                                                                <span className="text-xs text-muted">Sin actas</span>
                                                             )}
                                                         </td>
                                                         <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
@@ -507,10 +507,10 @@ const TerminationsPage = () => {
                             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700/50">
                                 <thead className="bg-slate-100 dark:bg-slate-800/80">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empleado</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email M365</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha Cese</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Licencias Activas</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Empleado</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Email M365</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Fecha Cese</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Licencias Activas</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 bg-surface/50 dark:bg-slate-800/30">
@@ -521,7 +521,7 @@ const TerminationsPage = () => {
                                                 <div className="text-xs text-slate-500">DNI: {item.employee_dni || 'N/A'}</div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{item.email}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
                                                 {formatDate(item.termination_date)}
                                             </td>
                                             <td className="px-6 py-4">
@@ -557,15 +557,15 @@ const TerminationsPage = () => {
                     <div className="flex justify-between items-center p-5 border-b border-slate-200 dark:border-slate-700">
                         <div>
                             <h3 className="text-slate-900 dark:text-white font-bold text-base">Origen de Licencias M365</h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{licenseOrigin.display_name || licenseOrigin.email}</p>
+                            <p className="text-muted text-xs mt-0.5">{licenseOrigin.display_name || licenseOrigin.email}</p>
                         </div>
-                        <button onClick={() => setLicenseOrigin(null)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => setLicenseOrigin(null)} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
                     <div className="p-5">
                         {licenseOriginLoading ? (
-                            <div className="flex items-center justify-center py-8 gap-3 text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center justify-center py-8 gap-3 text-muted">
                                 <Loader2 className="w-5 h-5 animate-spin" />
                                 Consultando Graph API...
                             </div>
@@ -585,7 +585,7 @@ const TerminationsPage = () => {
                                                 <div className="flex flex-col items-end gap-1.5 shrink-0">
                                                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
                                                         s.assigned_by_group
-                                                            ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30'
+                                                            ? 'bg-blue-500/15 text-accent border border-blue-500/30'
                                                             : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                                                     }`}>
                                                         {s.assigned_by_group ? `Grupo: ${s.group_name}` : 'Asignación directa'}
@@ -593,7 +593,7 @@ const TerminationsPage = () => {
                                                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                                                         isActive
                                                             ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                                                            : 'bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400'
+                                                            : 'bg-slate-200 dark:bg-slate-700/50 text-muted'
                                                     }`}>
                                                         {s.state || 'Desconocido'}
                                                     </span>
@@ -612,7 +612,7 @@ const TerminationsPage = () => {
                                 })}
                                 <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
                                     Si el estado es <strong className="text-slate-600 dark:text-slate-300">Active</strong>, la licencia está activa.
-                                    Si viene de un <strong className="text-blue-600 dark:text-blue-400">Grupo</strong>, quita al usuario de ese grupo en Azure AD.
+                                    Si viene de un <strong className="text-accent">Grupo</strong>, quita al usuario de ese grupo en Azure AD.
                                     Si es <strong className="text-amber-600 dark:text-amber-400">Asignación directa</strong> pero el portal muestra 0 licencias, puede ser un <em>delay de propagación</em> de Microsoft (espera unos minutos y vuelve a actualizar).
                                 </p>
                             </div>

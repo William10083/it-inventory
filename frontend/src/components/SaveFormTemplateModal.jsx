@@ -50,7 +50,7 @@ const SaveFormTemplateModal = ({ isOpen, onClose, formData, type = "DECOMMISSION
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>

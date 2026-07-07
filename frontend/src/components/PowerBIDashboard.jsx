@@ -76,7 +76,7 @@ const coverageColor = (pct) => {
 // Maps the KPICard `color` prop (a border utility class) to its matching
 // background tint and light/dark-paired icon text color.
 const KPI_COLOR_MAP = {
-    'border-blue-500': { bg: 'bg-blue-500/20', icon: 'text-blue-600 dark:text-blue-400' },
+    'border-blue-500': { bg: 'bg-blue-500/20', icon: 'text-accent' },
     'border-green-500': { bg: 'bg-green-500/20', icon: 'text-green-600 dark:text-green-400' },
     'border-purple-500': { bg: 'bg-purple-500/20', icon: 'text-purple-600 dark:text-purple-400' },
     'border-yellow-500': { bg: 'bg-yellow-500/20', icon: 'text-yellow-600 dark:text-yellow-400' },
@@ -88,7 +88,7 @@ const KPICard = ({ title, value, subtitle, icon: Icon, color }) => {
         <div className={`bg-surface rounded-md shadow-sm p-6 border-l-4 ${color}`}>
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">{title}</p>
+                    <p className="text-muted text-sm">{title}</p>
                     <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">
                         {typeof value === 'number' ? <CountUpNumber value={value} /> : value}
                     </h3>
@@ -127,7 +127,7 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
     }, [locationFilter]);
 
     if (loading) return (
-        <div className="flex items-center justify-center h-64 text-slate-500 dark:text-slate-400">
+        <div className="flex items-center justify-center h-64 text-muted">
             <BarChart2 className="w-6 h-6 animate-pulse mr-2" /> Cargando Power BI...
         </div>
     );
@@ -148,11 +148,11 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
             {/* Header */}
             <div className="flex items-center gap-3 bg-surface p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <BarChart2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <BarChart2 className="w-6 h-6 text-accent" />
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Power BI — Vista Ejecutiva</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Métricas clave, tendencias y cobertura por sede</p>
+                    <p className="text-muted text-sm">Métricas clave, tendencias y cobertura por sede</p>
                 </div>
             </div>
 
@@ -194,7 +194,7 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                 {/* Timeline asignaciones */}
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Asignaciones por Mes</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Actividad histórica de entregas de equipo</p>
+                    <p className="text-muted text-xs mb-4">Actividad histórica de entregas de equipo</p>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={monthlyData}>
@@ -205,8 +205,8 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-700" />
-                                <XAxis dataKey="month" stroke="currentColor" className="text-slate-500 dark:text-slate-400" tick={{ fontSize: 11 }} />
-                                <YAxis stroke="currentColor" className="text-slate-500 dark:text-slate-400" tick={{ fontSize: 11 }} />
+                                <XAxis dataKey="month" stroke="currentColor" className="text-muted" tick={{ fontSize: 11 }} />
+                                <YAxis stroke="currentColor" className="text-muted" tick={{ fontSize: 11 }} />
                                 <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(148,163,184,0.3)', borderRadius: '8px', color: 'inherit' }} />
                                 <Area type="monotone" dataKey="asignaciones" stroke="#3B82F6" fill="url(#colorAsig)" strokeWidth={2} dot={{ fill: '#3B82F6', r: 4 }} />
                             </AreaChart>
@@ -217,7 +217,7 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                 {/* Donut distribución por tipo */}
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Distribución por Tipo</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Composición del inventario activo</p>
+                    <p className="text-muted text-xs mb-4">Composición del inventario activo</p>
                     <div className="h-64 flex items-center">
                         <ResponsiveContainer width="60%" height="100%">
                             <PieChart>
@@ -255,17 +255,17 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
             {/* Heatmap Cobertura por Sede */}
             <div className="bg-surface rounded-md shadow-sm p-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Heatmap de Cobertura por Sede</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">
+                <p className="text-muted text-xs mb-4">
                     % de empleados con cada tipo de equipo asignado por sede — verde ≥90%, amarillo ≥70%, naranja ≥50%, rojo &lt;50%
                 </p>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-slate-200 dark:border-slate-700">
-                                <th className="text-left py-3 px-4 text-slate-500 dark:text-slate-400 font-medium min-w-[120px]">Sede</th>
-                                <th className="text-center py-3 px-3 text-slate-500 dark:text-slate-400 font-medium text-xs">Empleados</th>
+                                <th className="text-left py-3 px-4 text-muted font-medium min-w-[120px]">Sede</th>
+                                <th className="text-center py-3 px-3 text-muted font-medium text-xs">Empleados</th>
                                 {EQUIPMENT_KEYS.map(k => (
-                                    <th key={k} className="text-center py-3 px-3 text-slate-500 dark:text-slate-400 font-medium text-xs">{EQUIPMENT_LABELS[k]}</th>
+                                    <th key={k} className="text-center py-3 px-3 text-muted font-medium text-xs">{EQUIPMENT_LABELS[k]}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -279,7 +279,7 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                                     {EQUIPMENT_KEYS.map(k => (
                                         <td key={k} className="py-3 px-3 text-center">
                                             {row[k] === null ? (
-                                                <span className="text-xs text-slate-500 dark:text-slate-600">N/A</span>
+                                                <span className="text-xs text-muted">N/A</span>
                                             ) : (
                                                 <span className={`text-xs font-bold px-2 py-1 rounded-md ${coverageColor(row[k])}`}>
                                                     {row[k]}%
@@ -300,13 +300,13 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                 {/* Estado global de dispositivos */}
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Estado Global de Dispositivos</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Conteo de equipos por estado (incluyendo vendidos y dados de baja)</p>
+                    <p className="text-muted text-xs mb-4">Conteo de equipos por estado (incluyendo vendidos y dados de baja)</p>
                     <div className="h-56">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={status_breakdown} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-700" horizontal={false} />
-                                <XAxis type="number" stroke="currentColor" className="text-slate-500 dark:text-slate-400" tick={{ fontSize: 11 }} />
-                                <YAxis type="category" dataKey="status" stroke="currentColor" className="text-slate-500 dark:text-slate-400" tick={{ fontSize: 11 }} width={80} />
+                                <XAxis type="number" stroke="currentColor" className="text-muted" tick={{ fontSize: 11 }} />
+                                <YAxis type="category" dataKey="status" stroke="currentColor" className="text-muted" tick={{ fontSize: 11 }} width={80} />
                                 <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(148,163,184,0.3)', borderRadius: '8px', color: 'inherit' }} />
                                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                                     {status_breakdown.map((entry, i) => {
@@ -322,7 +322,7 @@ const PowerBIDashboard = ({ locationFilter = 'all' }) => {
                 {/* Top empleados con más equipos */}
                 <div className="bg-surface rounded-md shadow-sm p-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Top Empleados por Equipos</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Los 10 empleados con más dispositivos asignados actualmente</p>
+                    <p className="text-muted text-xs mb-4">Los 10 empleados con más dispositivos asignados actualmente</p>
                     <div className="space-y-2 overflow-y-auto max-h-56">
                         {top_equipped_employees.map((emp, i) => (
                             <div key={i} className="flex items-center gap-3 py-1.5 border-b border-slate-200 dark:border-slate-700/40 last:border-0">

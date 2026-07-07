@@ -150,7 +150,7 @@ function AssignCelularModal({ lancha, onClose, onChanged }) {
                         </h3>
                         <p className="text-slate-500 text-xs mt-0.5">Puedes asignar uno o varios equipos</p>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -194,7 +194,7 @@ function AssignCelularModal({ lancha, onClose, onChanged }) {
                         <div key={d.id} className="flex items-center justify-between bg-bg/60 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50 hover:border-blue-500/40 transition-colors">
                             <div className="min-w-0 flex items-center gap-3">
                                 <div className="w-7 h-7 rounded-lg bg-surface flex items-center justify-center flex-shrink-0">
-                                    <Smartphone className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                                    <Smartphone className="w-3.5 h-3.5 text-muted" />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{d.brand} {d.model}</p>
@@ -289,8 +289,8 @@ function LanchaCard({ lancha, idx, onAssignCelular, onAssignEmployee, lanchasLis
                                                 <User className="w-2.5 h-2.5" style={{ color: c.bg }} />
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-xs text-slate-700 dark:text-slate-200 font-medium truncate leading-tight">{m.full_name}</p>
-                                                <p className="text-[10px] text-slate-500 truncate">{m.position}</p>
+                                                <p className="text-xs text-slate-700 dark:text-slate-200 font-medium truncate leading-tight" title={m.full_name}>{m.full_name}</p>
+                                                <p className="text-[10px] text-slate-500 truncate" title={m.position}>{m.position}</p>
                                             </div>
                                             {m.celular?.phone_number && (
                                                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0 flex items-center gap-0.5">
@@ -304,10 +304,10 @@ function LanchaCard({ lancha, idx, onAssignCelular, onAssignEmployee, lanchasLis
                                 {/* Sin celular personal */}
                                 {sinCelular.map(m => (
                                     <div key={m.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-bg/30 border border-slate-200 dark:border-slate-700/20">
-                                        <User className="w-3 h-3 text-slate-400 dark:text-slate-600 flex-shrink-0" />
+                                        <User className="w-3 h-3 text-muted flex-shrink-0" />
                                         <div className="min-w-0">
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate leading-tight">{m.full_name}</p>
-                                            <p className="text-[10px] text-slate-400 dark:text-slate-600 truncate">{m.position}</p>
+                                            <p className="text-[11px] text-muted truncate leading-tight" title={m.full_name}>{m.full_name}</p>
+                                            <p className="text-[10px] text-muted truncate" title={m.position}>{m.position}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -317,7 +317,7 @@ function LanchaCard({ lancha, idx, onAssignCelular, onAssignEmployee, lanchasLis
                 )}
 
                 {totalMembers === 0 && !lancha.lancha_device && (
-                    <p className="text-[11px] text-slate-400 dark:text-slate-600 italic text-center py-3">Sin personal asignado</p>
+                    <p className="text-[11px] text-muted italic text-center py-3">Sin personal asignado</p>
                 )}
             </div>
         </div>
@@ -372,7 +372,7 @@ export default function LanchasPage() {
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Flota de Lanchas</h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-xs">Gestión de embarcaciones y equipos</p>
+                        <p className="text-muted text-xs">Gestión de embarcaciones y equipos</p>
                     </div>
                 </div>
                 <button onClick={load} disabled={loading}
@@ -391,15 +391,15 @@ export default function LanchasPage() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-3">
                         <div className="bg-surface/60 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3">
-                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-0.5">Personal marítimo</p>
+                            <p className="text-muted text-xs mb-0.5">Personal marítimo</p>
                             <p className="text-slate-900 dark:text-white text-2xl font-bold">{totalPersonal}</p>
                         </div>
                         <div className="bg-surface/60 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3">
-                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-0.5">Con celular personal</p>
+                            <p className="text-muted text-xs mb-0.5">Con celular personal</p>
                             <p className="text-emerald-600 dark:text-emerald-400 text-2xl font-bold">{totalConCelular}</p>
                         </div>
                         <div className="bg-surface/60 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-3">
-                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-0.5">Unidades con celular</p>
+                            <p className="text-muted text-xs mb-0.5">Unidades con celular</p>
                             <p className="text-blue-500 dark:text-blue-400 text-2xl font-bold">{totalConCelularLancha} <span className="text-slate-500 text-sm font-normal">/ {lanchas.length}</span></p>
                         </div>
                     </div>
@@ -421,7 +421,7 @@ export default function LanchasPage() {
                     {/* Personal sin lancha */}
                     {sinLancha && sinLancha.members.length > 0 && (
                         <div className="bg-surface/40 border border-slate-200 dark:border-slate-700/60 rounded-xl p-4">
-                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-muted uppercase tracking-widest mb-3 flex items-center gap-2">
                                 <Settings className="w-3.5 h-3.5" />
                                 Sin lancha asignada — {sinLancha.members.length}
                             </h3>
@@ -450,7 +450,7 @@ export default function LanchasPage() {
                         <h3 className="text-slate-900 dark:text-white font-bold mb-1 flex items-center gap-2">
                             <Anchor className="w-4 h-4 text-blue-500 dark:text-blue-400" /> Asignar a unidad
                         </h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 truncate">{editingEmp.full_name}</p>
+                        <p className="text-muted text-sm mb-4 truncate">{editingEmp.full_name}</p>
                         <select value={selectedLancha} onChange={e => setSelectedLancha(e.target.value)}
                             className="w-full bg-bg border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 mb-4 focus:outline-none focus:border-blue-500 text-sm">
                             <option value="">Sin asignar</option>

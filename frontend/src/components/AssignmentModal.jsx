@@ -227,7 +227,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">¡Asignación completada!</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+                        <p className="text-muted text-sm mb-6">
                             {devices.length} equipo{devices.length > 1 ? 's' : ''} asignado{devices.length > 1 ? 's' : ''} a <span className="text-slate-900 dark:text-white font-medium">{lastAssignedEmployee?.full_name}</span>
                         </p>
 
@@ -242,7 +242,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                     <Mail className="w-4 h-4 text-accent" />
                                     Generar acta y notificar al empleado
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                <p className="text-xs text-muted">
                                     Se descargará el acta de entrega y se enviará automáticamente al correo del empleado con el acta adjunta.
                                 </p>
                                 {emailTo && (
@@ -262,7 +262,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                         )}
 
                         <button onClick={onClose}
-                            className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            className="w-full py-2 text-sm text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                             {emailSent ? 'Cerrar' : 'Omitir y cerrar'}
                         </button>
                     </div>
@@ -278,7 +278,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                         Assign {devices.length} Device{devices.length > 1 ? 's' : ''}
                     </h2>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -324,7 +324,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                         onClick={() => selectEmployee(emp)}
                                     >
                                         <div className="font-bold">{emp.full_name}</div>
-                                        <div className="text-xs text-slate-500 dark:text-slate-400">{emp.email} • {emp.department}</div>
+                                        <div className="text-xs text-muted">{emp.email} • {emp.department}</div>
                                     </button>
                                 ))}
                             </div>
@@ -380,7 +380,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                 {chargerOption === 'custom' && (
                                     <div className="ml-7 grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Marca</label>
+                                            <label className="block text-xs text-muted mb-1">Marca</label>
                                             <input
                                                 type="text"
                                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg py-2 px-3 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -390,7 +390,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Modelo *</label>
+                                            <label className="block text-xs text-muted mb-1">Modelo *</label>
                                             <input
                                                 type="text"
                                                 className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded-lg py-2 px-3 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -432,7 +432,7 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                             </label>
                             <div className="grid grid-cols-2 gap-2">
                                 {Object.keys(mobileAccessories).map(acc => (
-                                    <label key={acc} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition-colors ${mobileAccessories[acc] ? 'bg-green-500/20 border-green-500/50 text-green-700 dark:text-green-300' : 'bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600/50 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                                    <label key={acc} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition-colors ${mobileAccessories[acc] ? 'bg-green-500/20 border-green-500/50 text-green-700 dark:text-green-300' : 'bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600/50 text-muted hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                         <input
                                             type="checkbox"
                                             checked={mobileAccessories[acc]}
@@ -450,11 +450,11 @@ const AssignmentModal = ({ isOpen, onClose, devices = [], onSuccess }) => {
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Tipo de Asignación</label>
                         <div className="flex gap-3">
-                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'ASIGNACION' ? 'bg-blue-500/20 border-blue-500/60 text-blue-700 dark:text-blue-300' : 'bg-bg border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'ASIGNACION' ? 'bg-blue-500/20 border-blue-500/60 text-accent' : 'bg-bg border-slate-300 dark:border-slate-600 text-muted hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                 <input type="radio" name="assignmentType" value="ASIGNACION" checked={assignmentType === 'ASIGNACION'} onChange={() => setAssignmentType('ASIGNACION')} className="hidden" />
                                 <span className="font-medium text-sm">Asignación</span>
                             </label>
-                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'REEMPLAZO' ? 'bg-orange-500/20 border-orange-500/60 text-orange-700 dark:text-orange-300' : 'bg-bg border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-lg cursor-pointer border transition-colors ${assignmentType === 'REEMPLAZO' ? 'bg-orange-500/20 border-orange-500/60 text-orange-700 dark:text-orange-300' : 'bg-bg border-slate-300 dark:border-slate-600 text-muted hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                 <input type="radio" name="assignmentType" value="REEMPLAZO" checked={assignmentType === 'REEMPLAZO'} onChange={() => setAssignmentType('REEMPLAZO')} className="hidden" />
                                 <span className="font-medium text-sm">Reemplazo</span>
                             </label>

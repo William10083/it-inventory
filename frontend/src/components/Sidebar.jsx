@@ -133,7 +133,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
                     {openFlyout === group.id && (
                         <div className="absolute left-full top-0 ml-2 z-[60] min-w-[190px] bg-surface dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5">
-                            <p className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+                            <p className="px-3 py-1 text-xs font-medium text-muted">
                                 {group.label}
                             </p>
                             {group.items.map((item) => (
@@ -158,10 +158,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             <div className="mt-auto flex flex-col items-center gap-1.5">
                 <button
                     type="button"
-                    onClick={() => navigate('/settings')}
+                    onClick={() => { setOpenFlyout(null); setActiveTab('settings'); }}
                     title="Configuración"
                     aria-label="Configuración"
-                    className={`${railButton} ${railIdle}`}
+                    className={`${railButton} ${activeTab === 'settings' ? railOn : railIdle}`}
                 >
                     <Settings className="w-5 h-5" />
                 </button>

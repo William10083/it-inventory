@@ -136,11 +136,11 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="glass-card w-full max-w-2xl p-5 relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-label="Nuevo equipo" onClick={onClose}>
+            <div className="glass-card w-full max-w-2xl p-5 relative" onClick={e => e.stopPropagation()}>
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    className="absolute top-4 right-4 text-muted hover:text-slate-900 dark:hover:text-white"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -152,7 +152,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {/* Brand | Model */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Marca</label>
+                            <label className="block text-xs font-medium text-muted mb-1">Marca</label>
                             <input
                                 required
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
@@ -162,7 +162,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Modelo</label>
+                            <label className="block text-xs font-medium text-muted mb-1">Modelo</label>
                             {formData.device_type === 'celular' && !isCustomModel ? (
                                 <div className="flex gap-2">
                                     <select
@@ -219,7 +219,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {/* Serial | Barcode */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">N° Serie</label>
+                            <label className="block text-xs font-medium text-muted mb-1">N° Serie</label>
                             {formData.device_type === 'mochila' ? (
                                 <input
                                     disabled
@@ -238,7 +238,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Barcode (Opcional)</label>
+                            <label className="block text-xs font-medium text-muted mb-1">Barcode (Opcional)</label>
                             <input
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                 value={formData.barcode}
@@ -249,7 +249,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {/* Device Type | Sede */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Tipo de Dispositivo</label>
+                            <label className="block text-xs font-medium text-muted mb-1">Tipo de Dispositivo</label>
                             <select
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                 value={formData.device_type === 'laptop' || formData.device_type === 'monitor' || formData.device_type === 'auriculares' || formData.device_type === 'teclado' || formData.device_type === 'mouse' || formData.device_type === 'mochila' || formData.device_type === 'soporte/stand' || formData.device_type === 'celular' || formData.device_type === 'charger' || formData.device_type === 'chip' || formData.device_type === 'kit teclado/mouse' ? formData.device_type : '__custom__'}
@@ -297,7 +297,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sede / Ubicación</label>
+                            <label className="block text-xs font-medium text-muted mb-1">Sede / Ubicación</label>
                             <select
                                 className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                 value={formData.location}
@@ -316,7 +316,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
 
                         {bulkTypes.includes(formData.device_type) ? (
                             <div>
-                                <label className="block text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Cantidad a registrar</label>
+                                <label className="block text-xs font-medium text-accent mb-1">Cantidad a registrar</label>
                                 <input
                                     type="number"
                                     min="1"
@@ -331,7 +331,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Laptop: Hostname | Inventory Code */}
                         {formData.device_type === 'laptop' && (<>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Hostname</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Hostname</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.hostname}
@@ -340,7 +340,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Código de Inventario</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Código de Inventario</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.inventory_code}
@@ -353,7 +353,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Personalizado: Código de Inventario */}
                         {!BUILTIN_TYPES.includes(formData.device_type) && formData.device_type !== '' && (
                             <div className="col-span-2">
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Código de Inventario</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Código de Inventario</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.inventory_code}
@@ -366,7 +366,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Monitor: Inventory Code — full width */}
                         {formData.device_type === 'monitor' && (
                             <div className="col-span-2">
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Código de Inventario</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Código de Inventario</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.inventory_code}
@@ -379,7 +379,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* Celular / Chip: IMEI | Phone Number | Carrier */}
                         {(formData.device_type === 'celular' || formData.device_type === 'chip') && (<>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">IMEI</label>
+                                <label className="block text-xs font-medium text-muted mb-1">IMEI</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white font-mono"
                                     value={formData.imei}
@@ -387,7 +387,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Número</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Número</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.phone_number}
@@ -395,7 +395,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                 />
                             </div>
                             <div className="col-span-2">
-                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Operadora</label>
+                                <label className="block text-xs font-medium text-muted mb-1">Operadora</label>
                                 <input
                                     className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white"
                                     value={formData.carrier}
@@ -411,7 +411,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                 <label className="block text-orange-700 dark:text-orange-300 text-xs font-bold mb-2 uppercase">Cargador de Celular</label>
                                 <div className="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label className="block text-slate-500 dark:text-slate-400 text-xs mb-1">Marca</label>
+                                        <label className="block text-muted text-xs mb-1">Marca</label>
                                         <input
                                             className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm text-slate-900 dark:text-white"
                                             value={formData.mobile_charger_brand || ''}
@@ -420,7 +420,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-slate-500 dark:text-slate-400 text-xs mb-1">Modelo</label>
+                                        <label className="block text-muted text-xs mb-1">Modelo</label>
                                         <input
                                             className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm text-slate-900 dark:text-white"
                                             value={formData.mobile_charger_model || ''}
@@ -429,7 +429,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-slate-500 dark:text-slate-400 text-xs mb-1">Serie</label>
+                                        <label className="block text-muted text-xs mb-1">Serie</label>
                                         <input
                                             className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm text-slate-900 dark:text-white"
                                             value={formData.mobile_charger_serial || ''}
@@ -455,7 +455,7 @@ const ManualDeviceModal = ({ isOpen, onClose, onSuccess }) => {
                                 </div>
                             ) : (
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Especificaciones</label>
+                                    <label className="block text-xs font-medium text-muted mb-1">Especificaciones</label>
                                     <textarea
                                         className="w-full bg-bg border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-white h-20"
                                         value={formData.specifications}

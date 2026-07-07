@@ -8,7 +8,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-const SettingsPage = () => {
+const SettingsPage = ({ embedded }) => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const { user, refreshUser } = useAuth();
@@ -305,21 +305,23 @@ const SettingsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-bg text-slate-900 dark:text-slate-200">
-            <Navbar />
+        <div className={embedded ? '' : 'min-h-screen bg-bg text-slate-900 dark:text-slate-200'}>
+            {!embedded && <Navbar />}
 
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <button
-                        onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-4"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Volver al Dashboard
-                    </button>
+                    {!embedded && (
+                        <button
+                            onClick={() => navigate('/')}
+                            className="flex items-center gap-2 text-muted hover:text-slate-900 dark:hover:text-white transition-colors mb-4"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Volver al Dashboard
+                        </button>
+                    )}
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Configuración</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Administra tu cuenta y preferencias</p>
+                    <p className="text-muted mt-1">Administra tu cuenta y preferencias</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -470,7 +472,7 @@ const SettingsPage = () => {
                                                 required
                                             />
                                             <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-slate-900 dark:hover:text-white">
                                                 {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
@@ -490,7 +492,7 @@ const SettingsPage = () => {
                                                 required
                                             />
                                             <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-slate-900 dark:hover:text-white">
                                                 {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
@@ -511,7 +513,7 @@ const SettingsPage = () => {
                                                 required
                                             />
                                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-slate-900 dark:hover:text-white">
                                                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
@@ -548,7 +550,7 @@ const SettingsPage = () => {
                                         <div key={item.label} className="flex items-center justify-between p-4 bg-bg rounded-lg border border-slate-200 dark:border-transparent">
                                             <div>
                                                 <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">{item.desc}</p>
+                                                <p className="text-sm text-muted">{item.desc}</p>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input type="checkbox" className="sr-only peer" defaultChecked={item.defaultOn} />
@@ -567,7 +569,7 @@ const SettingsPage = () => {
                                     <Mail className="w-5 h-5 text-accent" />
                                     Configuración de Correo
                                 </h2>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+                                <p className="text-muted text-sm mb-6">
                                     Configura tu cuenta de correo para enviar notificaciones de asignación a los empleados.
                                     Usa una <span className="text-slate-900 dark:text-white font-medium">contraseña de aplicación</span> (no tu contraseña normal).
                                 </p>
@@ -611,19 +613,19 @@ const SettingsPage = () => {
                                                 className="w-full px-4 py-2 pr-10 bg-bg border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-accent"
                                             />
                                             <button type="button" onClick={() => setShowSmtpPassword(v => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-slate-900 dark:hover:text-white">
                                                 {showSmtpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-accent space-y-1">
                                         <p className="font-semibold text-blue-800 dark:text-blue-200">Usar Microsoft Graph API (recomendado para Office 365)</p>
                                         <p>Evita el bloqueo de autenticación básica. Configura estas 3 variables en <span className="font-mono text-slate-900 dark:text-white">backend/.env</span>:</p>
                                         <div className="font-mono text-slate-900 dark:text-white bg-bg rounded p-2 space-y-0.5 border border-slate-200 dark:border-transparent">
-                                            <p>MS_TENANT_ID=<span className="text-slate-500 dark:text-slate-400">tu-tenant-id</span></p>
-                                            <p>MS_CLIENT_ID=<span className="text-slate-500 dark:text-slate-400">tu-client-id</span></p>
-                                            <p>MS_CLIENT_SECRET=<span className="text-slate-500 dark:text-slate-400">tu-secret</span></p>
+                                            <p>MS_TENANT_ID=<span className="text-muted">tu-tenant-id</span></p>
+                                            <p>MS_CLIENT_ID=<span className="text-muted">tu-client-id</span></p>
+                                            <p>MS_CLIENT_SECRET=<span className="text-muted">tu-secret</span></p>
                                         </div>
                                         <p>
                                             Crea la app en{' '}
@@ -668,7 +670,7 @@ const SettingsPage = () => {
                                             <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Crear Nuevo Usuario TI</h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Nombre de Usuario</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Nombre de Usuario</label>
                                                     <input
                                                         type="text"
                                                         required
@@ -679,7 +681,7 @@ const SettingsPage = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Nombre Completo</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Nombre Completo</label>
                                                     <input
                                                         type="text"
                                                         required
@@ -691,7 +693,7 @@ const SettingsPage = () => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Contraseña Temporal</label>
+                                                <label className="block text-xs font-medium text-muted mb-1">Contraseña Temporal</label>
                                                 <div className="relative">
                                                     <input
                                                         type={showTempPassword ? 'text' : 'password'}
@@ -702,7 +704,7 @@ const SettingsPage = () => {
                                                         className="w-full px-3 py-2 pr-10 bg-surface border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-accent text-sm"
                                                     />
                                                     <button type="button" onClick={() => setShowTempPassword(v => !v)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-slate-900 dark:hover:text-white">
                                                         {showTempPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                     </button>
                                                 </div>
@@ -710,7 +712,7 @@ const SettingsPage = () => {
                                             </div>
                                             <div className="flex gap-3 justify-end">
                                                 <button type="button" onClick={() => setShowCreateUser(false)}
-                                                    className="px-4 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                                    className="px-4 py-2 text-sm text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                                                     Cancelar
                                                 </button>
                                                 <button type="submit" disabled={creatingUser}
@@ -723,18 +725,18 @@ const SettingsPage = () => {
 
                                     {/* Users List */}
                                     {usersLoading ? (
-                                        <div className="text-center py-8 text-slate-500 dark:text-slate-400">Cargando usuarios...</div>
+                                        <div className="text-center py-8 text-muted">Cargando usuarios...</div>
                                     ) : (
                                         <div className="space-y-2">
                                             {usersList.map((u) => (
                                                 <div key={u.id} className={`flex items-center justify-between p-4 rounded-lg border ${u.is_active ? 'bg-bg border-slate-200 dark:border-slate-600' : 'bg-bg border-slate-200 dark:border-slate-700 opacity-60'}`}>
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300' : 'bg-blue-500/20 text-blue-700 dark:text-blue-300'}`}>
+                                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300' : 'bg-blue-500/20 text-accent'}`}>
                                                             {(u.full_name || u.username)[0].toUpperCase()}
                                                         </div>
                                                         <div>
                                                             <p className="text-slate-900 dark:text-white font-medium text-sm">{u.full_name || u.username}</p>
-                                                            <p className="text-slate-500 dark:text-slate-400 text-xs">@{u.username} · {u.role === 'admin' ? 'Administrador' : 'Usuario TI'}</p>
+                                                            <p className="text-muted text-xs">@{u.username} · {u.role === 'admin' ? 'Administrador' : 'Usuario TI'}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3">
@@ -774,7 +776,7 @@ const SettingsPage = () => {
                                                 <Truck className="w-5 h-5 text-accent" />
                                                 Configuración de envíos por sede
                                             </h2>
-                                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                            <p className="text-muted text-sm mt-1">
                                                 Datos de remitente/destinatario usados para generar la factura de envío de tóner. Marca una sede como "Origen" para que figure como remitente.
                                             </p>
                                         </div>
@@ -795,7 +797,7 @@ const SettingsPage = () => {
                                             </h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sede</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Sede</label>
                                                     <input
                                                         type="text" required
                                                         value={contactForm.location}
@@ -816,7 +818,7 @@ const SettingsPage = () => {
                                                     </label>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Empresa</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Empresa</label>
                                                     <input
                                                         type="text"
                                                         value={contactForm.company_name}
@@ -826,7 +828,7 @@ const SettingsPage = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Dirección</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Dirección</label>
                                                     <input
                                                         type="text"
                                                         value={contactForm.address}
@@ -836,7 +838,7 @@ const SettingsPage = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Persona de contacto</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Persona de contacto</label>
                                                     <input
                                                         type="text"
                                                         value={contactForm.contact_name}
@@ -846,7 +848,7 @@ const SettingsPage = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Teléfono</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Teléfono</label>
                                                     <input
                                                         type="text"
                                                         value={contactForm.phone}
@@ -856,7 +858,7 @@ const SettingsPage = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Correo</label>
+                                                    <label className="block text-xs font-medium text-muted mb-1">Correo</label>
                                                     <input
                                                         type="email"
                                                         value={contactForm.email}
@@ -868,7 +870,7 @@ const SettingsPage = () => {
                                             </div>
                                             <div className="flex gap-3 justify-end">
                                                 <button type="button" onClick={() => { setShowContactForm(false); setEditingContactId(null); setContactForm(emptyContactForm); }}
-                                                    className="px-4 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                                    className="px-4 py-2 text-sm text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                                                     Cancelar
                                                 </button>
                                                 <button type="submit" disabled={savingContact}
@@ -881,7 +883,7 @@ const SettingsPage = () => {
 
                                     {/* Contacts List */}
                                     {shippingLoading ? (
-                                        <div className="text-center py-8 text-slate-500 dark:text-slate-400">Cargando configuración de envíos...</div>
+                                        <div className="text-center py-8 text-muted">Cargando configuración de envíos...</div>
                                     ) : shippingContacts.length === 0 ? (
                                         <p className="text-sm text-slate-500 italic py-4">Aún no hay sedes configuradas. Agrega al menos la sede de origen y las sedes destino para poder generar facturas de envío.</p>
                                     ) : (
@@ -898,7 +900,7 @@ const SettingsPage = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">
+                                                        <p className="text-muted text-xs mt-0.5">
                                                             {c.company_name || '—'} {c.address && `· ${c.address}`}
                                                         </p>
                                                         {(c.contact_name || c.phone || c.email) && (
@@ -908,7 +910,7 @@ const SettingsPage = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-3 shrink-0">
-                                                        <button onClick={() => openEditContact(c)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Editar">
+                                                        <button onClick={() => openEditContact(c)} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors" title="Editar">
                                                             <Pencil className="w-4 h-4" />
                                                         </button>
                                                         <button onClick={() => handleDeleteContact(c.id)} className="text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Eliminar">
@@ -931,13 +933,13 @@ const SettingsPage = () => {
                                         <Building2 className="w-5 h-5 text-accent" />
                                         Empresas
                                     </h2>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                    <p className="text-muted text-sm mt-1">
                                         Configura el <span className="text-slate-900 dark:text-white font-medium">código corto</span> de cada empresa (ej: TAM, WHL, ULOG) para que el auto-registro de ingresos lo reconozca correctamente desde el asunto del correo RRHH.
                                     </p>
                                 </div>
 
                                 {companiesLoading ? (
-                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">Cargando empresas...</div>
+                                    <div className="text-center py-8 text-muted">Cargando empresas...</div>
                                 ) : (
                                     <div className="space-y-2">
                                         {companiesList.map(co => (
@@ -946,7 +948,7 @@ const SettingsPage = () => {
                                                     <div className="p-4 space-y-3">
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
-                                                                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Nombre completo</label>
+                                                                <label className="block text-xs text-muted mb-1">Nombre completo</label>
                                                                 <input
                                                                     value={editingCompany.name}
                                                                     onChange={e => setEditingCompany({ ...editingCompany, name: e.target.value })}
@@ -954,7 +956,7 @@ const SettingsPage = () => {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                                <label className="block text-xs text-muted mb-1">
                                                                     Código corto RRHH <span className="text-amber-600 dark:text-amber-400">(clave para auto-registro)</span>
                                                                 </label>
                                                                 <input
@@ -965,7 +967,7 @@ const SettingsPage = () => {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">RUC</label>
+                                                                <label className="block text-xs text-muted mb-1">RUC</label>
                                                                 <input
                                                                     value={editingCompany.ruc || ''}
                                                                     onChange={e => setEditingCompany({ ...editingCompany, ruc: e.target.value })}
@@ -973,7 +975,7 @@ const SettingsPage = () => {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Dominio de correo</label>
+                                                                <label className="block text-xs text-muted mb-1">Dominio de correo</label>
                                                                 <input
                                                                     value={editingCompany.email_domain || ''}
                                                                     onChange={e => setEditingCompany({ ...editingCompany, email_domain: e.target.value })}
@@ -1006,12 +1008,12 @@ const SettingsPage = () => {
                                                                 {co.short_name ? (
                                                                     <span className="text-xs font-bold text-slate-700 dark:text-white">{co.short_name}</span>
                                                                 ) : (
-                                                                    <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                                                    <Building2 className="w-4 h-4 text-muted" />
                                                                 )}
                                                             </div>
                                                             <div className="min-w-0">
                                                                 <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{co.name}</p>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                                                <p className="text-xs text-muted flex items-center gap-2 mt-0.5">
                                                                     {co.short_name ? (
                                                                         <span className="text-amber-600 dark:text-amber-400 font-mono font-semibold">{co.short_name}</span>
                                                                     ) : (
@@ -1024,7 +1026,7 @@ const SettingsPage = () => {
                                                         </div>
                                                         <button
                                                             onClick={() => setEditingCompany({ ...co })}
-                                                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors flex-shrink-0 ml-2"
+                                                            className="p-1.5 text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors flex-shrink-0 ml-2"
                                                         >
                                                             <Pencil className="w-3.5 h-3.5" />
                                                         </button>

@@ -64,7 +64,7 @@ const TerminationModal = ({ isOpen, onClose, employee, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Cese de empleado">
             <div className="bg-surface rounded-xl w-full max-w-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-[90vh] flex flex-col">
 
                 {/* Header */}
@@ -75,9 +75,9 @@ const TerminationModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                 <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
                                 Marcar como Cesado
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">{employee.full_name}</p>
+                            <p className="text-muted mt-1">{employee.full_name}</p>
                         </div>
-                        <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
@@ -88,7 +88,7 @@ const TerminationModal = ({ isOpen, onClose, employee, onSuccess }) => {
 
                     {/* Employee Info */}
                     <div className="bg-bg/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Información del Empleado</h3>
+                        <h3 className="text-sm font-bold text-muted uppercase mb-2">Información del Empleado</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="text-slate-500">DNI:</span>
@@ -111,11 +111,11 @@ const TerminationModal = ({ isOpen, onClose, employee, onSuccess }) => {
 
                     {/* Equipment to Return */}
                     <div className="bg-bg/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-3">Equipos a Devolver</h3>
+                        <h3 className="text-sm font-bold text-muted uppercase mb-3">Equipos a Devolver</h3>
 
                         {computerEquipment.length > 0 && (
                             <div className="mb-4">
-                                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                                <div className="flex items-center gap-2 text-accent mb-2">
                                     <Laptop className="w-4 h-4" />
                                     <span className="text-xs font-bold uppercase">Equipos de Cómputo ({computerEquipment.length})</span>
                                 </div>

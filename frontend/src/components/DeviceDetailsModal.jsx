@@ -316,7 +316,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                 {!isEditMode ? (
                                     <button
                                         onClick={() => setIsEditMode(true)}
-                                        className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded text-xs transition-colors"
+                                        className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-accent border border-blue-500/20 rounded text-xs transition-colors"
                                     >
                                         <Edit className="w-3 h-3" /> Editar
                                     </button>
@@ -370,19 +370,19 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         <div className="space-y-2">
                                             {displayDevice.hostname && !['monitor', 'mochila', 'auriculares', 'kit teclado/mouse'].includes(displayDevice.device_type) && !['mobile', 'celular', 'smartphone', 'chip', 'sim'].includes((displayDevice.device_type || '').toLowerCase()) && (
                                                 <div className="flex justify-between items-center py-1">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> Hostname</span>
+                                                    <span className="text-muted text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> Hostname</span>
                                                     <span className="text-green-600 dark:text-green-400 font-mono text-sm font-bold">{displayDevice.hostname}</span>
                                                 </div>
                                             )}
                                             {['monitor', 'mochila', 'auriculares', 'kit teclado/mouse'].includes(displayDevice.device_type) && (
                                                 <div className="flex justify-between items-center py-1">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> Código de Inventario</span>
+                                                    <span className="text-muted text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> Código de Inventario</span>
                                                     <span className="text-green-600 dark:text-green-400 font-mono text-sm font-bold">{displayDevice.inventory_code || '-'}</span>
                                                 </div>
                                             )}
                                             {displayDevice.device_type === 'celular' && (
                                                 <div className="flex justify-between items-center py-1">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> IMEI</span>
+                                                    <span className="text-muted text-sm flex items-center gap-2"><Settings className="w-3 h-3" /> IMEI</span>
                                                     <span className="text-slate-900 dark:text-white font-mono text-sm">{displayDevice.imei || "-"}</span>
                                                 </div>
                                             )}
@@ -399,22 +399,22 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 return (
                                                     <>
                                                         <div className="flex justify-between items-center py-1">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-sm">IMEI</span>
+                                                            <span className="text-muted text-sm">IMEI</span>
                                                             <span className="text-slate-900 dark:text-white font-mono text-sm">{displayDevice.imei || displaySpecs.imei || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center py-1">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-sm">Phone Number</span>
+                                                            <span className="text-muted text-sm">Phone Number</span>
                                                             <span className="text-slate-900 dark:text-white font-mono text-sm">{displayDevice.phone_number || displaySpecs.phone_number || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center py-1">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-sm">Carrier</span>
+                                                            <span className="text-muted text-sm">Carrier</span>
                                                             <span className="text-slate-900 dark:text-white text-sm">{displayDevice.carrier || displaySpecs.carrier || "-"}</span>
                                                         </div>
                                                     </>
                                                 );
                                             })()}
                                             <div className="flex justify-between items-center py-1">
-                                                <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2"><MapPin className="w-3 h-3" /> Sede</span>
+                                                <span className="text-muted text-sm flex items-center gap-2"><MapPin className="w-3 h-3" /> Sede</span>
                                                 <span className="text-accent font-medium text-sm">{displayDevice.location || 'Callao'}</span>
                                             </div>
                                         </div>
@@ -452,7 +452,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                                                                     {validEntries.map(([key, value]) => (
                                                                         <div key={key} className="flex justify-between md:block border-b border-slate-200 dark:border-slate-700/50 md:border-0 pb-1 md:pb-0">
-                                                                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase block">{key}</span>
+                                                                            <span className="text-muted text-xs uppercase block">{key}</span>
                                                                             <span className="text-slate-900 dark:text-white text-sm font-medium">{value}</span>
                                                                         </div>
                                                                     ))}
@@ -668,15 +668,15 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         {!isEditMode ? (
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm">IMEI Chip</span>
+                                                    <span className="text-muted text-sm">IMEI Chip</span>
                                                     <span className="text-slate-900 dark:text-white font-mono text-sm">{displayDevice.chip_imei || chipSpecs.chip_imei || "-"}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm">Número</span>
+                                                    <span className="text-muted text-sm">Número</span>
                                                     <span className="text-slate-900 dark:text-white font-mono text-sm">{displayDevice.phone_number || chipSpecs.phone_number || "-"}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-sm">Operadora</span>
+                                                    <span className="text-muted text-sm">Operadora</span>
                                                     <span className="text-slate-900 dark:text-white text-sm">{displayDevice.carrier || chipSpecs.carrier || "-"}</span>
                                                 </div>
                                             </div>
@@ -740,32 +740,32 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         </div>
                                         <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 space-y-1.5 text-sm">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-500 dark:text-slate-400">Comprador:</span>
+                                                <span className="text-muted">Comprador:</span>
                                                 <span className="text-slate-900 dark:text-white font-medium">{displayDevice.sale.buyer_name}</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-500 dark:text-slate-400">DNI:</span>
+                                                <span className="text-muted">DNI:</span>
                                                 <span className="text-slate-900 dark:text-white font-mono">{displayDevice.sale.buyer_dni}</span>
                                             </div>
                                             {displayDevice.sale.buyer_email && (
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400">Correo:</span>
+                                                    <span className="text-muted">Correo:</span>
                                                     <span className="text-slate-900 dark:text-white">{displayDevice.sale.buyer_email}</span>
                                                 </div>
                                             )}
                                             {displayDevice.sale.buyer_phone && (
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400">Teléfono:</span>
+                                                    <span className="text-muted">Teléfono:</span>
                                                     <span className="text-slate-900 dark:text-white">{displayDevice.sale.buyer_phone}</span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-500 dark:text-slate-400">Fecha de venta:</span>
+                                                <span className="text-muted">Fecha de venta:</span>
                                                 <span className="text-slate-900 dark:text-white">{formatDate(displayDevice.sale.sale_date)}</span>
                                             </div>
                                             {displayDevice.sale.sale_price != null && (
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 dark:text-slate-400">Precio:</span>
+                                                    <span className="text-muted">Precio:</span>
                                                     <span className="text-slate-900 dark:text-white font-medium">{displayDevice.sale.sale_price}</span>
                                                 </div>
                                             )}
@@ -774,7 +774,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                     href={`${API_URL}/sales/${displayDevice.sale.id}/download-acta`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-xs pt-1"
+                                                    className="flex items-center gap-1 text-accent hover:underline text-xs pt-1"
                                                 >
                                                     <FileText className="w-3 h-3" /> Ver acta de venta
                                                 </a>
@@ -819,15 +819,15 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 !isEditMode ? (
                                                     <>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Marca</span>
+                                                            <span className="text-muted text-xs uppercase">Marca</span>
                                                             <span className="text-slate-900 dark:text-white text-sm font-medium">{displayDevice.laptop_charger_brand || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Modelo</span>
+                                                            <span className="text-muted text-xs uppercase">Modelo</span>
                                                             <span className="text-slate-900 dark:text-white text-sm font-medium">{displayDevice.laptop_charger_model || "-"}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Serie</span>
+                                                            <span className="text-muted text-xs uppercase">Serie</span>
                                                             <span className="text-slate-900 dark:text-white text-sm font-mono">{displayDevice.laptop_charger_serial || "-"}</span>
                                                         </div>
                                                         {!displayDevice.laptop_charger_brand && (
@@ -870,15 +870,15 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                             ) : !isEditMode ? (
                                                 <>
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Marca</span>
+                                                        <span className="text-muted text-xs uppercase">Marca</span>
                                                         <span className="text-slate-900 dark:text-white text-sm font-medium">{displayDevice.mobile_charger_brand || "-"}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Modelo</span>
+                                                        <span className="text-muted text-xs uppercase">Modelo</span>
                                                         <span className="text-slate-900 dark:text-white text-sm font-medium">{displayDevice.mobile_charger_model || "-"}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-slate-400 text-xs uppercase">Serie</span>
+                                                        <span className="text-muted text-xs uppercase">Serie</span>
                                                         <span className="text-slate-900 dark:text-white text-sm font-mono">{displayDevice.mobile_charger_serial || "-"}</span>
                                                     </div>
                                                     {!displayDevice.mobile_charger_brand && (
@@ -1046,13 +1046,13 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                         <div className="flex space-x-4 border-b border-slate-700 mb-4">
                             <button
                                 onClick={() => setActiveTab('history')}
-                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'history' ? 'border-accent text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'history' ? 'border-accent text-slate-900 dark:text-white' : 'border-transparent text-muted hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 Assignment History
                             </button>
                             <button
                                 onClick={() => setActiveTab('maintenance')}
-                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'maintenance' ? 'border-orange-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'maintenance' ? 'border-orange-500 text-slate-900 dark:text-white' : 'border-transparent text-muted hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 Maintenance & Repairs
                             </button>
@@ -1060,7 +1060,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
 
                         {activeTab === 'history' && (
                             <div className="bg-surface dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                                <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                                <table className="w-full text-left text-sm text-muted">
                                     <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                         <tr>
                                             <th className="px-4 py-3 font-medium">Employee</th>
@@ -1086,7 +1086,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                                         assignment.assigned_date,
                                                                         ['mobile','chip','celular','smartphone','sim'].includes((device.device_type || '').toLowerCase())
                                                                     )}
-                                                                    className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 text-xs whitespace-nowrap"
+                                                                    className="text-accent hover:underline flex items-center gap-1 text-xs whitespace-nowrap"
                                                                 >
                                                                     <FileText className="w-3 h-3" /> Ingreso
                                                                 </button>
@@ -1123,10 +1123,10 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                     <form onSubmit={handleCreateTicket} className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg space-y-3">
                                         <div className="flex justify-between">
                                             <h4 className="text-slate-900 dark:text-white font-bold">New Maintenance Ticket</h4>
-                                            <button type="button" onClick={() => setShowMaintenanceForm(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"><X className="w-4 h-4" /></button>
+                                            <button type="button" onClick={() => setShowMaintenanceForm(false)} className="text-muted hover:text-slate-900 dark:hover:text-white"><X className="w-4 h-4" /></button>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Description</label>
+                                            <label className="text-xs text-muted uppercase">Description</label>
                                             <input
                                                 required
                                                 className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
@@ -1137,7 +1137,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Vendor</label>
+                                                <label className="text-xs text-muted uppercase">Vendor</label>
                                                 <input
                                                     className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
                                                     value={newLog.vendor}
@@ -1146,7 +1146,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-slate-500 dark:text-slate-400 uppercase">Cost ($)</label>
+                                                <label className="text-xs text-muted uppercase">Cost ($)</label>
                                                 <input
                                                     type="number"
                                                     className="w-full bg-bg dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-slate-900 dark:text-white text-sm"
@@ -1162,7 +1162,7 @@ const DeviceDetailsModal = ({ isOpen, onClose, device, onUpdate }) => {
                                 )}
 
                                 <div className="bg-surface dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                                    <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                                    <table className="w-full text-left text-sm text-muted">
                                         <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                             <tr>
                                                 <th className="px-4 py-3 font-medium">Date</th>

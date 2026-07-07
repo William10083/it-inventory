@@ -17,7 +17,7 @@ const AssignmentCart = ({ selectedDevices, onRemove, onClear, onAssign }) => {
                     </div>
                     <button
                         onClick={onClear}
-                        className="text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs"
+                        className="text-muted hover:text-red-500 dark:hover:text-red-400 text-xs"
                     >
                         Clear All
                     </button>

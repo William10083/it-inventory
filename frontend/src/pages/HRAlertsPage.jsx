@@ -114,7 +114,7 @@ const HRAlertsPage = () => {
     const getAlertIcon = (type) => {
         if (type === 'ingreso') return <UserPlus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
         if (type === 'cese') return <UserMinus className="w-5 h-5 text-rose-600 dark:text-rose-400" />;
-        return <Mail className="w-5 h-5 text-slate-500 dark:text-slate-400" />;
+        return <Mail className="w-5 h-5 text-muted" />;
     };
 
     const getAlertBadge = (type) => {
@@ -140,7 +140,7 @@ const HRAlertsPage = () => {
                             <Mail className="text-accent w-8 h-8" />
                             Bandeja de RRHH
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm max-w-2xl">
+                        <p className="text-muted mt-2 text-sm max-w-2xl">
                             Visualiza correos de altas y bajas obtenidos en tiempo real de soporte.ti@transtotalperu.com.
                         </p>
                     </div>
@@ -170,11 +170,11 @@ const HRAlertsPage = () => {
                                     <h2 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                                         <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Reporte Mensual
                                     </h2>
-                                    <button onClick={() => setShowReportModal(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                                    <button onClick={() => setShowReportModal(false)} className="text-muted hover:text-slate-900 dark:hover:text-white">
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Selecciona el mes, año y sedes del reporte.</p>
+                                <p className="text-muted text-sm mb-4">Selecciona el mes, año y sedes del reporte.</p>
                                 <div className="flex gap-3 mb-4">
                                     <select
                                         value={reportMonth}
@@ -212,7 +212,7 @@ const HRAlertsPage = () => {
                                                 className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                                                     selectedSedes.includes(sede)
                                                         ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-700 dark:text-emerald-300'
-                                                        : 'bg-bg border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500'
+                                                        : 'bg-bg border-slate-300 dark:border-slate-600 text-muted hover:border-slate-400 dark:hover:border-slate-500'
                                                 }`}
                                             >
                                                 {sede}
@@ -251,19 +251,19 @@ const HRAlertsPage = () => {
                         <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700/50">
                             <thead className="bg-slate-100 dark:bg-slate-800/80 sticky top-0 backdrop-blur-md z-1">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10"></th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Asunto / Empleado</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remitente</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha Recibido</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider w-10"></th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Tipo</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Asunto / Empleado</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Remitente</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Fecha Recibido</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Estado</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 bg-surface/50 dark:bg-slate-800/30">
                                 {alerts.length === 0 && !loading ? (
                                     <tr>
                                         <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
-                                            <Mail className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-3 opacity-50" />
+                                            <Mail className="w-12 h-12 mx-auto text-muted mb-3 opacity-50" />
                                             <p className="text-lg">No hay correos registrados.</p>
                                             <p className="text-sm mt-1">Haz clic en Sincronizar para buscar mensajes.</p>
                                         </td>
@@ -287,7 +287,7 @@ const HRAlertsPage = () => {
                                                     onClick={() => toggleRow(alert.id)}
                                                 >
                                                     <td className="px-6 py-4">
-                                                        {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-500 dark:text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400 dark:text-slate-500" />}
+                                                        {isExpanded ? <ChevronUp className="w-5 h-5 text-muted" /> : <ChevronDown className="w-5 h-5 text-muted" />}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center gap-3">
@@ -302,7 +302,7 @@ const HRAlertsPage = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
                                                         {alert.sender_name} <br/> <span className="text-xs text-slate-500">{alert.sender_email}</span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted flex items-center gap-2">
                                                         <Clock className="w-4 h-4 opacity-70" />
                                                         {formatDate(alert.received_date)}
                                                     </td>
@@ -350,7 +350,7 @@ const HRAlertsPage = () => {
                                                                             <FileText className="w-4 h-4 text-accent" /> Datos Extraídos del Correo
                                                                         </h4>
                                                                         {!alert.parsed_data || Object.keys(alert.parsed_data).length === 0 ? (
-                                                                            <div className="text-slate-500 dark:text-slate-400 italic bg-slate-100 dark:bg-slate-800 p-4 rounded-lg">No se detectaron campos estructurados.</div>
+                                                                            <div className="text-muted italic bg-slate-100 dark:bg-slate-800 p-4 rounded-lg">No se detectaron campos estructurados.</div>
                                                                         ) : (
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                                                 {Object.entries(alert.parsed_data).map(([key, value]) => (

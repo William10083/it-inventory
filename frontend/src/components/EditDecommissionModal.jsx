@@ -193,10 +193,10 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
             <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
                 <div className="sticky top-0 z-10 bg-surface/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 p-6 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <FileText className="w-5 h-5 text-accent" />
                         Editar Baja: {decommission.device?.brand} {decommission.device?.model}
                     </h2>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -230,7 +230,7 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={formatSelectionAsBullets}
-                                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                                className="flex items-center gap-1 text-xs text-accent hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
                                 title="Selecciona las líneas que quieres convertir en viñetas y presiona este botón"
                             >
                                 <List className="w-3 h-3" />
@@ -278,7 +278,7 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                         {/* Device Image */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                <ImageIcon className="w-4 h-4 text-accent" />
                                 Foto del Equipo
                             </label>
                             <div className="relative group">
@@ -314,8 +314,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <Upload className="w-8 h-8 mb-2 text-slate-500 dark:text-slate-400" />
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Clic, arrastra o pega (Ctrl+V)</p>
+                                            <Upload className="w-8 h-8 mb-2 text-muted" />
+                                            <p className="text-xs text-muted">Clic, arrastra o pega (Ctrl+V)</p>
                                         </div>
                                     )}
                                 </label>
@@ -361,8 +361,8 @@ const EditDecommissionModal = ({ decommission, isOpen, onClose, onUpdate }) => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <Upload className="w-8 h-8 mb-2 text-slate-500 dark:text-slate-400" />
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Clic, arrastra o pega (Ctrl+V)</p>
+                                            <Upload className="w-8 h-8 mb-2 text-muted" />
+                                            <p className="text-xs text-muted">Clic, arrastra o pega (Ctrl+V)</p>
                                         </div>
                                     )}
                                 </label>

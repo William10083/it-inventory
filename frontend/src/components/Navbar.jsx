@@ -47,7 +47,7 @@ const Navbar = ({ onAlertClick, notificationCount = 0 }) => {
                         {onAlertClick && (
                             <button
                                 onClick={onAlertClick}
-                                className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-full"
+                                className="relative p-2 text-muted hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-full"
                                 title="Alertas"
                             >
                                 <Bell className="w-5 h-5" />
@@ -83,7 +83,7 @@ const Navbar = ({ onAlertClick, notificationCount = 0 }) => {
                                     {/* User Info */}
                                     <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
                                         <p className="text-sm font-medium text-slate-900 dark:text-white">{username || 'Usuario'}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Administrador</p>
+                                        <p className="text-xs text-muted mt-1">Administrador</p>
                                     </div>
 
                                     {/* Menu Items */}

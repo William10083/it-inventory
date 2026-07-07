@@ -181,8 +181,8 @@ const PdfUploader = ({
 
                     {/* Mensaje de bloqueo */}
                     <div className="bg-bg border border-slate-200 dark:border-slate-600 rounded-lg p-3 flex items-start gap-2">
-                        <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <Lock className="w-4 h-4 text-muted flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-muted">
                             No se puede subir un nuevo archivo mientras exista uno. Elimina el actual si necesitas reemplazarlo.
                         </p>
                     </div>
@@ -232,7 +232,7 @@ const PdfUploader = ({
                                     ) : (
                                         <>
                                             <Upload className="w-5 h-5 text-slate-400" />
-                                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                            <span className="text-sm text-muted">
                                                 Seleccionar PDF (máx 10MB)
                                             </span>
                                         </>
@@ -264,7 +264,7 @@ const PdfUploader = ({
 
                     {/* Info de ayuda */}
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                        <p className="text-xs text-accent">
                             <strong>Importante:</strong> Una vez subido el acta firmada, no podrá ser reemplazada directamente. Deberás eliminarla primero si necesitas cambiarla.
                         </p>
                     </div>

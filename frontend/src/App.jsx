@@ -23,7 +23,7 @@ const LoadingFallback = () => (
   <div className="min-h-screen bg-bg dark:bg-slate-900 flex items-center justify-center">
     <div className="text-center">
       <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-      <p className="mt-4 text-slate-500 dark:text-slate-400">Cargando...</p>
+      <p className="mt-4 text-muted">Cargando...</p>
     </div>
   </div>
 );

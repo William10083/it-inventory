@@ -11,7 +11,7 @@ const SoftwarePage = () => {
                         <Box className="w-6 h-6 text-purple-500 dark:text-purple-400" />
                         Image Builder
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Construye scripts de aprovisionamiento para los nuevos equipos.</p>
+                    <p className="text-muted text-sm">Construye scripts de aprovisionamiento para los nuevos equipos.</p>
                 </div>
             </div>
 

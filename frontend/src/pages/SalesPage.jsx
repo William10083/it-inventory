@@ -203,22 +203,22 @@ const SalesPage = () => {
                             <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Ventas de Equipos</h2>
                         </div>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        <p className="text-muted text-sm">
                             Gestión de ventas de laptops, monitores y otros equipos
                         </p>
                     </div>
                     {/* Stats Summary */}
                     <div className="flex items-center gap-6 mr-6">
                         <div className="text-right">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Total Recaudado</p>
+                            <p className="text-xs text-muted uppercase font-bold">Total Recaudado</p>
                             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                                 {new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(stats.total_revenue || 0)}
                             </p>
                         </div>
                         <div className="w-px h-10 bg-slate-200 dark:bg-slate-700"></div>
                         <div className="text-right">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Equipos Vendidos</p>
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            <p className="text-xs text-muted uppercase font-bold">Equipos Vendidos</p>
+                            <p className="text-2xl font-bold text-accent">
                                 {stats.total_devices_sold || 0}
                             </p>
                         </div>
@@ -270,12 +270,12 @@ const SalesPage = () => {
             <div className="space-y-4">
                 {loading && sales.length === 0 ? (
                     <div className="flex items-center justify-center h-32">
-                        <div className="text-slate-500 dark:text-slate-400">Cargando ventas...</div>
+                        <div className="text-muted">Cargando ventas...</div>
                     </div>
                 ) : sales.length === 0 ? (
                     <div className="bg-surface p-8 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
-                        <DollarSign className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
-                        <p className="text-slate-500 dark:text-slate-400">No se encontraron ventas</p>
+                        <DollarSign className="w-12 h-12 text-muted mx-auto mb-3" />
+                        <p className="text-muted">No se encontraron ventas</p>
                     </div>
                 ) : (
                     sales.map((sale) => (
@@ -288,15 +288,15 @@ const SalesPage = () => {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            <User className="w-5 h-5 text-accent" />
                                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                                                 {sale.buyer_name}
                                             </h3>
-                                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                            <span className="text-sm text-muted">
                                                 DNI: {sale.buyer_dni}
                                             </span>
                                         </div>
-                                        <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
+                                        <div className="flex flex-wrap gap-4 text-sm text-muted">
                                             <div className="flex items-center gap-1">
                                                 <Calendar className="w-4 h-4" />
                                                 {formatDate(sale.sale_date)}
@@ -310,7 +310,7 @@ const SalesPage = () => {
                                                 {formatPrice(sale.sale_price)}
                                             </div>
                                             {sale.payment_method && (
-                                                <div className="px-2 py-0.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded text-xs">
+                                                <div className="px-2 py-0.5 bg-blue-500/10 text-accent rounded text-xs">
                                                     {sale.payment_method}
                                                 </div>
                                             )}
@@ -387,7 +387,7 @@ const SalesPage = () => {
                                                     </>
                                                 )}
                                             </button>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+                                            <p className="text-xs text-muted max-w-sm">
                                                 Genera un documento Word basado en la plantilla "Acta de Venta" con los datos de esta venta.
                                             </p>
                                         </div>
@@ -440,10 +440,10 @@ const SalesPage = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-md p-6 shadow-2xl">
                         <div className="flex items-center gap-2 mb-4">
-                            <Archive className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <Archive className="w-5 h-5 text-accent" />
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Descargar Actas de Venta</h3>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        <p className="text-sm text-muted mb-4">
                             Descarga un ZIP con todas las actas de venta firmadas. Puedes filtrar por sede y/o tipo de equipo.
                         </p>
                         <div className="space-y-4 mb-6">

@@ -296,7 +296,7 @@ const ImageBuilder = () => {
 
     const getCategoryIcon = (category) => {
         switch (category.toLowerCase()) {
-            case 'browsers': return <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+            case 'browsers': return <Monitor className="w-5 h-5 text-accent" />;
             case 'development': return <Code className="w-5 h-5 text-green-600 dark:text-green-400" />;
             case 'security': return <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />;
             case 'utilities': return <Settings className="w-5 h-5 text-slate-500 dark:text-gray-400" />;
@@ -374,7 +374,7 @@ const ImageBuilder = () => {
             return <span className="text-2xl">{emoji}</span>;
         }
 
-        return <Box className="w-6 h-6 text-slate-500 dark:text-slate-400" />;
+        return <Box className="w-6 h-6 text-muted" />;
     };
 
     if (loading) {
@@ -387,7 +387,7 @@ const ImageBuilder = () => {
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex-1">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Select Software</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">Choose applications or load a department profile.</p>
+                        <p className="text-muted text-sm">Choose applications or load a department profile.</p>
                     </div>
 
                     {/* Profile Selector */}
@@ -468,7 +468,7 @@ const ImageBuilder = () => {
                                                     {app.name}
                                                     {isCustom && <span className="px-2 py-0.5 bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs rounded">CUSTOM</span>}
                                                 </h5>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{app.description}</p>
+                                                <p className="text-xs text-muted mt-0.5 line-clamp-1">{app.description}</p>
                                             </div>
                                         </div>
                                         {isSelected && (
@@ -483,7 +483,7 @@ const ImageBuilder = () => {
                                                         e.stopPropagation();
                                                         openEditModal(app);
                                                     }}
-                                                    className="p-1 hover:bg-blue-500/20 rounded text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
+                                                    className="p-1 hover:bg-blue-500/20 rounded text-accent hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
@@ -510,6 +510,7 @@ const ImageBuilder = () => {
                 <button
                     onClick={handleGenerate}
                     disabled={generating || selectedApps.length === 0}
+                    title={selectedApps.length === 0 ? 'Seleccioná aplicaciones del catálogo para generar el script' : ''}
                     className={`
                         flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95
                         ${selectedApps.length === 0
@@ -537,13 +538,13 @@ const ImageBuilder = () => {
                     <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Editar Software</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-muted hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleUpdate} className="space-y-4">
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Nombre del Software</label>
+                                <label className="text-muted text-sm block mb-1">Nombre del Software</label>
                                 <input
                                     value={editForm.name}
                                     onChange={e => setEditForm({ ...editForm, name: e.target.value })}
@@ -552,7 +553,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Descripción</label>
+                                <label className="text-muted text-sm block mb-1">Descripción</label>
                                 <input
                                     value={editForm.description}
                                     onChange={e => setEditForm({ ...editForm, description: e.target.value })}
@@ -560,7 +561,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Argumentos de Instalación Silenciosa</label>
+                                <label className="text-muted text-sm block mb-1">Argumentos de Instalación Silenciosa</label>
                                 <select
                                     value={editForm.install_args}
                                     onChange={e => setEditForm({ ...editForm, install_args: e.target.value })}
@@ -593,13 +594,13 @@ const ImageBuilder = () => {
                     <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Guardar Perfil</h3>
-                            <button onClick={() => setIsSaveProfileModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                            <button onClick={() => setIsSaveProfileModalOpen(false)} className="text-muted hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSaveProfile} className="space-y-4">
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Nombre del Perfil</label>
+                                <label className="text-muted text-sm block mb-1">Nombre del Perfil</label>
                                 <input
                                     value={profileForm.name}
                                     onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
@@ -609,7 +610,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Departamento</label>
+                                <label className="text-muted text-sm block mb-1">Departamento</label>
                                 <input
                                     value={profileForm.department}
                                     onChange={e => setProfileForm({ ...profileForm, department: e.target.value })}
@@ -619,7 +620,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Descripción (opcional)</label>
+                                <label className="text-muted text-sm block mb-1">Descripción (opcional)</label>
                                 <textarea
                                     value={profileForm.description}
                                     onChange={e => setProfileForm({ ...profileForm, description: e.target.value })}
@@ -629,7 +630,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div className="bg-bg p-3 rounded">
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Software seleccionado: <span className="text-slate-900 dark:text-white font-bold">{selectedApps.length}</span></p>
+                                <p className="text-xs text-muted">Software seleccionado: <span className="text-slate-900 dark:text-white font-bold">{selectedApps.length}</span></p>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
                                 <button type="button" onClick={() => setIsSaveProfileModalOpen(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancelar</button>
@@ -648,19 +649,19 @@ const ImageBuilder = () => {
                     <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Gestionar Perfiles</h3>
-                            <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                            <button onClick={() => setIsProfileModalOpen(false)} className="text-muted hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="space-y-3">
                             {profiles.length === 0 ? (
-                                <p className="text-slate-500 dark:text-slate-400 text-center py-8">No hay perfiles guardados</p>
+                                <p className="text-muted text-center py-8">No hay perfiles guardados</p>
                             ) : (
                                 profiles.map(profile => (
                                     <div key={profile.id} className="bg-bg p-4 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-between items-start">
                                         <div className="flex-1">
                                             <h4 className="text-slate-900 dark:text-white font-semibold">{profile.name}</h4>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">{profile.department}</p>
+                                            <p className="text-sm text-muted">{profile.department}</p>
                                             {profile.description && <p className="text-xs text-slate-500 mt-1">{profile.description}</p>}
                                             <p className="text-xs text-slate-500 mt-2">
                                                 {JSON.parse(profile.software_ids).length} aplicaciones
@@ -697,13 +698,13 @@ const ImageBuilder = () => {
                     <div className="bg-surface border border-slate-200 dark:border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Upload Custom Software</h3>
-                            <button onClick={() => setIsUploadModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                            <button onClick={() => setIsUploadModalOpen(false)} className="text-muted hover:text-slate-900 dark:hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <form onSubmit={handleUpload} className="space-y-4">
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Installer File (.exe or .msi)</label>
+                                <label className="text-muted text-sm block mb-1">Installer File (.exe or .msi)</label>
                                 <input
                                     type="file"
                                     accept=".exe,.msi"
@@ -714,7 +715,7 @@ const ImageBuilder = () => {
                                 {selectedFile && <p className="text-xs text-green-600 dark:text-green-400 mt-1">Selected: {selectedFile.name}</p>}
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Software Name</label>
+                                <label className="text-muted text-sm block mb-1">Software Name</label>
                                 <input
                                     value={uploadForm.name}
                                     onChange={e => setUploadForm({ ...uploadForm, name: e.target.value })}
@@ -724,7 +725,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Description</label>
+                                <label className="text-muted text-sm block mb-1">Description</label>
                                 <input
                                     value={uploadForm.description}
                                     onChange={e => setUploadForm({ ...uploadForm, description: e.target.value })}
@@ -733,7 +734,7 @@ const ImageBuilder = () => {
                                 />
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Silent Install Arguments</label>
+                                <label className="text-muted text-sm block mb-1">Silent Install Arguments</label>
                                 <select
                                     value={uploadForm.install_args}
                                     onChange={e => setUploadForm({ ...uploadForm, install_args: e.target.value })}

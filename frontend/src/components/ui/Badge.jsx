@@ -19,7 +19,7 @@ const VARIANT_CLASSES = {
     // License tiers
     premium: 'bg-accent/10 text-accent',
     standard: 'bg-blue-500/10 text-blue-500',
-    basic: 'bg-surface-secondary text-accent',
+    basic: 'bg-surface-secondary text-muted',
     project: 'bg-purple-500/10 text-purple-500',
 
     // Device hues (reuse --color-device-* tokens, same pattern as DeviceChip.jsx)
@@ -31,7 +31,7 @@ const VARIANT_CLASSES = {
     mobile: 'bg-device-mobile/20 text-device-mobile',
 
     // Fallback
-    neutral: 'bg-surface-secondary text-accent',
+    neutral: 'bg-surface-secondary text-muted',
 };
 
 const Badge = ({ variant, children, className = '' }) => {

@@ -25,6 +25,7 @@ import DevolucionesPage from './DevolucionesPage';
 import ActiveDirectoryPage from './ActiveDirectoryPage';
 import TonerRequestsPage from './TonerRequestsPage';
 import DecommissionPage from './DecommissionPage';
+import SettingsPage from './SettingsPage';
 import { useNotification } from '../context/NotificationContext';
 import AlertsPanel from '../components/AlertsPanel';
 import Pagination from '../components/Pagination';
@@ -667,7 +668,7 @@ const Dashboard = () => {
                         <DashboardHeaderAccent />
                         <div>
                             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard de Inventario</h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">Gestiona dispositivos, asignaciones y empleados</p>
+                            <p className="text-muted mt-1">Gestiona dispositivos, asignaciones y empleados</p>
                         </div>
                     </div>
                     <div className="flex gap-3 items-center flex-wrap">
@@ -719,7 +720,7 @@ const Dashboard = () => {
                         const pct = t ? Math.round((a / t) * 100) : 0;
                         return (
                             <div key={label} className="bg-surface rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/50">
-                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                                <div className="flex items-center gap-2 text-muted text-sm">
                                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${chip}`}>
                                         <Icon className="w-4 h-4" />
                                     </span>
@@ -813,7 +814,7 @@ const Dashboard = () => {
                                 <ScannerInput onScan={handleScan} placeholder="Escanear código de barras..." />
                             </div>
                         <div className="bg-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto" data-testid="device-table-scroll-container">
-                            <table className="w-full min-w-[850px] text-left text-sm text-slate-500 dark:text-slate-400" data-testid="device-table">
+                            <table className="w-full min-w-[850px] text-left text-sm text-muted" data-testid="device-table">
                                 <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                     <tr>
                                         {/* Combined Header & Filter: Type */}
@@ -1204,6 +1205,7 @@ const Dashboard = () => {
                 {activeTab === 'hr_alerts' && <HRAlertsPage />}
                 {activeTab === 'ingresos' && <IngressosPage />}
                 {activeTab === 'lanchas' && <LanchasPage />}
+                {activeTab === 'settings' && <SettingsPage embedded />}
 
             </div>
 
@@ -1300,7 +1302,7 @@ const Dashboard = () => {
                 if (asset.location === 'Casa') {
                     details.push(<span key="loc-home" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">CASA</span>);
                 } else if (asset.location === 'Oficina') {
-                    details.push(<span key="loc-office" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30">OFICINA</span>);
+                    details.push(<span key="loc-office" className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-accent border border-blue-500/30">OFICINA</span>);
                 }
             }
 
@@ -1328,7 +1330,7 @@ const Dashboard = () => {
                             </p>
                         )}
                         <h4 className="font-medium text-slate-900 dark:text-white text-sm leading-tight truncate">
-                            <span className="text-slate-500 dark:text-slate-400 font-normal mr-1">{asset.brand}</span>
+                            <span className="text-muted font-normal mr-1">{asset.brand}</span>
                             {asset.model}
                         </h4>
 

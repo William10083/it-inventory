@@ -55,7 +55,7 @@ const SoftwareList = () => {
                         <Key className="w-6 h-6 text-purple-500 dark:text-purple-400" />
                         Licencias Adicionales
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Gestiona licencias adicionales de software asignables a empleados.</p>
+                    <p className="text-muted text-sm">Gestiona licencias adicionales de software asignables a empleados.</p>
                 </div>
 
                 <button
@@ -83,7 +83,7 @@ const SoftwareList = () => {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{lic.name}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-1"><User className="w-3 h-3" /> {lic.vendor}</p>
+                                <p className="text-sm text-muted mb-4 flex items-center gap-1"><User className="w-3 h-3" /> {lic.vendor}</p>
 
                                 <div className="space-y-3">
                                     <div>
@@ -97,7 +97,7 @@ const SoftwareList = () => {
                                     </div>
 
                                     <div className="flex justify-between items-center text-sm border-t border-slate-200 dark:border-slate-700 pt-3">
-                                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1"><DollarSign className="w-3 h-3" /> ${lic.cost_per_seat}/mo</span>
+                                        <span className="text-muted flex items-center gap-1"><DollarSign className="w-3 h-3" /> ${lic.cost_per_seat}/mo</span>
                                         <span className="text-slate-500 text-xs">Expires: {lic.expiration_date || 'N/A'}</span>
                                     </div>
                                 </div>
@@ -111,24 +111,24 @@ const SoftwareList = () => {
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Add Software License</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Software Name</label>
+                                <label className="text-muted text-sm block mb-1">Software Name</label>
                                 <input className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-purple-500"
                                     value={newLicense.name} onChange={e => setNewLicense({ ...newLicense, name: e.target.value })} required placeholder="e.g. Adobe Creative Cloud" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Total Seats</label>
+                                    <label className="text-muted text-sm block mb-1">Total Seats</label>
                                     <input type="number" className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-purple-500"
                                         value={newLicense.seats_total} onChange={e => setNewLicense({ ...newLicense, seats_total: parseInt(e.target.value) })} />
                                 </div>
                                 <div>
-                                    <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Cost/Seat ($)</label>
+                                    <label className="text-muted text-sm block mb-1">Cost/Seat ($)</label>
                                     <input type="number" className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-purple-500"
                                         value={newLicense.cost_per_seat} onChange={e => setNewLicense({ ...newLicense, cost_per_seat: parseInt(e.target.value) })} />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-slate-500 dark:text-slate-400 text-sm block mb-1">Vendor</label>
+                                <label className="text-muted text-sm block mb-1">Vendor</label>
                                 <input className="w-full bg-bg border border-slate-300 dark:border-slate-600 rounded p-2 text-slate-900 dark:text-white outline-none focus:border-purple-500"
                                     value={newLicense.vendor} onChange={e => setNewLicense({ ...newLicense, vendor: e.target.value })} placeholder="e.g. Adobe" />
                             </div>

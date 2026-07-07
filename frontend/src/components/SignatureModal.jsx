@@ -40,14 +40,14 @@ const SignatureModal = ({ employee, onClose }) => {
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <Mail className="w-5 h-5 text-accent" />
                         </div>
                         <div>
                             <h2 className="text-slate-900 dark:text-white font-semibold">Firma de correo</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs">{employee.full_name}</p>
+                            <p className="text-muted text-xs">{employee.full_name}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -56,7 +56,7 @@ const SignatureModal = ({ employee, onClose }) => {
                 <div className="flex-1 overflow-auto p-6">
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
-                            <Loader className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                            <Loader className="w-8 h-8 text-accent animate-spin" />
                         </div>
                     ) : (
                         <div className="bg-white rounded-xl overflow-hidden border border-slate-200">
@@ -73,7 +73,7 @@ const SignatureModal = ({ employee, onClose }) => {
 
                 {/* Actions */}
                 <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0 space-y-3">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-muted">
                         Descarga el archivo <strong className="text-slate-600 dark:text-slate-300">.html</strong> y ábrelo en el navegador para copiar la firma a Outlook o Gmail (Configuración → Firma).
                     </p>
                     <button

@@ -285,15 +285,15 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Nueva venta" onClick={onClose}>
+            <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="sticky top-0 bg-surface border-b border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between z-10">
                     <div className="flex items-center gap-3">
                         <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Registrar Nueva Venta</h2>
                     </div>
-                    <button onClick={handleClose} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <button onClick={handleClose} className="text-muted hover:text-slate-900 dark:hover:text-white">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -310,7 +310,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                                 ¡Venta Registrada Exitosamente!
                             </h3>
-                            <p className="text-slate-500 dark:text-slate-400">
+                            <p className="text-muted">
                                 Venta #{createdSaleId}
                             </p>
 
@@ -319,15 +319,15 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                 <div className="mt-6 bg-bg border border-slate-200 dark:border-slate-700 rounded-lg p-4 max-w-md mx-auto">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div className="text-left">
-                                            <p className="text-slate-500 dark:text-slate-400">Comprador</p>
+                                            <p className="text-muted">Comprador</p>
                                             <p className="text-slate-900 dark:text-white font-medium">{createdSaleData.buyer_name}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-slate-500 dark:text-slate-400">Total</p>
+                                            <p className="text-muted">Total</p>
                                             <p className="text-slate-900 dark:text-white font-medium">S/. {createdSaleData.total}</p>
                                         </div>
                                         <div className="text-left col-span-2">
-                                            <p className="text-slate-500 dark:text-slate-400">Dispositivos</p>
+                                            <p className="text-muted">Dispositivos</p>
                                             <p className="text-slate-900 dark:text-white font-medium">{createdSaleData.deviceCount} dispositivo(s)</p>
                                         </div>
                                     </div>
@@ -410,13 +410,13 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            ? 'bg-blue-500/20 text-accent'
                                                             : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <div className="text-sm text-muted">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -458,13 +458,13 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            ? 'bg-blue-500/20 text-accent'
                                                             : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <div className="text-sm text-muted">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -505,13 +505,13 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                             {person.full_name || person.buyer_name}
                                                         </span>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${person.type === 'employee'
-                                                            ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                                            ? 'bg-blue-500/20 text-accent'
                                                             : 'bg-green-500/20 text-green-700 dark:text-green-400'
                                                             }`}>
                                                             {person.type === 'employee' ? 'Empleado' : 'Comprador'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <div className="text-sm text-muted">
                                                         {person.email || person.buyer_email} • {person.dni || person.buyer_dni}
                                                     </div>
                                                 </button>
@@ -542,7 +542,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="space-y-3">
                                 {selectedDevicesData.length === 0 ? (
                                     <div className="bg-bg border border-slate-200 dark:border-slate-700 rounded-lg p-8 text-center">
-                                        <p className="text-slate-500 dark:text-slate-400">
+                                        <p className="text-muted">
                                             No hay dispositivos seleccionados. Busca un empleado o agrega dispositivos manualmente.
                                         </p>
                                     </div>
@@ -629,7 +629,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Add Device Modal */}
                 {showAddDeviceModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Agregar dispositivo a venta">
                         <div className="bg-surface rounded-xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
                             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Agregar Dispositivo</h3>
@@ -638,7 +638,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                         setShowAddDeviceModal(false);
                                         setDeviceSearch('');
                                     }}
-                                    className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                    className="text-muted hover:text-slate-900 dark:hover:text-white"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -656,7 +656,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                             <div className="flex-1 overflow-y-auto p-4">
                                 {filteredAvailableDevices.length === 0 ? (
-                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                                    <div className="text-center py-8 text-muted">
                                         No se encontraron dispositivos disponibles
                                     </div>
                                 ) : (
@@ -671,7 +671,7 @@ const SaleModal = ({ isOpen, onClose, onSuccess }) => {
                                                 <div className="font-medium text-slate-900 dark:text-white">
                                                     {device.brand} {device.model}
                                                 </div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                                <div className="text-sm text-muted">
                                                     SN: {device.serial_number} {device.hostname && `• ${device.hostname}`}
                                                 </div>
                                                 <div className="text-xs text-slate-500 mt-1">

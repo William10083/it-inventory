@@ -124,11 +124,11 @@ const DownloadProgress = ({ download }) => {
                 ) : status === 'done' ? (
                     <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                 ) : (
-                    <Download className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    <Download className="w-4 h-4 text-accent flex-shrink-0" />
                 )}
                 <span className="text-sm text-slate-900 dark:text-white truncate flex-1">{label}</span>
                 {status === 'downloading' && progress != null && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{progress}%</span>
+                    <span className="text-xs text-muted">{progress}%</span>
                 )}
             </div>
             <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -155,7 +155,7 @@ const Notification = ({ notification, onClose }) => {
         success: 'bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-400',
         error: 'bg-red-500/10 border-red-500/50 text-red-700 dark:text-red-400',
         warning: 'bg-orange-500/10 border-orange-500/50 text-orange-700 dark:text-orange-400',
-        info: 'bg-blue-500/10 border-blue-500/50 text-blue-700 dark:text-blue-400'
+        info: 'bg-blue-500/10 border-blue-500/50 text-accent'
     };
 
     return (
@@ -168,7 +168,7 @@ const Notification = ({ notification, onClose }) => {
             </div>
             <button
                 onClick={onClose}
-                className="flex-shrink-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="flex-shrink-0 text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
             >
                 <X className="w-4 h-4" />
             </button>

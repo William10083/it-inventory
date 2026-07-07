@@ -103,7 +103,7 @@ const DevolucionesPage = () => {
                         <RotateCcw className="w-6 h-6 text-orange-500 dark:text-orange-400" />
                         Devoluciones
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                    <p className="text-muted text-sm mt-1">
                         {totalItems} devolución{totalItems !== 1 ? 'es' : ''} registrada{totalItems !== 1 ? 's' : ''}
                     </p>
                 </div>
@@ -111,7 +111,7 @@ const DevolucionesPage = () => {
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <div className="flex items-center gap-2">
-                        <label className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">Desde</label>
+                        <label className="text-muted text-xs whitespace-nowrap">Desde</label>
                         <input
                             type="date"
                             value={dateFrom}
@@ -121,7 +121,7 @@ const DevolucionesPage = () => {
                     </div>
 
                     <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                         <input
                             type="text"
                             placeholder="Buscar empleado, equipo, serie..."
@@ -140,7 +140,7 @@ const DevolucionesPage = () => {
                         <Loader className="w-8 h-8 text-orange-500 dark:text-orange-400 animate-spin" />
                     </div>
                 ) : devoluciones.length === 0 ? (
-                    <div className="text-center py-20 text-slate-500 dark:text-slate-400">
+                    <div className="text-center py-20 text-muted">
                         <RotateCcw className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-lg font-medium">Sin devoluciones registradas</p>
                         <p className="text-sm mt-1">
@@ -152,11 +152,11 @@ const DevolucionesPage = () => {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-slate-200 dark:border-slate-700 bg-bg/50">
-                                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empleado</th>
-                                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Equipo</th>
-                                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Serie</th>
-                                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha Devolución</th>
-                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acta</th>
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Empleado</th>
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Equipo</th>
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Serie</th>
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Fecha Devolución</th>
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Acta</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
@@ -170,7 +170,7 @@ const DevolucionesPage = () => {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-slate-900 dark:text-white">{dev.employee_name}</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                    <p className="text-xs text-muted flex items-center gap-1">
                                                         <Building2 className="w-3 h-3" />
                                                         {dev.employee_company || '—'}
                                                         {dev.employee_dni && <span className="ml-1">· DNI {dev.employee_dni}</span>}
@@ -182,12 +182,12 @@ const DevolucionesPage = () => {
                                         {/* Equipo */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Package className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                                                <Package className="w-4 h-4 text-muted flex-shrink-0" />
                                                 <div>
                                                     <p className="text-sm font-medium text-slate-900 dark:text-white">
                                                         {dev.device_brand} {dev.device_model}
                                                     </p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{deviceLabel(dev.device_type)}</p>
+                                                    <p className="text-xs text-muted">{deviceLabel(dev.device_type)}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -275,11 +275,11 @@ const DevolucionesPage = () => {
                                     <FileText className="w-5 h-5 text-orange-500 dark:text-orange-400" />
                                     Acta de Devolución Firmada
                                 </h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                <p className="text-muted text-sm mt-1">
                                     {uploadModalDev.employee_name} · {uploadModalDev.device_brand} {uploadModalDev.device_model}
                                 </p>
                             </div>
-                            <button onClick={() => setUploadModalDev(null)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button onClick={() => setUploadModalDev(null)} className="text-muted hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>

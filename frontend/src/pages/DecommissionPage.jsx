@@ -343,14 +343,14 @@ const DecommissionPage = () => {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Bajas de Equipos</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Gestión de retiro y disposición final de activos tecnológicos</p>
+                    <p className="text-muted text-sm">Gestión de retiro y disposición final de activos tecnológicos</p>
                 </div>
             </div>
 
             {/* Search Section */}
             <div className="bg-surface rounded-md shadow-sm p-6 overflow-visible relative z-10">
                 <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Search className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <Search className="w-4 h-4 text-muted" />
                     Buscar Equipo para Dar de Baja
                 </h3>
 
@@ -366,10 +366,10 @@ const DecommissionPage = () => {
                             className="w-full bg-bg border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-md py-2.5 pl-9 pr-9 focus:outline-none focus:border-accent placeholder:text-slate-500"
                         />
                         {searching && (
-                            <Loader className="w-4 h-4 text-slate-500 dark:text-slate-400 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
+                            <Loader className="w-4 h-4 text-muted animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
                         )}
                         {selectedDevice && !searching && (
-                            <button onClick={handleClearSelection} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400">
+                            <button onClick={handleClearSelection} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-red-600 dark:hover:text-red-400">
                                 <X className="w-4 h-4" />
                             </button>
                         )}
@@ -387,11 +387,11 @@ const DecommissionPage = () => {
                                     <div className="flex justify-between items-center">
                                         <div>
                                             <div className="font-medium text-slate-900 dark:text-white text-sm">{device.brand} {device.model}</div>
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">SN: {device.serial_number}{device.hostname && ` · ${device.hostname}`}</div>
+                                            <div className="text-xs text-muted font-mono mt-0.5">SN: {device.serial_number}{device.hostname && ` · ${device.hostname}`}</div>
                                         </div>
                                         <span className={`text-xs px-2 py-0.5 rounded font-medium ${
                                             device.status === 'available' ? 'bg-green-500/10 text-green-700 dark:text-green-400' :
-                                            device.status === 'assigned' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400' :
+                                            device.status === 'assigned' ? 'bg-blue-500/10 text-accent' :
                                             'bg-slate-500/10 text-slate-600 dark:text-slate-400'
                                         }`}>{device.status}</span>
                                     </div>
@@ -412,10 +412,10 @@ const DecommissionPage = () => {
                                 </div>
                                 <div>
                                     <div className="font-semibold text-slate-900 dark:text-white">{selectedDevice.brand} {selectedDevice.model}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">SN: {selectedDevice.serial_number}</div>
+                                    <div className="text-xs text-muted font-mono">SN: {selectedDevice.serial_number}</div>
                                 </div>
                             </div>
-                            <button onClick={handleClearSelection} className="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded hover:bg-red-500/10 transition-colors">
+                            <button onClick={handleClearSelection} className="text-muted hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded hover:bg-red-500/10 transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
@@ -451,7 +451,7 @@ const DecommissionPage = () => {
                                         type="button"
                                         onMouseDown={(e) => e.preventDefault()}
                                         onClick={formatSelectionAsBullets}
-                                        className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                                        className="flex items-center gap-1 text-xs text-accent hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
                                         title="Selecciona las líneas que quieres convertir en viñetas y presiona este botón"
                                     >
                                         <List className="w-3 h-3" />
@@ -483,8 +483,8 @@ const DecommissionPage = () => {
                                         ))}
                                     </select>
                                     {fabricationYear && (
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                                            Tiempo de uso: <span className="text-blue-600 dark:text-blue-400 font-medium">{new Date().getFullYear() - parseInt(fabricationYear)} años</span>
+                                        <p className="text-xs text-muted mt-1.5">
+                                            Tiempo de uso: <span className="text-accent font-medium">{new Date().getFullYear() - parseInt(fabricationYear)} años</span>
                                         </p>
                                     )}
                                 </div>
@@ -522,7 +522,7 @@ const DecommissionPage = () => {
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1.5">
                                                     <Upload className="w-5 h-5 text-slate-500" />
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400">Clic, arrastra o pega (Ctrl+V) una imagen</p>
+                                                    <p className="text-sm text-muted">Clic, arrastra o pega (Ctrl+V) una imagen</p>
                                                     <p className="text-xs text-slate-500">JPG, PNG (Max 5MB)</p>
                                                 </div>
                                             )}
@@ -543,7 +543,7 @@ const DecommissionPage = () => {
                                 <button type="button" onClick={handleClearSelection} className="px-4 py-2 rounded-lg bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 transition-colors">
                                     Cancelar
                                 </button>
-                                <button type="button" onClick={() => setIsSaveTemplateModalOpen(true)} className="px-4 py-2 rounded-lg bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 font-medium border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-colors">
+                                <button type="button" onClick={() => setIsSaveTemplateModalOpen(true)} className="px-4 py-2 rounded-lg bg-bg hover:bg-slate-100 dark:hover:bg-slate-700 text-accent font-medium border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-colors">
                                     <Save className="w-4 h-4" />
                                     Guardar Plantilla
                                 </button>
@@ -560,13 +560,13 @@ const DecommissionPage = () => {
             <div className="bg-surface rounded-md shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-bg/50 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        <FileText className="w-4 h-4 text-muted" />
                         Historial de Bajas
                     </h3>
                     <div className="flex items-center gap-3">
                         {selectedIds.size > 0 && (
                             <>
-                                <span className="text-sm text-blue-600 dark:text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-lg">
+                                <span className="text-sm text-accent font-medium bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-lg">
                                     {selectedIds.size} seleccionado{selectedIds.size > 1 ? 's' : ''}
                                 </span>
                                 <button
@@ -597,12 +597,12 @@ const DecommissionPage = () => {
                                 </button>
                             </>
                         )}
-                        <span className="text-sm text-slate-500 dark:text-slate-400">Total: <span className="text-slate-900 dark:text-white font-medium">{history.length}</span></span>
+                        <span className="text-sm text-muted">Total: <span className="text-slate-900 dark:text-white font-medium">{history.length}</span></span>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+                    <table className="w-full text-left text-sm text-muted">
                         <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                             <tr>
                                 <th className="px-4 py-3 w-10">
@@ -683,7 +683,7 @@ const DecommissionPage = () => {
                                                         </div>
                                                     )}
                                                     <div className="text-xs font-mono text-slate-500">
-                                                        {serial || <span className="italic text-slate-400 dark:text-slate-600">Sin serial</span>}
+                                                        {serial || <span className="italic text-muted">Sin serial</span>}
                                                     </div>
                                                 </div>
                                             );
@@ -695,20 +695,20 @@ const DecommissionPage = () => {
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         {new Date(item.decommission_date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-4 py-3 max-w-xs">
-                                        <div className="truncate" title={item.observations}>{item.observations || <span className="text-slate-400 dark:text-slate-600 italic">-</span>}</div>
+                                    <td className="px-4 py-3 max-w-sm">
+                                        <div className="line-clamp-2 text-xs" title={item.observations}>{item.observations || <span className="text-muted italic">-</span>}</div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <div className="flex items-center justify-center gap-1">
                                             {item.acta_path && (
-                                                <button onClick={() => handleDownloadActa(item)} title="Descargar Acta" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 rounded hover:bg-blue-500/10 transition-colors">
+                                                <button onClick={() => handleDownloadActa(item)} title="Descargar Acta" className="text-muted hover:text-blue-600 dark:hover:text-blue-400 p-1.5 rounded hover:bg-blue-500/10 transition-colors">
                                                     <Download className="w-4 h-4" />
                                                 </button>
                                             )}
-                                            <button onClick={() => handleEdit(item)} title="Editar" className="text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 p-1.5 rounded hover:bg-amber-500/10 transition-colors">
+                                            <button onClick={() => handleEdit(item)} title="Editar" className="text-muted hover:text-amber-600 dark:hover:text-amber-400 p-1.5 rounded hover:bg-amber-500/10 transition-colors">
                                                 <Pencil className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleDelete(item)} title="Eliminar" className="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded hover:bg-red-500/10 transition-colors">
+                                            <button onClick={() => handleDelete(item)} title="Eliminar" className="text-muted hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded hover:bg-red-500/10 transition-colors">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
